@@ -7,7 +7,7 @@ import { AuthProvider } from './context/AuthProvider'
 // CSS
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'react-toastify/dist/ReactToastify.css'
-import './styles/emit-theme.css'
+import './styles/index.css'
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

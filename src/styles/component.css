@@ -1,0 +1,144 @@
+.card-emit {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 10px rgba(26, 58, 107, 0.08);
+  border-left: 4px solid var(--emit-blue-clair);
+}
+
+.card-emit-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.card-emit-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--emit-blue-tres-fonce);
+  margin: 0;
+}
+
+.card-emit-icon {
+  color: var(--emit-blue-clair);
+  font-size: 20px;
+}
+
+.btn-emit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.btn-emit-primary {
+  background: var(--emit-blue-clair);
+  color: white;
+}
+
+.btn-emit-primary:hover {
+  background: var(--emit-blue-clair-hover);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+}
+
+.btn-emit-outline {
+  background: transparent;
+  color: var(--emit-blue-clair);
+  border: 2px solid var(--emit-blue-clair);
+}
+
+.btn-emit-outline:hover {
+  background: var(--emit-blue-clair);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.btn-emit-secondary {
+  background: var(--emit-white-off);
+  color: var(--emit-blue-tres-fonce);
+}
+
+.btn-emit-secondary:hover {
+  background: var(--emit-blue-pale);
+}
+
+.btn-emit-danger {
+  background: var(--emit-danger);
+  color: white;
+}
+
+.btn-emit-danger:hover {
+  background: #C0392B;
+}
+
+.btn-emit-success {
+  background: var(--emit-success);
+  color: white;
+}
+
+.btn-emit-success:hover {
+  background: #219A52;
+}
+
+.btn-sm { padding: 6px 14px; font-size: 12px; }
+.btn-md { padding: 10px 20px; font-size: 14px; }
+.btn-lg { padding: 14px 28px; font-size: 16px; }
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badge-en-attente {
+  background: #FEF3C7;
+  color: #B45309;
+}
+.badge-valide {
+  background: #D1FAE5;
+  color: #065F46;
+}
+.badge-refuse {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+.badge-termine {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.alert {
+  padding: 12px 16px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.alert-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.alert-success {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}

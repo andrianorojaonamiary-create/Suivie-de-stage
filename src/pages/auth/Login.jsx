@@ -20,6 +20,7 @@ function Login() {
     try {
       const user = await login(email, password);
       
+      // ===== REDIRECTION CORRECTE =====
       switch (user.role) {
         case 'ROLE_ADMIN':
           navigate('/admin/dashboard');
@@ -83,7 +84,6 @@ function Login() {
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
-                title="Voir le mot de passe"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -92,11 +92,7 @@ function Login() {
 
           <div className="form-options">
             <div className="form-check">
-              <input
-                type="checkbox"
-                className="form-check-input"
-                id="remember"
-              />
+              <input type="checkbox" className="form-check-input" id="remember" />
               <label className="form-check-label" htmlFor="remember">
                 Se souvenir de moi
               </label>

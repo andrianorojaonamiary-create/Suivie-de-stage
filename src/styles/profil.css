@@ -1,0 +1,165 @@
+/* ===== OVERLAY ===== */
+.profil-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+/* ===== MODAL ===== */
+.profil-modal {
+  background: white;
+  border-radius: 24px;
+  padding: 40px 45px;
+  max-width: 550px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.profil-close {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #6c7a8a;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profil-close:hover {
+  background: #f5f5f5;
+  color: #1A3A6B;
+}
+
+.profil-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1A3A6B;
+  margin: 0 0 5px 0;
+  text-align: center;
+}
+
+.profil-subtitle {
+  font-size: 14px;
+  color: #6c7a8a;
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.profil-form .form-group {
+  margin-bottom: 18px;
+}
+
+.profil-form label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  color: #0D2B52;
+}
+
+.profil-form .form-control {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.5px solid #D6E4F0;
+  border-radius: 10px;
+  font-size: 14px;
+  background: white;
+}
+
+.profil-form .form-control:focus {
+  outline: none;
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.15);
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper .form-control {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6c7a8a;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 8px;
+}
+
+.password-toggle:hover {
+  color: #4A90D9;
+}
+
+.profil-form .alert {
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.profil-form .alert-danger {
+  background: #FEE2E2;
+  color: #991B1B;
+  border: 1px solid #FECACA;
+}
+
+.profil-form .alert-success {
+  background: #D1FAE5;
+  color: #065F46;
+  border: 1px solid #A7F3D0;
+}
+
+.btn-save {
+  width: 100%;
+  padding: 14px;
+  background: #4A90D9;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-save:hover {
+  background: #357ABD;
+}
+
+@media (max-width: 576px) {
+  .profil-modal {
+    padding: 25px 20px;
+    margin: 10px;
+  }
+
+  .profil-title {
+    font-size: 20px;
+  }
+}

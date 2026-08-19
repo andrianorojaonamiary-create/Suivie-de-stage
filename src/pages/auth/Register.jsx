@@ -8,6 +8,7 @@ function Register() {
     nom: '',
     prenom: '',
     email: '',
+    telephone: '',        // ← Ajout du téléphone
     password: '',
     confirmPassword: '',
     role: 'ROLE_ETUDIANT'
@@ -129,6 +130,20 @@ function Register() {
             />
           </div>
 
+          {/* === CHAMP TÉLÉPHONE AJOUTÉ === */}
+          <div className="form-group">
+            <label htmlFor="telephone">Téléphone</label>
+            <input
+              type="tel"
+              id="telephone"
+              name="telephone"
+              className="form-control"
+              placeholder="032 12 345 67"
+              value={formData.telephone}
+              onChange={handleChange}
+            />
+          </div>
+
           <div className="row">
             <div className="col-md-6">
               <div className="form-group">
@@ -224,3 +239,4 @@ function Register() {
 }
 
 export default Register;
+
