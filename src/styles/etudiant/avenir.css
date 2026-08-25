@@ -1,0 +1,847 @@
+/* ============================================================
+   ÉTUDIANT - MON AVENIR
+   ============================================================ */
+
+.etudiant-avenir {
+  padding: 20px 0;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.etudiant-avenir .page-header {
+  margin-bottom: 24px;
+}
+
+.etudiant-avenir .page-header .header-content h1 {
+  font-size: 24px;
+  color: #1A3A6B;
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.etudiant-avenir .page-header .text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+/* ============================================================
+   CARTE AVENIR
+   ============================================================ */
+
+.avenir-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #D6E4F0;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.04);
+  margin-bottom: 20px;
+}
+
+.avenir-card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #F5F8FC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.avenir-card-header h3 {
+  font-size: 16px;
+  color: #1A3A6B;
+  margin: 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avenir-card-body {
+  padding: 20px 24px;
+}
+
+/* ============================================================
+   SITUATION CARDS
+   ============================================================ */
+
+.situation-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.situation-card {
+  background: #F8FAFC;
+  border-radius: 12px;
+  padding: 16px 20px;
+  border: 1px solid #F5F8FC;
+  transition: all 0.2s;
+}
+
+.situation-card:hover {
+  background: #F5F8FC;
+}
+
+.situation-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.situation-card-header .card-icon {
+  font-size: 18px;
+  color: #4A90D9;
+}
+
+.situation-card-header h4 {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin: 0;
+  font-weight: 600;
+}
+
+.situation-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.situation-value {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1A3A6B;
+}
+
+.situation-detail {
+  font-size: 13px;
+  color: #6c7a8a;
+}
+
+.situation-edit-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.situation-edit-grid .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.situation-edit-grid .form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A3A6B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.situation-edit-grid .form-group label svg {
+  color: #4A90D9;
+}
+
+.situation-edit-grid .form-group .form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #D6E4F0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1A3A6B;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.situation-edit-grid .form-group .form-control:focus {
+  outline: none;
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+}
+
+.situation-edit-grid .form-group .form-control[type="date"] {
+  min-height: 44px;
+}
+
+/* ============================================================
+   EMPLOI ACTUEL
+   ============================================================ */
+
+.emploi-display {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.emploi-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding: 8px 0;
+  border-bottom: 1px solid #F5F8FC;
+}
+
+.emploi-item:last-child {
+  border-bottom: none;
+}
+
+.emploi-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c7a8a;
+  min-width: 180px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.emploi-label svg {
+  color: #4A90D9;
+  font-size: 14px;
+}
+
+.emploi-value {
+  font-size: 15px;
+  color: #1A3A6B;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ============================================================
+   PARCOURS TIMELINE
+   ============================================================ */
+
+.parcours-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+/* ===== GROUPE PAR ANNÉE ===== */
+.parcours-year-group {
+  display: flex;
+  align-items: stretch;
+  gap: 16px;
+  position: relative;
+  margin-bottom: 10px;
+}
+
+/* ===== CONTENEUR GAUCHE (CERCLE + LIGNE) ===== */
+.parcours-left-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 48px;
+  flex-shrink: 0;
+}
+
+/* ===== CERCLE AVEC ANNÉE ===== */
+.parcours-year-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #4A90D9;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  z-index: 2;
+}
+
+/* ===== LIGNE VERTICALE ===== */
+.parcours-year-line {
+  width: 2px;
+  background: #D6E4F0;
+  flex: 1;
+  min-height: 20px;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+/* ===== EXPÉRIENCES ===== */
+.parcours-year-items {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 0 8px 0;
+}
+
+.parcours-item {
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 14px 18px;
+  border: 1px solid #F5F8FC;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.parcours-item:hover {
+  background: #F5F8FC;
+}
+
+.parcours-item-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.parcours-entreprise {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A3A6B;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.parcours-poste {
+  font-size: 14px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+.parcours-item-dates {
+  font-size: 13px;
+  color: #4A90D9;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.parcours-item-lieu {
+  font-size: 13px;
+  color: #A0B8D0;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.parcours-item-actions {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+}
+
+/* ============================================================
+   BOUTONS D'ACTION (ÉDITER / SUPPRIMER)
+   ============================================================ */
+
+.btn-edit-item {
+  background: none;
+  border: none;
+  color: #4A90D9;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-edit-item:hover {
+  background: #DBEBF9;
+}
+
+.btn-delete-item {
+  background: none;
+  border: none;
+  color: #E74C3C;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-delete-item:hover {
+  background: #FEE2E2;
+}
+
+/* ============================================================
+   FORMULAIRES
+   ============================================================ */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A3A6B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.form-group label svg {
+  color: #4A90D9;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #D6E4F0;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1A3A6B;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+}
+
+.form-control[type="date"] {
+  min-height: 44px;
+}
+
+/* ============================================================
+   BOUTONS
+   ============================================================ */
+
+.btn-edit-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: #DBEBF9;
+  color: #4A90D9;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-edit-header:hover {
+  background: #4A90D9;
+  color: white;
+}
+
+.btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 16px;
+  background: #4A90D9;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-add:hover {
+  background: #1A3A6B;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #4A90D9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #1A3A6B;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #F5F8FC;
+  color: #6c7a8a;
+  border: 1px solid #D6E4F0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-reset:hover {
+  background: #D6E4F0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+  padding-top: 16px;
+  border-top: 1px solid #F5F8FC;
+}
+
+/* ============================================================
+   ADD JOB FORM & EDIT FORM
+   ============================================================ */
+
+.add-job-form {
+  background: #F8FAFC;
+  border-radius: 8px;
+  padding: 16px 20px;
+  border: 1px solid #D6E4F0;
+  margin-top: 10px;
+}
+
+.add-job-form h4 {
+  font-size: 14px;
+  color: #1A3A6B;
+  margin: 0 0 12px 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edit-parcours-form {
+  width: 100%;
+}
+
+.edit-parcours-form .form-actions {
+  margin-top: 4px;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+
+.empty-state-avenir {
+  text-align: center;
+  padding: 30px 20px;
+}
+
+.empty-state-avenir .empty-icon {
+  font-size: 40px;
+  color: #D6E4F0;
+  margin-bottom: 10px;
+}
+
+.empty-state-avenir p {
+  font-size: 15px;
+  color: #6c7a8a;
+  margin: 0;
+}
+
+.empty-state-avenir .empty-sub {
+  font-size: 13px;
+  color: #A0B8D0;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.avenir-footer {
+  text-align: center;
+  padding: 30px 20px 20px;
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #D6E4F0;
+  margin-top: 20px;
+}
+
+.avenir-footer .footer-icon {
+  font-size: 40px;
+  color: #4A90D9;
+  margin-bottom: 12px;
+}
+
+.avenir-footer h3 {
+  font-size: 18px;
+  color: #1A3A6B;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+}
+
+.avenir-footer p {
+  font-size: 14px;
+  color: #6c7a8a;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 992px) {
+  .situation-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .etudiant-avenir .page-header .header-content h1 {
+    font-size: 20px;
+  }
+
+  .situation-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .situation-edit-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .situation-card {
+    padding: 14px 16px;
+  }
+
+  .emploi-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .emploi-label {
+    min-width: unset;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .form-actions .btn-primary,
+  .form-actions .btn-reset {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .add-job-form .form-actions {
+    flex-direction: column;
+  }
+
+  .add-job-form .form-actions .btn-primary,
+  .add-job-form .form-actions .btn-reset {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btn-edit-header {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .btn-add {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .avenir-card-header {
+    padding: 14px 18px;
+  }
+
+  .avenir-card-body {
+    padding: 16px 18px;
+  }
+
+  .edit-parcours-form .form-actions {
+    flex-direction: column;
+  }
+
+  .edit-parcours-form .form-actions .btn-primary,
+  .edit-parcours-form .form-actions .btn-reset {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* ===== PARCOURS RESPONSIVE ===== */
+  .parcours-year-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .parcours-left-col {
+    flex-direction: row;
+    min-width: unset;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .parcours-year-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 12px;
+  }
+
+  .parcours-year-line {
+    display: none;
+  }
+
+  .parcours-year-items {
+    padding-left: 0;
+    width: 100%;
+  }
+
+  .parcours-item {
+    padding: 12px 16px;
+  }
+
+  .parcours-item-actions {
+    position: relative;
+    top: unset;
+    right: unset;
+    margin-top: 8px;
+    justify-content: flex-start;
+  }
+
+  .parcours-entreprise {
+    font-size: 14px;
+  }
+
+  .parcours-poste {
+    font-size: 13px;
+  }
+
+  .parcours-item-dates {
+    font-size: 12px;
+  }
+
+  .parcours-item-lieu {
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .etudiant-avenir .page-header .header-content h1 {
+    font-size: 18px;
+  }
+
+  .parcours-year-circle {
+    width: 36px;
+    height: 36px;
+    font-size: 11px;
+  }
+
+  .parcours-entreprise {
+    font-size: 13px;
+  }
+
+  .parcours-poste {
+    font-size: 12px;
+  }
+
+  .parcours-item-dates {
+    font-size: 11px;
+  }
+
+  .parcours-item-lieu {
+    font-size: 11px;
+  }
+
+  .emploi-value {
+    font-size: 14px;
+  }
+
+  .situation-value {
+    font-size: 14px;
+  }
+
+  .situation-detail {
+    font-size: 12px;
+  }
+
+  .add-job-form {
+    padding: 14px 16px;
+  }
+
+  .add-job-form h4 {
+    font-size: 13px;
+  }
+
+  .situation-edit-grid {
+    gap: 12px;
+  }
+
+  .avenir-footer h3 {
+    font-size: 16px;
+  }
+
+  .avenir-footer p {
+    font-size: 13px;
+  }
+
+  .empty-state-avenir .empty-icon {
+    font-size: 32px;
+  }
+
+  .empty-state-avenir p {
+    font-size: 14px;
+  }
+
+  .btn-edit-item,
+  .btn-delete-item {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+
+  .parcours-item {
+    padding: 10px 14px;
+  }
+}

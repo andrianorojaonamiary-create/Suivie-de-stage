@@ -1,195 +1,269 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { FaTimes, FaEye, FaEyeSlash } from 'react-icons/fa';
+import { 
+  FaUserCircle, FaEnvelope, FaPhone, FaBuilding, 
+  FaLock, FaSave, FaUser, FaBook, FaGraduationCap, FaBriefcase,
+  FaIdCard, FaMapMarkerAlt, FaGlobe,FaChalkboardTeacher ,FaShieldAlt
+} from 'react-icons/fa';
 
 function Profil() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  const [showPassword, setShowPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
 
-  const [formData, setFormData] = useState({
-    nom: user?.nom || '',
-    prenom: user?.prenom || '',
-    email: user?.email || '',
-    telephone: user?.telephone || '',
-    password: '',
-    newPassword: '',
-    confirmNewPassword: '',
+  const getProfileData = () => {
+    const role = user?.role;
+    
+    const common = {
+      nom: user?.nom || 'Randriamaro',
+      prenom: user?.prenom || 'Jean',
+      email: user?.email || 'j.randriamaro@emit.mg',
+      telephone: user?.telephone || '+261 34 12 345 67',
+      role: role || 'ROLE_ADMIN',
+      membreDepuis: 'Septembre 2023',
+    };
+
+    const roleData = {
+      'ROLE_ADMIN': {
+        ...common,
+        departement: 'Administration centrale',
+        staffId: 'ADM-2024-001',
+      },
+      'ROLE_ETUDIANT': {
+        ...common,
+        matricule: 'ETU-2024-0421',
+        niveau: 'Master 2',
+        filiere: 'Génie Logiciel',
+        ville: 'Fianarantsoa',
+      },
+      'ROLE_ENSEIGNANT': {
+        ...common,
+        grade: 'Professeur',
+        departement: 'Informatique',
+        specialite: 'Génie logiciel',
+        staffId: 'ENS-2024-042',
+      },
+      'ROLE_ENCADREUR': {
+        ...common,
+        entreprise: 'TechMada SARL',
+        poste: 'Directeur technique',
+        adresse: 'Lot II M 77, Antananarivo',
+        secteur: 'Technologies de l\'information',
+      },
+    };
+
+    return roleData[role] || roleData['ROLE_ADMIN'];
+  };
+
+  const [profile, setProfile] = useState(getProfileData());
+  const [showPassForm, setShowPassForm] = useState(false);
+  const [passwords, setPasswords] = useState({
+    current: '',
+    new: '',
+    confirm: '',
   });
+
+  const getRoleLabel = (role) => {
+    switch (role) {
+      case 'ROLE_ADMIN': return 'Administrateur';
+      case 'ROLE_ETUDIANT': return 'Étudiant';
+      case 'ROLE_ENSEIGNANT': return 'Enseignant';
+      case 'ROLE_ENCADREUR': return 'Encadreur';
+      default: return role;
+    }
+  };
+
+  // ===== COULEUR GRISE POUR TOUS LES RÔLES =====
+  const roleColor = '#4A90D9';
+
+  const getRoleIcon = (role) => {
+    switch (role) {
+      case 'ROLE_ADMIN': return <FaShieldAlt />;
+      case 'ROLE_ETUDIANT': return <FaGraduationCap />;
+      case 'ROLE_ENSEIGNANT': return <FaChalkboardTeacher />;
+      case 'ROLE_ENCADREUR': return <FaBriefcase />;
+      default: return <FaUserCircle />;
+    }
+  };
+
+  const getRoleFields = () => {
+    const role = profile.role;
+    const fields = [];
+
+    // ===== CHAMPS COMMUNS AVEC ICÔNES GRISES =====
+    fields.push(
+      { name: 'nom', label: 'Nom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
+      { name: 'prenom', label: 'Prénom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
+      { name: 'email', label: 'Email', icon: <FaEnvelope style={{ color: '#A0B8D0' }} />, type: 'email' },
+      { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel' },
+    );
+
+    if (role === 'ROLE_ADMIN') {
+      fields.push(
+        { name: 'departement', label: 'Service', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
+        { name: 'staffId', label: 'Matricule', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
+      );
+    } else if (role === 'ROLE_ETUDIANT') {
+      fields.push(
+        { name: 'matricule', label: 'Numéro étudiant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
+        { name: 'niveau', label: 'Niveau', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} /> },
+        { name: 'filiere', label: 'Filière', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
+        { name: 'ville', label: 'Ville de résidence', icon: <FaMapMarkerAlt style={{ color: '#A0B8D0' }} /> },
+      );
+    } else if (role === 'ROLE_ENSEIGNANT') {
+      fields.push(
+        { name: 'grade', label: 'Grade', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} /> },
+        { name: 'departement', label: 'Département', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
+        { name: 'specialite', label: 'Spécialité', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
+        { name: 'staffId', label: 'Numéro enseignant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
+      );
+    } else if (role === 'ROLE_ENCADREUR') {
+      fields.push(
+        { name: 'entreprise', label: "Nom de l'entreprise", icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
+        { name: 'poste', label: 'Fonction', icon: <FaBriefcase style={{ color: '#A0B8D0' }} /> },
+        { name: 'adresse', label: "Adresse de l'entreprise", icon: <FaMapMarkerAlt style={{ color: '#A0B8D0' }} /> },
+        { name: 'secteur', label: "Secteur d'activité", icon: <FaGlobe style={{ color: '#A0B8D0' }} /> },
+      );
+    }
+
+    return fields;
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setProfile(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setError('');
-    setSuccess('');
+  const handlePasswordChange = (e) => {
+    const { name, value } = e.target;
+    setPasswords(prev => ({ ...prev, [name]: value }));
+  };
 
-    if (formData.newPassword && formData.newPassword !== formData.confirmNewPassword) {
-      setError('Les mots de passe ne correspondent pas');
+  const handleSave = () => {
+    alert('✅ Profil mis à jour avec succès !');
+  };
+
+  const handlePasswordUpdate = () => {
+    if (passwords.new !== passwords.confirm) {
+      alert('Les mots de passe ne correspondent pas');
       return;
     }
-
-    if (formData.newPassword && formData.newPassword.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
-      return;
-    }
-
-    setSuccess('✅ Profil mis à jour avec succès !');
-    setTimeout(() => setSuccess(''), 3000);
+    setShowPassForm(false);
+    setPasswords({ current: '', new: '', confirm: '' });
+    alert('✅ Mot de passe mis à jour !');
   };
 
-  const handleClose = () => {
-    navigate(-1);
-  };
+  const roleLabel = getRoleLabel(profile.role);
+  const roleIcon = getRoleIcon(profile.role);
+  const roleFields = getRoleFields();
 
   return (
-    <div className="profil-overlay" onClick={handleClose}>
-      <div className="profil-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="profil-close" onClick={handleClose}>
-          <FaTimes />
-        </button>
+    <div className="profil-page-container">
+      <div className="profil-header">
+        <h2>Mon profil</h2>
+        <p className="text-muted">Gérez vos informations personnelles</p>
+      </div>
 
-        {/* ===== TITRE UNIQUEMENT ===== */}
-        <h2 className="profil-title">Mon profil</h2>
-        <p className="profil-subtitle">Gérez vos informations personnelles</p>
+      <div className="profil-card">
+        <div className="profil-avatar-section">
+          <div className="profil-avatar" style={{ backgroundColor: roleColor }}>
+            {roleIcon}
+          </div>
+          <div className="profil-avatar-info">
+            <span className="profil-name">{profile.prenom} {profile.nom}</span>
+            <span className="profil-role-badge" style={{ backgroundColor: '#F5F8FC', color: '#4A90D9' }}>
+              {roleLabel}
+            </span>
+          </div>
+        </div>
 
-        {error && <div className="alert alert-danger">{error}</div>}
-        {success && <div className="alert alert-success">{success}</div>}
-
-        <form onSubmit={handleSubmit} className="profil-form">
-          {/* Nom */}
-          <div className="form-group">
-            <label htmlFor="nom">Nom</label>
-            <input
-              type="text"
-              id="nom"
-              name="nom"
-              className="form-control"
-              value={formData.nom}
-              onChange={handleChange}
-            />
+        <div className="profil-form-container">
+          <div className="profil-form-grid">
+            {roleFields.map((field, index) => (
+              <div key={index} className={`profil-form-group ${field.name === 'email' || field.name === 'telephone' ? 'full-width' : ''}`}>
+                <label>
+                  <span style={{ color: '#A0B8D0', marginRight: '8px', fontSize: '16px' }}>
+                    {field.icon}
+                  </span>
+                  {field.label}
+                </label>
+                <input
+                  type={field.type || 'text'}
+                  name={field.name}
+                  value={profile[field.name] || ''}
+                  onChange={handleChange}
+                  className="profil-input"
+                  placeholder={field.label}
+                />
+              </div>
+            ))}
           </div>
 
-          {/* Prénom */}
-          <div className="form-group">
-            <label htmlFor="prenom">Prénom</label>
-            <input
-              type="text"
-              id="prenom"
-              name="prenom"
-              className="form-control"
-              value={formData.prenom}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Email */}
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="form-control"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Téléphone */}
-          <div className="form-group">
-            <label htmlFor="telephone">Téléphone</label>
-            <input
-              type="tel"
-              id="telephone"
-              name="telephone"
-              className="form-control"
-              value={formData.telephone}
-              onChange={handleChange}
-            />
-          </div>
-
-          {/* Mot de passe actuel */}
-          <div className="form-group">
-            <label htmlFor="password">Mot de passe actuel</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                name="password"
-                className="form-control"
-                placeholder="Entrez votre mot de passe actuel"
-                value={formData.password}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-          </div>
-
-          {/* Nouveau mot de passe */}
-          <div className="form-group">
-            <label htmlFor="newPassword">Nouveau mot de passe</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showNewPassword ? 'text' : 'password'}
-                id="newPassword"
-                name="newPassword"
-                className="form-control"
-                placeholder="Nouveau mot de passe"
-                value={formData.newPassword}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowNewPassword(!showNewPassword)}
-              >
-                {showNewPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-          </div>
-
-          {/* Confirmation nouveau mot de passe */}
-          <div className="form-group">
-            <label htmlFor="confirmNewPassword">Confirmer le mot de passe</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showConfirmPassword ? 'text' : 'password'}
-                id="confirmNewPassword"
-                name="confirmNewPassword"
-                className="form-control"
-                placeholder="Confirmer"
-                value={formData.confirmNewPassword}
-                onChange={handleChange}
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-              >
-                {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
-            </div>
-          </div>
-
-          <button type="submit" className="btn-save">
-            Enregistrer les modifications
+          <button className="profil-save-btn" onClick={handleSave}>
+            <FaSave /> Enregistrer les modifications
           </button>
-        </form>
+        </div>
+      </div>
+
+      <div className="profil-security-card">
+        <div className="profil-security-header">
+          <h3><FaLock /> Sécurité</h3>
+        </div>
+        <div className="profil-security-body">
+          {!showPassForm ? (
+            <div className="profil-security-row">
+              <div>
+                <div className="profil-security-label">Mot de passe</div>
+                <div className="profil-security-sub">Dernière modification il y a 3 mois</div>
+              </div>
+              <button className="profil-password-btn" onClick={() => setShowPassForm(true)}>
+                Changer le mot de passe
+              </button>
+            </div>
+          ) : (
+            <div className="profil-password-form">
+              <div className="profil-form-group">
+                <label>Mot de passe actuel</label>
+                <input
+                  type="password"
+                  name="current"
+                  placeholder="••••••••"
+                  value={passwords.current}
+                  onChange={handlePasswordChange}
+                  className="profil-input"
+                />
+              </div>
+              <div className="profil-form-group">
+                <label>Nouveau mot de passe</label>
+                <input
+                  type="password"
+                  name="new"
+                  placeholder="••••••••"
+                  value={passwords.new}
+                  onChange={handlePasswordChange}
+                  className="profil-input"
+                />
+              </div>
+              <div className="profil-form-group">
+                <label>Confirmer le nouveau mot de passe</label>
+                <input
+                  type="password"
+                  name="confirm"
+                  placeholder="••••••••"
+                  value={passwords.confirm}
+                  onChange={handlePasswordChange}
+                  className="profil-input"
+                />
+              </div>
+              <div className="profil-password-actions">
+                <button className="profil-save-btn" onClick={handlePasswordUpdate}>
+                  Mettre à jour
+                </button>
+                <button className="profil-cancel-btn" onClick={() => setShowPassForm(false)}>
+                  Annuler
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

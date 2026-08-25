@@ -1,36 +1,107 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
-import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import { 
+  FaEye, FaEyeSlash, FaArrowLeft, FaArrowRight, FaCheck,
+  FaGraduationCap, FaChalkboardTeacher, FaUserTie
+} from 'react-icons/fa';
+import logo from '../../assets/logo_emit.jpg';  // ← Import du logo
 
 function Register() {
-  const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',        // ← Ajout du téléphone
-    password: '',
-    confirmPassword: '',
-    role: 'ROLE_ETUDIANT'
-  });
+  const { register } = useAuth();
+  const navigate = useNavigate();
+
+  const [step, setStep] = useState(1);
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [formData, setFormData] = useState({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const { register } = useAuth();
-  const navigate = useNavigate();
+  const [agreed, setAgreed] = useState(false);
 
-  const roles = [
-    { value: 'ROLE_ADMIN', label: 'Administrateur' },
-    { value: 'ROLE_ETUDIANT', label: 'Étudiant' },
-    { value: 'ROLE_ENSEIGNANT', label: 'Enseignant' },
-    { value: 'ROLE_ENCADREUR', label: 'Encadreur (entreprise)' }
+  const roleOptions = [
+    { 
+      value: 'ROLE_ETUDIANT', 
+      label: 'Étudiant', 
+      desc: 'Déclarez et suivez votre stage',
+      Icon: FaGraduationCap,
+      color: '#4A90D9', 
+      bg: '#E8F0FE' 
+    },
+    { 
+      value: 'ROLE_ENSEIGNANT', 
+      label: 'Enseignant', 
+      desc: 'Supervisez et évaluez les étudiants',
+      Icon: FaChalkboardTeacher,
+      color: '#1A3A6B', 
+      bg: '#D6E4F0' 
+    },
+    { 
+      value: 'ROLE_ENCADREUR', 
+      label: 'Encadreur', 
+      desc: 'Accédez au profil du stagiaire',
+      Icon: FaUserTie,
+      color: '#5BA3E6', 
+      bg: '#E8F4FD' 
+    },
   ];
+
+  const getFieldsByRole = (role) => {
+    const common = [
+      { name: 'nom', label: 'Nom', placeholder: 'Votre nom', required: true },
+      { name: 'prenom', label: 'Prénom', placeholder: 'Votre prénom', required: true },
+      { name: 'email', label: 'Email', placeholder: 'votre.email@exemple.com', type: 'email', required: true },
+      { name: 'telephone', label: 'Téléphone', placeholder: '+261 32 00 111 22', type: 'tel' },
+    ];
+
+    const roleFields = {
+      'ROLE_ETUDIANT': [
+        ...common,
+        { name: 'matricule', label: 'Numéro étudiant', placeholder: 'ETU-2024-0421', required: true },
+        { name: 'niveau', label: 'Niveau', placeholder: 'Master 2', required: true },
+        { name: 'filiere', label: 'Filière', placeholder: 'Génie Logiciel', required: true },
+      ],
+      'ROLE_ENSEIGNANT': [
+        ...common,
+        { name: 'grade', label: 'Grade', placeholder: 'Professeur / Dr.', required: true },
+        { name: 'departement', label: 'Département', placeholder: 'Informatique', required: true },
+        { name: 'specialite', label: 'Spécialité', placeholder: 'Génie logiciel', required: true },
+      ],
+      'ROLE_ENCADREUR': [
+        ...common,
+        { name: 'entreprise', label: "Nom de l'entreprise", placeholder: 'TechMada SARL', required: true },
+        { name: 'poste', label: 'Fonction', placeholder: 'Directeur technique', required: true },
+        { name: 'adresse', label: "Adresse de l'entreprise", placeholder: 'Lot II M 77, Antananarivo' },
+      ],
+    };
+
+    return roleFields[role] || common;
+  };
+
+  const selectedRoleMeta = roleOptions.find(r => r.value === selectedRole);
+  const fields = selectedRole ? getFieldsByRole(selectedRole) : [];
+
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setFormData({});
+    setStep(2);
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleNext = () => {
+    if (step === 2) setStep(3);
+  };
+
+  const handleBack = () => {
+    if (step === 2) setStep(1);
+    else if (step === 3) setStep(2);
+    else navigate('/login');
   };
 
   const handleSubmit = async (e) => {
@@ -39,31 +110,29 @@ function Register() {
     setSuccess('');
     setIsLoading(true);
 
+    if (!agreed) {
+      setError('Vous devez accepter les conditions.');
+      setIsLoading(false);
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Les mots de passe ne correspondent pas');
       setIsLoading(false);
       return;
     }
 
-    if (formData.password.length < 6) {
+    if (formData.password && formData.password.length < 6) {
       setError('Le mot de passe doit contenir au moins 6 caractères');
       setIsLoading(false);
       return;
     }
 
     try {
-      const userData = { nom: formData.nom,
-                         prenom: formData.prenom,
-                         email: formData.email,
-                         password: formData.password,
-                         role: formData.role
-       } ;
+      const userData = { ...formData, role: selectedRole };
       await register(userData);
-      setSuccess('Inscription réussie ! Redirection vers la connexion...');
-      
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      setSuccess('Inscription réussie ! Redirection...');
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
       setError(err.message || "Erreur lors de l'inscription");
     } finally {
@@ -71,167 +140,216 @@ function Register() {
     }
   };
 
+  const passwordFields = [
+    { name: 'password', label: 'Mot de passe', placeholder: 'Minimum 6 caractères', type: 'password', required: true },
+    { name: 'confirmPassword', label: 'Confirmer le mot de passe', placeholder: 'Répéter', type: 'password', required: true },
+  ];
+
+  const steps = [
+    { id: 1, label: 'Rôle', desc: 'Sélectionner votre rôle dans la plateforme' },
+    { id: 2, label: 'Informations', desc: 'Vos informations personnelles' },
+    { id: 3, label: 'Confirmation', desc: 'Votre compte sera créé avec succès' },
+  ];
+
+  const getProgressWidth = () => {
+    if (step === 1) return 33.33;
+    if (step === 2) return 66.66;
+    return 100;
+  };
+
+  const progressWidth = getProgressWidth();
+
   return (
-    <div className="register-container">
-      <div className="register-card">
-        <div className="register-header">
-          <h1>Inscription</h1>
-          <p className="subtitle">Créez votre compte</p>
+    <div className="register-page-container">
+      {/* GAUCHE */}
+      <div className="register-left-panel">
+        <div className="register-left-content">
+          <div className="register-brand">
+            <div className="register-logo-box">
+              <img src={logo} alt="EMIT" className="register-logo-img" />  {/* ← Logo à la place du "E" */}
+            </div>
+            <div>
+              <div className="register-brand-name">EMIT</div>
+              <div className="register-brand-location">Fianarantsoa</div>
+            </div>
+          </div>
+
+          <h2 className="register-left-title">Créer un compte</h2>
+          <p className="register-left-subtitle">Rejoignez la plateforme de suivi des stages</p>
+
+          <div className="register-steps-container">
+            {steps.map((s, index) => {
+              const isActive = step === s.id;
+              const isDone = step > s.id;
+              return (
+                <div key={s.id} className="register-step-item">
+                  <div className={`register-step-circle ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}>
+                    {isDone ? <FaCheck /> : s.id}
+                  </div>
+                  <div className="register-step-info">
+                    <span className={`register-step-label ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}>
+                      {s.label}
+                    </span>
+                    <span className={`register-step-desc ${isActive ? 'active' : ''} ${isDone ? 'done' : ''}`}>
+                      {s.desc}
+                    </span>
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`register-step-line ${isDone ? 'done' : ''}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="register-form">
-          {error && <div className="alert alert-danger">{error}</div>}
-          {success && <div className="alert alert-success">{success}</div>}
-          
-          <div className="row">
-            <div className="col-md-6">
-              <div className="form-group">
-                <label htmlFor="nom">Nom</label>
-                <input
-                  type="text"
-                  id="nom"
-                  name="nom"
-                  className="form-control"
-                  placeholder="Votre nom"
-                  value={formData.nom}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="form-group">
-                <label htmlFor="prenom">Prénom</label>
-                <input
-                  type="text"
-                  id="prenom"
-                  name="prenom"
-                  className="form-control"
-                  placeholder="Votre prénom"
-                  value={formData.prenom}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-          </div>
+        <div className="register-footer-copyright">
+          <p>© 2026 EMIT — Fianarantsoa</p>
+        </div>
+      </div>
 
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              type="email"
-              id="email"
-              name="email"
-              className="form-control"
-              placeholder="votre.email@exemple.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          {/* === CHAMP TÉLÉPHONE AJOUTÉ === */}
-          <div className="form-group">
-            <label htmlFor="telephone">Téléphone</label>
-            <input
-              type="tel"
-              id="telephone"
-              name="telephone"
-              className="form-control"
-              placeholder="032 12 345 67"
-              value={formData.telephone}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="row">
-            <div className="col-md-6">
-              <div className="form-group">
-                <label htmlFor="password">Mot de passe</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    id="password"
-                    name="password"
-                    className="form-control"
-                    placeholder="*********"
-                    value={formData.password}
-                    onChange={handleChange}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowPassword(!showPassword)}
-                    title="Voir le mot de passe"
-                  >
-                    {showPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="col-md-6">
-              <div className="form-group">
-                <label htmlFor="confirmPassword">Confirmer le mot de passe</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    className="form-control"
-                    placeholder="*********"
-                    value={formData.confirmPassword}
-                    onChange={handleChange}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    title="Voir le mot de passe"
-                  >
-                    {showConfirmPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="role">Rôle</label>
-            <select
-              id="role"
-              name="role"
-              className="form-select"
-              value={formData.role}
-              onChange={handleChange}
-              required
-            >
-              <option value="">Sélectionnez votre rôle</option>
-              {roles.map(role => (
-                <option key={role.value} value={role.value}>
-                  {role.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button type="submit" className="btn-register" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Inscription...
-              </>
-            ) : (
-              "S'inscrire"
-            )}
+      {/* DROITE */}
+      <div className="register-right-panel">
+        <div className="register-form-card">
+          <button className="register-back-btn" onClick={handleBack}>
+            <FaArrowLeft className="back-icon" /> Retour
           </button>
-        </form>
 
-        <div className="register-footer">
-          <p>
-            Vous avez déjà un compte ? <Link to="/login">Se connecter</Link>
-          </p>
+          <div className="register-header-section">
+            <div className="register-title-wrapper">
+              {/* DROITE <span className="register-title-icon">📝</span>*/}
+              <h2 className="register-page-title">Inscription</h2>
+            </div>
+            <p className="register-page-subtitle">Créez votre compte en quelques étapes</p>
+          </div>
+
+          <div className="register-progress-wrapper">
+            <div className="register-progress-track">
+              <div className="register-progress-fill" style={{ width: `${progressWidth}%` }} />
+            </div>
+          </div>
+
+          {step === 1 && (
+            <>
+              <h2 className="register-form-title">Choisissez votre rôle</h2>
+              <p className="register-form-subtitle">Sélectionnez le type de compte adapté à votre situation.</p>
+
+              <div className="register-role-list">
+                {roleOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    className={`role-card ${selectedRole === opt.value ? 'selected' : ''}`}
+                    onClick={() => handleRoleSelect(opt.value)}
+                  >
+                    <span className="role-icon" style={{ backgroundColor: opt.bg, color: opt.color }}>
+                      <opt.Icon size={24} />
+                    </span>
+                    <div className="role-info">
+                      <div className="role-label">{opt.label}</div>
+                      <div className="role-desc">{opt.desc}</div>
+                    </div>
+                    <div className={`role-check ${selectedRole === opt.value ? 'checked' : ''}`}>
+                      {selectedRole === opt.value && <FaCheck />}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+
+          {step === 2 && selectedRole && (
+            <>
+              <h2 className="register-form-title">{selectedRoleMeta?.label}</h2>
+              <p className="register-form-subtitle">Renseignez vos informations</p>
+
+              <form className="register-form">
+                {fields.map((field) => (
+                  <div key={field.name} className="form-group">
+                    <label>{field.label} {field.required && <span className="required">*</span>}</label>
+                    <input
+                      type={field.type || 'text'}
+                      name={field.name}
+                      placeholder={field.placeholder}
+                      value={formData[field.name] || ''}
+                      onChange={handleChange}
+                      required={field.required}
+                    />
+                  </div>
+                ))}
+                {passwordFields.map((field) => (
+                  <div key={field.name} className="form-group">
+                    <label>{field.label} <span className="required">*</span></label>
+                    <div className="password-input-wrapper">
+                      <input
+                        type={field.name === 'password' ? (showPassword ? 'text' : 'password') : (showConfirmPassword ? 'text' : 'password')}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        value={formData[field.name] || ''}
+                        onChange={handleChange}
+                        required
+                      />
+                      <button
+                        type="button"
+                        className="password-toggle"
+                        onClick={() => {
+                          if (field.name === 'password') setShowPassword(!showPassword);
+                          else setShowConfirmPassword(!showConfirmPassword);
+                        }}
+                      >
+                        {field.name === 'password' ? (showPassword ? <FaEyeSlash /> : <FaEye />) : (showConfirmPassword ? <FaEyeSlash /> : <FaEye />)}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+                {formData.password && formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                  <p className="error-text">Les mots de passe ne correspondent pas.</p>
+                )}
+                <button type="button" className="register-next-btn" onClick={handleNext}>
+                  Continuer <FaArrowRight />
+                </button>
+              </form>
+            </>
+          )}
+
+          {step === 3 && selectedRole && (
+            <form onSubmit={handleSubmit}>
+              <h2 className="register-form-title">Confirmation</h2>
+              <p className="register-form-subtitle">Vérifiez vos informations</p>
+
+              {error && <div className="alert alert-danger">{error}</div>}
+              {success && <div className="alert alert-success">{success}</div>}
+
+              <div className="confirm-card">
+                <div className="confirm-header">
+                  <span className="confirm-role-icon" style={{ backgroundColor: selectedRoleMeta?.bg, color: selectedRoleMeta?.color }}>
+                    {selectedRoleMeta && <selectedRoleMeta.Icon size={18} />}
+                  </span>
+                  {selectedRoleMeta?.label}
+                </div>
+                <div className="confirm-body">
+                  {fields.filter(f => formData[f.name]).map((field) => (
+                    <div key={field.name} className="confirm-item">
+                      <span className="confirm-label">{field.label}</span>
+                      <span className="confirm-value">{formData[field.name]}</span>
+                    </div>
+                  ))}
+                  <div className="confirm-item">
+                    <span className="confirm-label">Mot de passe</span>
+                    <span className="confirm-value">••••••••</span>
+                  </div>
+                </div>
+              </div>
+
+              <label className="cgu-label">
+                <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+                <span>J'accepte les conditions d'utilisation</span>
+              </label>
+
+              <button type="submit" className="register-submit-btn" disabled={!agreed || isLoading}>
+                {isLoading ? 'Création...' : 'Créer mon compte'}
+              </button>
+            </form>
+          )}
         </div>
       </div>
     </div>
@@ -239,4 +357,3 @@ function Register() {
 }
 
 export default Register;
-

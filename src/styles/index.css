@@ -4,3 +4,8 @@
 @import './dashboard.css';
 @import './component.css';
 @import './profil.css';
+@import './notifications.css';
+@import './map.css';
+@import './etudiant/index.css';
+@import './rapport-gestion.css';
+@import './enseignant/index.css';

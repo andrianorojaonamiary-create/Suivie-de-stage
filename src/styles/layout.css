@@ -5,14 +5,14 @@
   --sidebar-width: 240px;
   --sidebar-collapsed-width: 70px;
   --header-height: 70px;
-  --emit-blue-fonce: #1A3A6B;
+  --emit-blue-tres-fonce: #0A1E3A;
+  --emit-blue-fonce: #0D2B52;
+  --emit-blue-moyen: #1A3A6B;
   --emit-blue-clair: #4A90D9;
   --emit-blue-clair-hover: #357ABD;
   --emit-blue-pale: #D6E4F0;
-  --emit-blue-tres-fonce: #0D2B52;
   --emit-white-off: #F5F8FC;
   --emit-white: #FFFFFF;
-  --emit-success: #27AE60;
   --emit-danger: #E74C3C;
 }
 
@@ -33,7 +33,7 @@
 }
 
 /* ============================================================
-   SIDEBAR - Menu latéral bleu foncé
+   SIDEBAR - Dégradé foncé
    ============================================================ */
 .sidebar-emit {
   position: fixed;
@@ -41,25 +41,21 @@
   top: 0;
   width: var(--sidebar-width);
   height: 100vh;
-  background: var(--emit-blue-fonce);
+  background: linear-gradient(180deg, #0A1E3A 0%, #0D2B52 50%, #1A3A6B 100%);
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
   z-index: 1000;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
-/* ---- Sidebar réduit ---- */
 .sidebar-emit.collapsed {
   width: var(--sidebar-collapsed-width);
 }
 
-.sidebar-emit.collapsed .sidebar-label {
-  display: none;
-}
-
-.sidebar-emit.collapsed .sidebar-toggle-label {
+.sidebar-emit.collapsed .sidebar-label,
+.sidebar-emit.collapsed .sidebar-toggle-label,
+.sidebar-emit.collapsed .sidebar-logo-text-group {
   display: none;
 }
 
@@ -68,48 +64,59 @@
   padding: 12px 0;
 }
 
-.sidebar-emit.collapsed .sidebar-logo-text {
-  display: none;
-}
-
 .sidebar-emit.collapsed .sidebar-logo {
   justify-content: center;
   padding: 16px 0;
 }
 
-/* ---- Quand sidebar est réduit, le contenu se décale ---- */
 .sidebar-emit.collapsed + .layout-right {
   margin-left: var(--sidebar-collapsed-width);
 }
 
 /* ============================================================
-   LOGO DANS LE MENU
+   LOGO - EMIT Stage Manager
    ============================================================ */
 .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   min-height: 70px;
   flex-shrink: 0;
 }
 
 .sidebar-logo-img {
   height: 40px;
-  width: auto;
+  width: 40px;
+  border-radius: 10px;
+  object-fit: cover;
   flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.08);
+}
+
+.sidebar-logo-text-group {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
 }
 
 .sidebar-logo-text {
   color: white;
-  font-size: 16px;
-  font-weight: 600;
-  white-space: nowrap;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+.sidebar-logo-subtitle {
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.5px;
 }
 
 /* ============================================================
-   NAVIGATION DU MENU
+   NAVIGATION
    ============================================================ */
 .sidebar-nav {
   flex: 1;
@@ -117,53 +124,55 @@
   overflow-y: auto;
 }
 
-/* ---- Lien normal ---- */
 .sidebar-link {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 10px 16px;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.55);
   text-decoration: none;
   font-size: 14px;
   font-weight: 400;
-  transition: all 0.2s;
+  transition: all 0.25s ease;
   white-space: nowrap;
   overflow: hidden;
   cursor: pointer;
   margin-bottom: 2px;
+  border-left: 3px solid transparent;
 }
 
 .sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.06);
   color: white;
 }
 
-/* ---- Lien ACTIF (bleu clair) ---- */
+.sidebar-link:hover .sidebar-icon {
+  transform: scale(1.15);
+  color: white;
+}
+
 .sidebar-link.active {
-  background: #4A90D9 !important;
-  color: white !important;
+  background: rgba(74, 144, 217, 0.15);
+  color: white;
+  transform: scale(1.05);
 }
 
 .sidebar-link.active .sidebar-icon {
-  color: white !important;
+  color: white;
+  transform: scale(1.1);
 }
 
-.sidebar-link.active:hover {
-  background: #357ABD !important;
+.sidebar-link.active .sidebar-label {
+  color: white;
 }
 
-/* ---- Icônes ---- */
 .sidebar-icon {
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.35);
   flex-shrink: 0;
   min-width: 20px;
-}
-
-.sidebar-link.active .sidebar-icon {
-  color: white !important;
+  transition: all 0.25s ease;
 }
 
 .sidebar-label {
@@ -173,19 +182,19 @@
 }
 
 /* ============================================================
-   BOUTON RÉDUIRE EN BAS
+   BOUTON RÉDUIRE
    ============================================================ */
 .sidebar-toggle-bottom {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 12px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   background: none;
   border-left: none;
   border-right: none;
   border-bottom: none;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.45);
   cursor: pointer;
   transition: all 0.2s;
   font-size: 14px;
@@ -195,13 +204,18 @@
 }
 
 .sidebar-toggle-bottom:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   color: white;
+}
+
+.sidebar-toggle-bottom:hover .sidebar-toggle-icon {
+  transform: scale(1.15);
 }
 
 .sidebar-toggle-icon {
   font-size: 16px;
   flex-shrink: 0;
+  transition: transform 0.25s ease;
 }
 
 .sidebar-toggle-label {
@@ -209,7 +223,7 @@
 }
 
 /* ============================================================
-   HEADER - En-tête blanc
+   HEADER
    ============================================================ */
 .header-emit {
   position: sticky;
@@ -231,11 +245,6 @@
   gap: 15px;
 }
 
-.header-logo {
-  height: 40px;
-  width: auto;
-}
-
 .header-title-group {
   display: flex;
   flex-direction: column;
@@ -251,22 +260,74 @@
 
 .header-breadcrumb {
   color: #6c7a8a;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 400;
 }
 
-/* ---- Partie droite du header ---- */
 .header-right {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 }
 
+/* ============================================================
+   BOUTON NOTIFICATIONS
+   ============================================================ */
+.header-notif-btn {
+  position: relative;
+  background: none;
+  border: none;
+  color: #4A6285;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-notif-btn:hover {
+  background: var(--emit-white-off);
+  color: var(--emit-blue-fonce);
+}
+
+.header-notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: var(--emit-danger);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* ============================================================
+   SÉPARATEUR
+   ============================================================ */
+.header-separator {
+  width: 1px;
+  height: 30px;
+  background: var(--emit-blue-pale);
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   UTILISATEUR
+   ============================================================ */
 .header-user {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--emit-blue-tres-fonce);
+  color: var(--emit-blue-fonce);
   cursor: pointer;
   padding: 5px 12px;
   border-radius: 8px;
@@ -279,7 +340,7 @@
 
 .header-user-icon {
   font-size: 28px;
-  color: var(--emit-blue-clair);
+  color: #0D2B52;
 }
 
 .header-user-info {
@@ -302,6 +363,9 @@
   color: var(--emit-blue-clair);
 }
 
+/* ============================================================
+   DÉCONNEXION
+   ============================================================ */
 .header-logout-btn {
   background: none;
   border: 1px solid var(--emit-blue-pale);
@@ -320,7 +384,7 @@
 }
 
 /* ============================================================
-   CONTENU DES PAGES
+   CONTENU
    ============================================================ */
 .layout-content {
   flex: 1;
@@ -330,7 +394,103 @@
 }
 
 /* ============================================================
-   RESPONSIVE - Mobile / Tablette
+   SCROLLBAR
+   ============================================================ */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ============================================================
+   SIDEBAR - SÉPARATEURS & SCROLLBAR
+   ============================================================ */
+
+/* ===== SÉPARATEURS ===== */
+.sidebar-divider {
+  height: 1.5px;
+  width: 80%;
+  margin: 6px auto;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 15%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.08) 85%,
+    transparent 100%
+  );
+  border: none;
+  flex-shrink: 0;
+}
+
+.sidebar-emit.collapsed .sidebar-divider {
+  width: 40%;
+}
+
+/* ===== SCROLLBAR ===== */
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+/* Scrollbar visible au survol */
+.sidebar-nav:hover::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+.sidebar-nav:hover::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* ===== SCROLLBAR FIREFOX ===== */
+.sidebar-nav {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  transition: scrollbar-color 0.3s ease;
+}
+
+.sidebar-nav:hover {
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+
+.sidebar-nav:hover:active {
+  scrollbar-color: rgba(255, 255, 255, 0.4) transparent;
+}
+
+/* ============================================================
+   RESPONSIVE - SIDEBAR
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .sidebar-divider {
+    width: 50%;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
   .sidebar-emit {
@@ -344,15 +504,9 @@
     width: var(--sidebar-width);
   }
 
-  .sidebar-emit.open .sidebar-label {
-    display: block;
-  }
-
-  .sidebar-emit.open .sidebar-toggle-label {
-    display: block;
-  }
-
-  .sidebar-emit.open .sidebar-logo-text {
+  .sidebar-emit.open .sidebar-label,
+  .sidebar-emit.open .sidebar-toggle-label,
+  .sidebar-emit.open .sidebar-logo-text-group {
     display: block;
   }
 
@@ -366,15 +520,9 @@
     padding: 12px 20px;
   }
 
-  .sidebar-emit:not(.open) .sidebar-label {
-    display: none;
-  }
-
-  .sidebar-emit:not(.open) .sidebar-toggle-label {
-    display: none;
-  }
-
-  .sidebar-emit:not(.open) .sidebar-logo-text {
+  .sidebar-emit:not(.open) .sidebar-label,
+  .sidebar-emit:not(.open) .sidebar-toggle-label,
+  .sidebar-emit:not(.open) .sidebar-logo-text-group {
     display: none;
   }
 
@@ -400,6 +548,10 @@
     display: none;
   }
 
+  .header-separator {
+    display: none;
+  }
+
   .header-emit {
     padding: 0 16px;
   }
@@ -413,9 +565,6 @@
   }
 }
 
-/* ============================================================
-   RESPONSIVE - Très petit écran
-   ============================================================ */
 @media (max-width: 480px) {
   .header-title {
     font-size: 14px;
@@ -428,10 +577,6 @@
   .header-logout-btn {
     padding: 6px 10px;
     font-size: 16px;
-  }
-
-  .header-logo {
-    height: 30px;
   }
 
   .header-breadcrumb {

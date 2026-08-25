@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
+import logo from '../../assets/logo_emit.jpg';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -19,24 +20,11 @@ function Login() {
 
     try {
       const user = await login(email, password);
-      
-      // ===== REDIRECTION CORRECTE =====
-      switch (user.role) {
-        case 'ROLE_ADMIN':
-          navigate('/admin/dashboard');
-          break;
-        case 'ROLE_ENSEIGNANT':
-          navigate('/enseignant/dashboard');
-          break;
-        case 'ROLE_ETUDIANT':
-          navigate('/etudiant/dashboard');
-          break;
-        case 'ROLE_ENCADREUR':
-          navigate('/encadreur/dashboard');
-          break;
-        default:
-          navigate('/dashboard');
-      }
+      if (user.role === 'ROLE_ADMIN') navigate('/admin/dashboard');
+      else if (user.role === 'ROLE_ETUDIANT') navigate('/etudiant/dashboard');
+      else if (user.role === 'ROLE_ENSEIGNANT') navigate('/enseignant/dashboard');
+      else if (user.role === 'ROLE_ENCADREUR') navigate('/encadreur/dashboard');
+      else navigate('/dashboard');
     } catch (err) {
       setError(err.message || 'Erreur de connexion');
     } finally {
@@ -48,20 +36,23 @@ function Login() {
     <div className="login-container">
       <div className="login-card">
         <div className="login-header">
-          <h1>Connexion</h1>
-          <p className="subtitle">Connectez-vous à votre compte</p>
+          <div className="login-title-wrapper">
+            <img src={logo} alt="EMIT" className="login-logo-img" />
+            <h1>Connexion</h1>
+          </div>
+          <p className="subtitle">Accédez à votre espace de suivi des stages</p>
         </div>
 
+        {error && <div className="alert alert-danger">{error}</div>}
+
         <form onSubmit={handleSubmit} className="login-form">
-          {error && <div className="alert alert-danger">{error}</div>}
-          
           <div className="form-group">
-            <label htmlFor="email">Email</label>
+            <label htmlFor="email">Adresse e-mail</label>
             <input
               type="email"
               id="email"
               className="form-control"
-              placeholder="votre.email@exemple.com"
+              placeholder="votre.email@emit.mg"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -75,7 +66,7 @@ function Login() {
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 className="form-control"
-                placeholder="*********"
+                placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
@@ -84,6 +75,7 @@ function Login() {
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label="Afficher le mot de passe"
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
               </button>
@@ -91,12 +83,10 @@ function Login() {
           </div>
 
           <div className="form-options">
-            <div className="form-check">
-              <input type="checkbox" className="form-check-input" id="remember" />
-              <label className="form-check-label" htmlFor="remember">
-                Se souvenir de moi
-              </label>
-            </div>
+            <label className="checkbox-label">
+              <input type="checkbox" />
+              <span>Se souvenir de moi</span>
+            </label>
             <Link to="/forgot-password" className="forgot-link">
               Mot de passe oublié ?
             </Link>
@@ -104,19 +94,23 @@ function Login() {
 
           <button type="submit" className="btn-login" disabled={isLoading}>
             {isLoading ? (
-              <>
-                <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                Connexion...
-              </>
+              <span className="btn-loader">
+                <span className="spinner"></span> Connexion...
+              </span>
             ) : (
               'Se connecter'
             )}
           </button>
         </form>
 
+        <div className="login-divider">
+          <span>ou</span>
+        </div>
+
         <div className="login-footer">
           <p>
-            Vous n'avez pas de compte ? <Link to="/register">S'inscrire</Link>
+            Vous n'avez pas encore de compte ?{' '}
+            <Link to="/register">S'inscrire</Link>
           </p>
         </div>
       </div>

@@ -8,6 +8,8 @@ import { AuthProvider } from './context/AuthProvider'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'react-toastify/dist/ReactToastify.css'
 import './styles/index.css'
+import './styles/auth.css'
+
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

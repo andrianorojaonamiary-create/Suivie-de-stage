@@ -1,0 +1,815 @@
+/* ============================================================
+   ÉTUDIANT - ÉVALUATIONS
+   ============================================================ */
+
+.etudiant-evaluations {
+  padding: 20px 0;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.eval-page-header {
+  margin-bottom: 24px;
+}
+
+.eval-page-title {
+  font-size: 24px;
+  color: #1A3A6B;
+  margin: 0;
+  font-weight: 700;
+}
+
+.eval-page-subtitle {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+/* ============================================================
+   SÉLECTEUR DE STAGE
+   ============================================================ */
+.eval-stage-selector {
+  margin-bottom: 24px;
+  position: relative;
+}
+
+.eval-stage-btn {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 18px;
+  background: white;
+  border: 1px solid #D6E4F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.eval-stage-btn:hover {
+  border-color: #4A90D9;
+  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.06);
+}
+
+.eval-stage-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.eval-stage-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A3A6B;
+}
+
+.eval-stage-company {
+  font-size: 13px;
+  color: #6c7a8a;
+}
+
+.eval-stage-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #6c7a8a;
+}
+
+.eval-stage-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #D6E4F0;
+  border-radius: 12px;
+  box-shadow: 0 8px 30px rgba(26, 58, 107, 0.12);
+  z-index: 100;
+  overflow: hidden;
+  animation: slideDown 0.25s ease;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.eval-stage-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-bottom: 1px solid #F5F8FC;
+}
+
+.eval-stage-item:last-child {
+  border-bottom: none;
+}
+
+.eval-stage-item:hover {
+  background: #F5F8FC;
+}
+
+.eval-stage-item-active {
+  background: #DBEBF9;
+}
+
+.eval-stage-item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.eval-stage-item-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1A3A6B;
+}
+
+.eval-stage-item-company {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+/* ============================================================
+   3 CARTES D'INFORMATIONS
+   ============================================================ */
+.eval-info-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.eval-info-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #D6E4F0;
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: all 0.2s;
+}
+
+.eval-info-card:hover {
+  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.06);
+}
+
+.eval-info-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #DBEBF9;
+  color: #4A90D9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.eval-info-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.eval-info-card-content h4 {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin: 0 0 4px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.eval-info-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A3A6B;
+  margin: 0;
+}
+
+.eval-info-company {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin: 2px 0;
+}
+
+.eval-info-date {
+  font-size: 13px;
+  color: #A0B8D0;
+  margin: 2px 0 0 0;
+}
+
+.eval-info-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A3A6B;
+  margin: 0;
+}
+
+.eval-info-role {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin: 2px 0;
+}
+
+.eval-info-email {
+  font-size: 12px;
+  color: #4A90D9;
+  margin: 2px 0 0 0;
+}
+
+/* ============================================================
+   TUTEUR + ENCADREUR (2 colonnes)
+   ============================================================ */
+.eval-two-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* ============================================================
+   CARTE ÉVALUATION (avec critères)
+   ============================================================ */
+.eval-card {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #D6E4F0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(26, 58, 107, 0.04);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.eval-card-empty {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #D6E4F0;
+  padding: 30px;
+  text-align: center;
+  color: #A0B8D0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  height: 100%;
+}
+
+.eval-card-header {
+  padding: 14px 18px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #F5F8FC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.eval-card-header h4 {
+  font-size: 14px;
+  color: #1A3A6B;
+  margin: 0;
+  font-weight: 600;
+}
+
+.eval-card-status {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 12px;
+}
+
+.eval-card-status .eval-badge-valide,
+.eval-card-status .eval-badge-en-attente,
+.eval-card-status .eval-badge-termine,
+.eval-card-status .eval-badge-en-cours {
+  font-size: 11px;
+  padding: 2px 12px;
+}
+
+.eval-card-date {
+  font-size: 12px;
+  color: #A0B8D0;
+}
+
+/* ============================================================
+   TABLEAU DES CRITÈRES
+   ============================================================ */
+.eval-criteres {
+  padding: 12px 16px;
+  overflow-x: auto;
+  flex: 1;
+}
+
+.eval-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.eval-table thead th {
+  text-align: left;
+  padding: 6px 8px;
+  color: #6c7a8a;
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 2px solid #D6E4F0;
+}
+
+.eval-table thead th.eval-th-center {
+  text-align: center;
+}
+
+.eval-table tbody td {
+  padding: 5px 8px;
+  border-bottom: 1px solid #F5F8FC;
+  color: #1A3A6B;
+  vertical-align: middle;
+}
+
+.eval-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.eval-table tbody td.eval-td-center {
+  text-align: center;
+}
+
+.eval-critere-note {
+  font-weight: 600;
+  color: #4A90D9;
+  margin-right: 8px;
+}
+
+.eval-critere-stars {
+  color: #FFD700;
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* ============================================================
+   FOOTER ÉVALUATION
+   ============================================================ */
+.eval-footer-simple {
+  padding: 14px 16px;
+  background: #F8FAFC;
+  border-top: 1px solid #F5F8FC;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.eval-note-moyenne-simple {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.eval-note-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+  min-width: 100px;
+}
+
+.eval-note-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #4A90D9;
+  min-width: 80px;
+}
+
+.eval-note-stars {
+  color: #FFD700;
+  font-size: 14px;
+  letter-spacing: 2px;
+}
+
+.eval-appreciation-simple {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 10px;
+  border-top: 1px solid #D6E4F0;
+}
+
+.eval-appreciation-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+}
+
+.eval-appreciation-text {
+  font-size: 13px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   CARTE ENTREPRISE (simple)
+   ============================================================ */
+.eval-entreprise-section {
+  margin-top: 4px;
+}
+
+.eval-card-simple {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #D6E4F0;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(26, 58, 107, 0.04);
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.eval-card-simple-empty {
+  background: white;
+  border-radius: 14px;
+  border: 1px solid #D6E4F0;
+  padding: 30px;
+  text-align: center;
+  color: #A0B8D0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+}
+
+.eval-card-simple-header {
+  padding: 14px 18px;
+  background: #F8FAFC;
+  border-bottom: 1px solid #F5F8FC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.eval-card-simple-header h4 {
+  font-size: 14px;
+  color: #1A3A6B;
+  margin: 0;
+  font-weight: 600;
+}
+
+.eval-card-simple-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+}
+
+.eval-card-simple-status .eval-badge-valide,
+.eval-card-simple-status .eval-badge-en-attente,
+.eval-card-simple-status .eval-badge-termine,
+.eval-card-simple-status .eval-badge-en-cours {
+  font-size: 11px;
+  padding: 2px 12px;
+}
+
+.eval-card-simple-date {
+  font-size: 12px;
+  color: #A0B8D0;
+}
+
+.eval-simple-content {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  justify-content: center;
+}
+
+.eval-simple-note {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.eval-simple-note-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c7a8a;
+  min-width: 60px;
+}
+
+.eval-simple-note-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: #4A90D9;
+}
+
+.eval-simple-note-stars {
+  color: #FFD700;
+  font-size: 16px;
+  letter-spacing: 2px;
+}
+
+.eval-simple-appreciation {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 12px;
+  border-top: 1px solid #F5F8FC;
+}
+
+.eval-simple-appreciation-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+}
+
+.eval-simple-appreciation-text {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.5;
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+.eval-badge-valide {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.eval-badge-en-attente {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.eval-badge-termine {
+  background: #DBEAFE;
+  color: #1E40AF;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.eval-badge-en-cours {
+  background: #DBEBF9;
+  color: #1A3A6B;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+/* ============================================================
+   EN ATTENTE / À VENIR
+   ============================================================ */
+.eval-pending {
+  padding: 16px;
+  text-align: center;
+  color: #A0B8D0;
+  font-size: 14px;
+}
+
+.eval-pending-text {
+  font-style: italic;
+}
+
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
+.eval-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 14px;
+  border: 2px dashed #D6E4F0;
+  margin-top: 20px;
+}
+
+.eval-empty-icon {
+  font-size: 48px;
+  color: #A0B8D0;
+  margin-bottom: 12px;
+}
+
+.eval-empty-state p {
+  font-size: 16px;
+  color: #6c7a8a;
+  margin: 0;
+}
+
+.eval-empty-sub {
+  font-size: 13px;
+  color: #A0B8D0;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+  .eval-info-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+  .eval-two-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .eval-info-cards {
+    grid-template-columns: 1fr;
+  }
+  .eval-page-title {
+    font-size: 20px;
+  }
+  .eval-stage-btn {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .eval-stage-status {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .eval-stage-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .eval-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .eval-card-status {
+    align-items: flex-start;
+  }
+  .eval-card-simple-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .eval-card-simple-status {
+    align-items: flex-start;
+  }
+  .eval-table {
+    font-size: 12px;
+  }
+  .eval-table thead th,
+  .eval-table tbody td {
+    padding: 4px 6px;
+  }
+  .eval-note-value {
+    font-size: 18px;
+  }
+  .eval-simple-note-value {
+    font-size: 18px;
+  }
+  .eval-appreciation-text {
+    font-size: 12px;
+  }
+  .eval-simple-appreciation-text {
+    font-size: 13px;
+  }
+  .eval-info-card {
+    padding: 14px 16px;
+  }
+  .eval-note-moyenne-simple {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .eval-simple-note {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .eval-info-card-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
+  }
+}
+
+@media (max-width: 480px) {
+  .eval-page-title {
+    font-size: 18px;
+  }
+  .eval-page-subtitle {
+    font-size: 13px;
+  }
+  .eval-info-card-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 15px;
+  }
+  .eval-info-title {
+    font-size: 14px;
+  }
+  .eval-info-name {
+    font-size: 13px;
+  }
+  .eval-info-company {
+    font-size: 12px;
+  }
+  .eval-info-role {
+    font-size: 12px;
+  }
+  .eval-info-email {
+    font-size: 11px;
+  }
+  .eval-card-header h4 {
+    font-size: 13px;
+  }
+  .eval-card-simple-header h4 {
+    font-size: 13px;
+  }
+  .eval-card-date {
+    font-size: 11px;
+  }
+  .eval-card-simple-date {
+    font-size: 11px;
+  }
+  .eval-note-value {
+    font-size: 16px;
+  }
+  .eval-simple-note-value {
+    font-size: 16px;
+  }
+  .eval-note-stars {
+    font-size: 12px;
+  }
+  .eval-simple-note-stars {
+    font-size: 14px;
+  }
+  .eval-critere-stars {
+    font-size: 11px;
+  }
+  .eval-critere-note {
+    font-size: 11px;
+  }
+  .eval-table {
+    font-size: 11px;
+  }
+  .eval-table thead th,
+  .eval-table tbody td {
+    padding: 3px 4px;
+  }
+  .eval-badge-valide,
+  .eval-badge-en-attente,
+  .eval-badge-termine,
+  .eval-badge-en-cours {
+    font-size: 10px;
+    padding: 2px 10px;
+  }
+  .eval-appreciation-text {
+    font-size: 12px;
+  }
+  .eval-simple-appreciation-text {
+    font-size: 12px;
+  }
+  .eval-stage-title {
+    font-size: 14px;
+  }
+  .eval-stage-company {
+    font-size: 12px;
+  }
+  .eval-stage-item-title {
+    font-size: 13px;
+  }
+  .eval-stage-item-company {
+    font-size: 11px;
+  }
+}
