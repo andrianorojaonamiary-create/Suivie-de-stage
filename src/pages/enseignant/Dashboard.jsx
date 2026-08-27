@@ -200,48 +200,53 @@ function EnseignantDashboard() {
 
       {/* LIGNE 2 */}
       <div className="enseignant-charts">
-        {/* Camembert */}
+        {/* Camembert avec légende à droite */}
         <div className="chart-card">
           <div className="chart-header">
             <h3>Avancement global des stages</h3>
           </div>
           <div className="chart-body pie-chart">
-            <div className="pie-container">
-              <ResponsiveContainer width="100%" height={240}>
-                <PieChart>
-                  <Pie
-                    data={stageStatusData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={55}
-                    outerRadius={85}
-                    paddingAngle={3}
-                    dataKey="value"
-                    label={renderCustomLabel}
-                    labelLine={false}
-                  >
-                    {stageStatusData.map((entry, index) => (
-                      <Cell key={index} fill={entry.color} stroke="white" strokeWidth={2} />
-                    ))}
-                  </Pie>
-                  <Tooltip content={<CustomTooltip />} />
-                  {renderCenterLabel(totalStages)}
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-            <div className="pie-legend">
-              {stageStatusData.map((item, index) => (
-                <div key={index} className="legend-item">
-                  <span className="legend-dot" style={{ backgroundColor: item.color }} />
-                  <span className="legend-label">{item.name}</span>
-                  <span className="legend-value">{item.value}</span>
-                </div>
-              ))}
+            <div className="pie-chart-wrapper">
+              {/* Camembert à gauche */}
+              <div className="pie-container">
+                <ResponsiveContainer width="100%" height={240}>
+                  <PieChart>
+                    <Pie
+                      data={stageStatusData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={85}
+                      paddingAngle={3}
+                      dataKey="value"
+                      label={renderCustomLabel}
+                      labelLine={false}
+                    >
+                      {stageStatusData.map((entry, index) => (
+                        <Cell key={index} fill={entry.color} stroke="white" strokeWidth={2} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<CustomTooltip />} />
+                    {renderCenterLabel(totalStages)}
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Légende à droite */}
+              <div className="pie-legend">
+                {stageStatusData.map((item, index) => (
+                  <div key={index} className="legend-item">
+                    <span className="legend-dot" style={{ backgroundColor: item.color }} />
+                    <span className="legend-label">{item.name}</span>
+                    <span className="legend-value">{item.value}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Histogramme + Nombre d'étudiants */}
+        {/* Histogramme */}
         <div className="chart-card bar-chart-card">
           <div className="chart-header">
             <h3>Répartition par filière</h3>
@@ -336,12 +341,9 @@ function EnseignantDashboard() {
                 <div className="map-lieux">{localisation.lieux} lieux différents</div>
               </div>
             </div>
-            {/* Bouton comme "Voir toutes les activités" avec séparateur */}
-            <div className="btn-voir-carte-wrapper">
-              <Link to="/enseignant/carte" className="activities-view-all">
-                Voir la carte complète <FaArrowRight />
-              </Link>
-            </div>
+            <Link to="/enseignant/carte" className="activities-view-all">
+              Voir la carte complète <FaArrowRight />
+            </Link>
           </div>
         </div>
       </div>

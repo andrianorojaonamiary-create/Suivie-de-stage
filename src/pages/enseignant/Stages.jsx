@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-  FaFileAlt, FaUserGraduate, FaBuilding, FaCalendarAlt, 
+  FaFileAlt,
   FaCheck, FaTimes, FaEye, FaClock, FaFilter, 
   FaSearch, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -187,12 +187,12 @@ function StagesEnseignant() {
   // ===== BADGE STATUT =====
   const getStatusBadge = (statut) => {
     const badges = {
-      'valide': { className: 'badge-valide', icon: <FaCheck />, label: 'Validé' },
-      'refuse': { className: 'badge-refuse', icon: <FaTimes />, label: 'Refusé' },
-      'en_attente': { className: 'badge-en-attente', icon: <FaClock />, label: 'En attente' }
+      'valide': { className: 'status-badge status-valide', label: 'Validé' },
+      'refuse': { className: 'status-badge status-refuse', label: 'Refusé' },
+      'en_attente': { className: 'status-badge status-en-attente', label: 'En attente' }
     };
     const badge = badges[statut] || badges.en_attente;
-    return <span className={`badge ${badge.className}`}>{badge.icon} {badge.label}</span>;
+    return <span className={badge.className}>{badge.label}</span>;
   };
 
   // ===== ACTIONS =====
@@ -268,7 +268,7 @@ function StagesEnseignant() {
   ];
 
   return (
-    <div className="stages-page">
+    <div className="enseignant-stages">
       {/* ===== EN-TÊTE ===== */}
       <div className="page-header">
         <div>
@@ -279,29 +279,29 @@ function StagesEnseignant() {
 
       {/* ===== STATISTIQUES ===== */}
       <div className="stats-cards">
-        <div className="stat-card stat-pending">
-          <div className="stat-icon"><FaClock /></div>
+        <div className="stat-card">
+          <div className="stat-icon pending"><FaClock /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.enAttente}</span>
             <span className="stat-label">En attente</span>
           </div>
         </div>
-        <div className="stat-card stat-validated">
-          <div className="stat-icon"><FaCheck /></div>
+        <div className="stat-card">
+          <div className="stat-icon validated"><FaCheck /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.valides}</span>
             <span className="stat-label">Validés</span>
           </div>
         </div>
-        <div className="stat-card stat-rejected">
-          <div className="stat-icon"><FaTimes /></div>
+        <div className="stat-card">
+          <div className="stat-icon rejected"><FaTimes /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.refuses}</span>
             <span className="stat-label">Refusés</span>
           </div>
         </div>
-        <div className="stat-card stat-total">
-          <div className="stat-icon"><FaFileAlt /></div>
+        <div className="stat-card">
+          <div className="stat-icon total"><FaFileAlt /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.total}</span>
             <span className="stat-label">Total</span>
@@ -309,86 +309,101 @@ function StagesEnseignant() {
         </div>
       </div>
 
-      {/* ===== TABLEAU AVEC FILTRES ET RECHERCHE ===== */}
-      <div className="stages-table-container">
+      {/* ===== TABLEAU ===== */}
+      <div className="table-container">
         {/* ===== TOOLBAR ===== */}
         <div className="table-toolbar">
-          <div className="toolbar-left">
-            <div className="filter-group-toolbar">
-              <label><FaFilter /> Statut</label>
-              <select 
-                value={selectedStatus} 
-                onChange={(e) => handleFilterChange(e.target.value)}
-              >
-                {statusOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+          <div className="toolbar-filters">
+            <div className="filter-wrapper">
+              <div className="filter-group">
+                <FaFilter className="filter-icon" />
+                <select 
+                  value={selectedStatus} 
+                  onChange={(e) => handleFilterChange(e.target.value)}
+                >
+                  {statusOptions.map(opt => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           
-          <div className="toolbar-right">
-            <div className="search-group-toolbar">
-              <FaSearch className="search-icon-toolbar" />
+          <div className="search-wrapper">
+            <div className="search-group">
+              <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Rechercher un étudiant, un stage ou une entreprise..."
+                placeholder="Rechercher..."
                 value={searchTerm}
                 onChange={handleSearchChange}
-                className="search-input-toolbar"
+                className="search-input"
               />
               {searchTerm && (
-                <button className="search-clear-toolbar" onClick={() => setSearchTerm('')}>
-                  <FaTimes />
+                <button className="search-clear" onClick={() => setSearchTerm('')}>
+                  ✕
                 </button>
               )}
             </div>
           </div>
         </div>
 
-        {/* ===== TABLEAU SANS COLONNE ID ===== */}
+        {/* ===== TABLEAU ===== */}
         {filteredStages.length === 0 ? (
           <div className="empty-state">
             <FaFileAlt className="empty-icon" />
             <h3>Aucun stage trouvé</h3>
-            <p>Aucun stage ne correspond à vos critères de recherche</p>
           </div>
         ) : (
           <>
             <table className="stages-table">
               <thead>
                 <tr>
-                  {/* Colonne # SUPPRIMÉE */}
-                  <th><FaUserGraduate /> Étudiant</th>
-                  <th><FaFileAlt /> Stage</th>
-                  <th><FaBuilding /> Entreprise</th>
-                  <th><FaCalendarAlt /> Période</th>
+                  <th>Étudiant</th>
+                  <th>Stage</th>
+                  <th>Entreprise</th>
+                  <th>Période</th>
                   <th>Statut</th>
-                  <th>Actions</th>
+                  <th className="actions-header">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedStages.map((stage) => (
                   <tr key={stage.id}>
-                    {/* Pas de numéro */}
-                    <td><strong>{stage.etudiant}</strong></td>
-                    <td>{stage.titre}</td>
-                    <td>{stage.entreprise}</td>
-                    <td>{formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)}</td>
+                    <td>
+                      <div className="stage-student">
+                        <span className="student-name">{stage.etudiant}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="stage-title-cell">
+                        <span className="stage-title">{stage.titre}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="stage-company-cell">
+                        <span className="company-name">{stage.entreprise}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="date-text">
+                        {formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)}
+                      </span>
+                    </td>
                     <td>{getStatusBadge(stage.statutValidation)}</td>
                     <td>
                       <div className="action-buttons">
                         {stage.statutValidation === 'en_attente' && (
                           <>
                             <button 
-                              className="btn-action" 
+                              className="action-btn validate" 
                               onClick={() => openValidateModal(stage)}
                               title="Valider le stage"
                             >
                               <FaCheck />
                             </button>
                             <button 
-                              className="btn-action" 
+                              className="action-btn reject" 
                               onClick={() => openRejectModal(stage)}
                               title="Refuser le stage"
                             >
@@ -397,9 +412,9 @@ function StagesEnseignant() {
                           </>
                         )}
                         <button 
-                          className="btn-action" 
+                          className="action-btn view" 
                           onClick={() => openViewModal(stage)}
-                          title="Voir les détails"
+                          title="Voir les détails du stage"
                         >
                           <FaEye />
                         </button>
@@ -414,7 +429,7 @@ function StagesEnseignant() {
             {totalPages > 1 && (
               <div className="pagination">
                 <button 
-                  className="pagination-btn"
+                  className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -424,7 +439,7 @@ function StagesEnseignant() {
                 {[...Array(totalPages)].map((_, index) => (
                   <button
                     key={index}
-                    className={`pagination-btn ${currentPage === index + 1 ? 'active' : ''}`}
+                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
                     onClick={() => goToPage(index + 1)}
                   >
                     {index + 1}
@@ -432,14 +447,14 @@ function StagesEnseignant() {
                 ))}
                 
                 <button 
-                  className="pagination-btn"
+                  className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
                   <FaChevronRight />
                 </button>
                 
-                <span className="pagination-info">
+                <span className="page-info">
                   {filteredStages.length} stage{filteredStages.length > 1 ? 's' : ''}
                 </span>
               </div>

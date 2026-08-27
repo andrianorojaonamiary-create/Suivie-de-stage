@@ -122,52 +122,60 @@
   font-weight: 600;
 }
 
-.chart-body {
+/* ============================================================
+   PIE CHART AVEC LÉGENDE À DROITE
+   ============================================================ */
+.pie-chart-wrapper {
   display: flex;
   align-items: center;
   gap: 20px;
+  width: 100%;
 }
 
-/* ===== CAMEMBERT ===== */
 .pie-container {
   flex: 1;
   min-width: 200px;
+  height: 240px;
   position: relative;
 }
 
 .pie-legend {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
+  min-width: 120px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
 }
 
 .legend-dot {
-  width: 10px;
-  height: 10px;
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
 }
 
 .legend-label {
+  font-size: 13px;
   color: #1A3A6B;
-  flex: 1;
 }
 
 .legend-value {
+  font-size: 13px;
   font-weight: 600;
   color: #1A3A6B;
 }
 
-/* ===== BAR CHART ===== */
+/* ============================================================
+   BAR CHART
+   ============================================================ */
 .bar-chart-card .chart-body {
+  display: flex;
   flex-direction: column;
   align-items: stretch;
   height: 240px;
@@ -183,6 +191,31 @@
   font-size: 13px;
   font-weight: 500;
   color: #6c7a8a;
+}
+
+/* ============================================================
+   CUSTOM TOOLTIP
+   ============================================================ */
+
+.enseignant-tooltip {
+  background: white;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid #D6E4F0;
+  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.08);
+}
+
+.enseignant-tooltip .tooltip-label {
+  font-size: 12px;
+  color: #6c7a8a;
+  margin: 0;
+}
+
+.enseignant-tooltip .tooltip-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A3A6B;
+  margin: 0;
 }
 
 /* ============================================================
@@ -270,6 +303,9 @@
   flex-shrink: 0;
 }
 
+/* ============================================================
+   BOUTON COMMUN (Activités et Localisation)
+   ============================================================ */
 .activities-view-all {
   display: block;
   text-align: center;
@@ -285,6 +321,10 @@
 
 .activities-view-all:hover {
   color: #1A3A6B;
+}
+
+.activities-view-all svg {
+  margin-left: 4px;
 }
 
 /* ============================================================
@@ -362,44 +402,6 @@
   margin-top: 2px;
 }
 
-/* ===== BOUTON COMME ACTIVITÉS RÉCENTES AVEC SÉPARATEUR ===== */
-.btn-voir-carte-wrapper {
-  padding-top: 12px;
-  margin-top: 4px;
- 
-  text-align: center;
-}
-
-
-.btn-voir-carte:hover {
-  color: #1A3A6B;
-}
-
-/* ============================================================
-   CUSTOM TOOLTIP
-   ============================================================ */
-
-.enseignant-tooltip {
-  background: white;
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid #D6E4F0;
-  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.08);
-}
-
-.enseignant-tooltip .tooltip-label {
-  font-size: 12px;
-  color: #6c7a8a;
-  margin: 0;
-}
-
-.enseignant-tooltip .tooltip-value {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1A3A6B;
-  margin: 0;
-}
-
 /* ============================================================
    RESPONSIVE
    ============================================================ */
@@ -413,18 +415,22 @@
     grid-template-columns: 1fr;
   }
 
-  .chart-body {
+  .pie-chart-wrapper {
     flex-direction: column;
+    align-items: center;
+  }
+
+  .pie-container {
+    width: 100%;
+    min-width: unset;
+    height: 220px;
   }
 
   .pie-legend {
     flex-direction: row;
     flex-wrap: wrap;
     justify-content: center;
-  }
-
-  .pie-container {
-    width: 100%;
+    min-width: unset;
   }
 
   .enseignant-bottom {
@@ -443,6 +449,14 @@
 
   .bar-chart-card .chart-body {
     height: 200px;
+  }
+
+  .pie-container {
+    height: 200px;
+  }
+
+  .legend-item {
+    font-size: 12px;
   }
 
   .map-image {
@@ -494,16 +508,25 @@
     font-size: 14px;
   }
 
+  .pie-container {
+    height: 180px;
+  }
+
+  .pie-legend {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .legend-item {
+    font-size: 12px;
+  }
+
   .activity-text {
     font-size: 12px;
   }
 
   .activity-detail {
     font-size: 11px;
-  }
-
-  .legend-item {
-    font-size: 12px;
   }
 
   .bar-labels-bottom {

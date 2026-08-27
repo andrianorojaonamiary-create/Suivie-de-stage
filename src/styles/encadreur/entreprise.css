@@ -1,0 +1,354 @@
+/* ============================================================
+   ENCADREUR - ENTREPRISE
+   ============================================================ */
+
+.encadreur-entreprise-page {
+  padding: 20px 0;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.encadreur-entreprise-page .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.encadreur-entreprise-page .page-header > div {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.encadreur-entreprise-page .page-header h1 {
+  font-size: 24px;
+  color: #1A3A6B;
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.encadreur-entreprise-page .page-header .text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 0;
+}
+
+.encadreur-entreprise-page .btn-back-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #F5F8FC;
+  border: 1px solid #D6E4F0;
+  border-radius: 8px;
+  color: #1A3A6B;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: fit-content;
+}
+
+.encadreur-entreprise-page .btn-back-header:hover {
+  background: #D6E4F0;
+  border-color: #4A90D9;
+}
+
+.encadreur-entreprise-page .btn-edit-entreprise {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #4A90D9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  align-self: flex-start;
+}
+
+.encadreur-entreprise-page .btn-edit-entreprise:hover {
+  background: #1A3A6B;
+}
+
+/* ===== FORMULAIRE ===== */
+.encadreur-entreprise-page .form-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E8EEF4;
+  padding: 24px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+
+/* ===== AFFICHAGE ===== */
+.encadreur-entreprise-page .entreprise-display {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.encadreur-entreprise-page .display-row {
+  display: flex;
+  padding: 10px 0;
+  border-bottom: 1px solid #F5F8FC;
+}
+
+.encadreur-entreprise-page .display-row:last-of-type {
+  border-bottom: none;
+}
+
+.encadreur-entreprise-page .display-label {
+  min-width: 140px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c7a8a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.encadreur-entreprise-page .display-label svg {
+  color: #4A90D9;
+  font-size: 14px;
+}
+
+.encadreur-entreprise-page .display-value {
+  font-size: 14px;
+  color: #1A3A6B;
+  flex: 1;
+}
+
+.encadreur-entreprise-page .display-value strong {
+  font-weight: 700;
+}
+
+.encadreur-entreprise-page .display-description {
+  flex-direction: column;
+}
+
+.encadreur-entreprise-page .display-description .display-label {
+  min-width: unset;
+}
+
+.encadreur-entreprise-page .display-description .display-value {
+  margin-top: 4px;
+  line-height: 1.6;
+}
+
+/* ===== FORMULAIRE ===== */
+.encadreur-entreprise-page .form-section {
+  margin-bottom: 24px;
+}
+
+.encadreur-entreprise-page .form-section:last-of-type {
+  margin-bottom: 0;
+}
+
+.encadreur-entreprise-page .form-section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #1A3A6B;
+  margin: 0 0 14px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #F5F8FC;
+}
+
+.encadreur-entreprise-page .form-section-title svg {
+  color: #4A90D9;
+}
+
+.encadreur-entreprise-page .form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.encadreur-entreprise-page .form-row .full-width {
+  grid-column: 1 / -1;
+}
+
+.encadreur-entreprise-page .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.encadreur-entreprise-page .form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #1A3A6B;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.encadreur-entreprise-page .form-group label svg {
+  color: #4A90D9;
+  font-size: 14px;
+}
+
+.encadreur-entreprise-page .form-group input,
+.encadreur-entreprise-page .form-group textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #D6E4F0;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1A3A6B;
+  background: white;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.encadreur-entreprise-page .form-group input:focus,
+.encadreur-entreprise-page .form-group textarea:focus {
+  outline: none;
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+}
+
+.encadreur-entreprise-page .form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.encadreur-entreprise-page .form-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid #F5F8FC;
+}
+
+.encadreur-entreprise-page .btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #4A90D9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.encadreur-entreprise-page .btn-primary:hover:not(:disabled) {
+  background: #1A3A6B;
+}
+
+.encadreur-entreprise-page .btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.encadreur-entreprise-page .btn-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #F5F8FC;
+  color: #6c7a8a;
+  border: 1px solid #D6E4F0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.encadreur-entreprise-page .btn-reset:hover {
+  background: #D6E4F0;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .encadreur-entreprise-page .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .encadreur-entreprise-page .btn-edit-entreprise {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .encadreur-entreprise-page .display-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .encadreur-entreprise-page .display-label {
+    min-width: unset;
+  }
+
+  .encadreur-entreprise-page .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .encadreur-entreprise-page .form-row .full-width {
+    grid-column: 1;
+  }
+
+  .encadreur-entreprise-page .form-actions {
+    flex-direction: column;
+  }
+
+  .encadreur-entreprise-page .btn-primary,
+  .encadreur-entreprise-page .btn-reset {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .encadreur-entreprise-page .page-header h1 {
+    font-size: 20px;
+  }
+
+  .encadreur-entreprise-page .form-card {
+    padding: 16px;
+  }
+
+  .encadreur-entreprise-page .btn-back-header {
+    font-size: 12px;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .encadreur-entreprise-page .page-header h1 {
+    font-size: 18px;
+  }
+
+  .encadreur-entreprise-page .display-value {
+    font-size: 13px;
+  }
+
+  .encadreur-entreprise-page .form-group input,
+  .encadreur-entreprise-page .form-group textarea {
+    font-size: 13px;
+    padding: 8px 12px;
+  }
+
+  .encadreur-entreprise-page .form-section-title {
+    font-size: 14px;
+  }
+}

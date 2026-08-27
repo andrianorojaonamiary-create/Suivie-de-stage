@@ -1,188 +1,150 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
-  FaUsers, FaUserGraduate, FaBuilding, FaCalendarAlt, 
+  FaUsers, FaUserGraduate,
   FaEye, FaStar, FaFileAlt, FaSearch, FaFilter,
   FaChevronLeft, FaChevronRight, FaClock, FaCheckCircle,
-  FaTimesCircle, FaTimes,
-  FaGraduationCap, FaBriefcase, 
+  FaTimes, FaGraduationCap
 } from 'react-icons/fa';
 
-// Composant Modal pour voir les détails de l'étudiant
-import ViewStudentModal from './components/ViewStudentModal';
-
 function EnseignantEtudiants() {
-  //const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFiliere, setSelectedFiliere] = useState('tous');
   const [selectedNiveau, setSelectedNiveau] = useState('tous');
   
-  // ===== MODAL =====
-  const [modalViewOpen, setModalViewOpen] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  
-  // ===== PAGINATION =====
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // ===== DONNÉES SIMULÉES =====
   const [students] = useState([
     {
       id: 1,
-      nom: 'Rakoto',
-      prenom: 'Miora',
+      nom: 'Rakoto Miora',
       matricule: 'ETU-2024-0421',
-      email: 'miora.rakoto@emit.mg',
-      telephone: '+261 34 12 345 01',
       filiere: 'Génie Logiciel',
       niveau: 'Master 2',
-      ville: 'Antananarivo',
       stage: {
-        titre: "Développement d'une plateforme web de gestion RH",
+        id: 1,
+        titre: "Plateforme web RH",
         entreprise: 'TechMada SARL',
         statut: 'En cours',
         dateDebut: '2024-03-01',
         dateFin: '2024-09-15',
         progression: 65
       },
-      rapports: 2,
       evaluation: 'Validé',
-      encadreur: 'M. Rakotomalala'
+      rapports: 2
     },
     {
       id: 2,
-      nom: 'Rakotondrabe',
-      prenom: 'Hery',
+      nom: 'Rakotondrabe Hery',
       matricule: 'ETU-2024-0422',
-      email: 'hery.rakotondrabe@emit.mg',
-      telephone: '+261 34 12 345 02',
-      filiere: 'Réseaux et Télécommunications',
+      filiere: 'Réseaux',
       niveau: 'Licence 3',
-      ville: 'Antananarivo',
       stage: {
-        titre: "Application mobile de gestion des comptes",
+        id: 2,
+        titre: "App mobile comptes",
         entreprise: 'Airtel Madagascar',
         statut: 'En attente',
         dateDebut: '2024-04-01',
         dateFin: '2024-10-01',
         progression: 30
       },
-      rapports: 1,
       evaluation: 'À faire',
-      encadreur: 'Mme. Ralava'
+      rapports: 1
     },
     {
       id: 3,
-      nom: 'Ramanantsoa',
-      prenom: 'Tojo',
+      nom: 'Ramanantsoa Tojo',
       matricule: 'ETU-2024-0423',
-      email: 'tojo.ramanantsoa@emit.mg',
-      telephone: '+261 34 12 345 03',
-      filiere: 'Sécurité Informatique',
+      filiere: 'Sécurité Info.',
       niveau: 'Master 1',
-      ville: 'Fianarantsoa',
       stage: {
-        titre: "Migration et sécurisation du système d'information",
+        id: 3,
+        titre: "Migration système",
         entreprise: 'BNI Madagascar',
         statut: 'En attente',
         dateDebut: '2024-05-01',
         dateFin: '2024-11-01',
         progression: 15
       },
-      rapports: 0,
       evaluation: 'À faire',
-      encadreur: 'M. Randrianarison'
+      rapports: 0
     },
     {
       id: 4,
-      nom: 'Andriantsoa',
-      prenom: 'Fanja',
+      nom: 'Andriantsoa Fanja',
       matricule: 'ETU-2024-0424',
-      email: 'fanja.andriantsoa@emit.mg',
-      telephone: '+261 34 12 345 04',
       filiere: 'Génie Logiciel',
       niveau: 'Licence 2',
-      ville: 'Antananarivo',
       stage: {
-        titre: "Analyse de données pour la relation client",
+        id: 4,
+        titre: "Analyse données clients",
         entreprise: 'Airtel Madagascar',
         statut: 'En attente',
         dateDebut: '2024-06-01',
         dateFin: '2024-12-01',
         progression: 10
       },
-      rapports: 0,
       evaluation: 'À faire',
-      encadreur: 'Mme. Ralava'
+      rapports: 0
     },
     {
       id: 5,
-      nom: 'Rakotondrabe',
-      prenom: 'Hery',
+      nom: 'Rakotondrabe Hery',
       matricule: 'ETU-2024-0425',
-      email: 'hery2.rakotondrabe@emit.mg',
-      telephone: '+261 34 12 345 05',
       filiere: 'Multimédia',
       niveau: 'Licence 3',
-      ville: 'Toamasina',
       stage: {
-        titre: "Développement d'une plateforme de e-learning",
+        id: 5,
+        titre: "Plateforme e-learning",
         entreprise: 'TechMada SARL',
         statut: 'Terminé',
         dateDebut: '2024-02-01',
         dateFin: '2024-08-01',
         progression: 100
       },
-      rapports: 3,
       evaluation: 'Validé',
-      encadreur: 'M. Rakotomalala'
+      rapports: 3
     },
     {
       id: 6,
-      nom: 'Rajaonarivelo',
-      prenom: 'Ando',
+      nom: 'Rajaonarivelo Ando',
       matricule: 'ETU-2024-0426',
-      email: 'ando.rajaonarivelo@emit.mg',
-      telephone: '+261 34 12 345 06',
-      filiere: 'Réseaux et Télécommunications',
+      filiere: 'Réseaux',
       niveau: 'Licence 1',
-      ville: 'Antananarivo',
       stage: {
-        titre: "Système de gestion de stock",
+        id: 6,
+        titre: "Gestion de stock",
         entreprise: 'DistriTech',
         statut: 'Refusé',
         dateDebut: '2024-07-01',
         dateFin: '2024-12-31',
         progression: 20
       },
-      rapports: 1,
       evaluation: 'À corriger',
-      encadreur: 'M. Randrianarison'
+      rapports: 1
     },
     {
       id: 7,
-      nom: 'Razafindramary',
-      prenom: 'Fy',
+      nom: 'Razafindramary Fy',
       matricule: 'ETU-2024-0427',
-      email: 'fy.razafindramary@emit.mg',
-      telephone: '+261 34 12 345 07',
       filiere: 'Génie Logiciel',
       niveau: 'Master 2',
-      ville: 'Antsirabe',
       stage: {
-        titre: "Application de gestion des rendez-vous",
+        id: 7,
+        titre: "Gestion rendez-vous",
         entreprise: 'Santé Plus',
         statut: 'En cours',
         dateDebut: '2024-08-01',
         dateFin: '2025-01-15',
         progression: 5
       },
-      rapports: 0,
       evaluation: 'À faire',
-      encadreur: 'Mme. Ralava'
+      rapports: 0
     }
   ]);
 
-  // ===== STATISTIQUES =====
   const stats = {
     total: students.length,
     enStage: students.filter(s => s.stage.statut === 'En cours' || s.stage.statut === 'En attente').length,
@@ -190,7 +152,6 @@ function EnseignantEtudiants() {
     aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
   };
 
-  // ===== FILTRES =====
   const filieres = ['tous', ...new Set(students.map(s => s.filiere))];
   const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'];
 
@@ -201,13 +162,12 @@ function EnseignantEtudiants() {
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase().trim();
       return s.nom.toLowerCase().includes(term) ||
-             s.prenom.toLowerCase().includes(term) ||
-             s.matricule.toLowerCase().includes(term);
+             s.matricule.toLowerCase().includes(term) ||
+             s.filiere.toLowerCase().includes(term);
     }
     return true;
   });
 
-  // ===== PAGINATION =====
   const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
@@ -229,62 +189,52 @@ function EnseignantEtudiants() {
     }
   };
 
-  // ===== FORMAT DATE =====
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
     return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
   };
 
-  // ===== BADGE STATUT =====
   const getStatusBadge = (statut) => {
     const badges = {
-      'En cours': { className: 'badge-status-en-cours', icon: <FaClock />, label: 'En cours' },
-      'En attente': { className: 'badge-status-en-attente', icon: <FaClock />, label: 'En attente' },
-      'Terminé': { className: 'badge-status-termine', icon: <FaCheckCircle />, label: 'Terminé' },
-      'Validé': { className: 'badge-status-valide', icon: <FaCheckCircle />, label: 'Validé' },
-      'Refusé': { className: 'badge-status-refuse', icon: <FaTimesCircle />, label: 'Refusé' }
+      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
+      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
+      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
+      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
+      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
     };
     const badge = badges[statut] || badges['En attente'];
-    return <span className={`badge ${badge.className}`}>{badge.icon} {badge.label}</span>;
+    return <span className={badge.className}>{badge.label}</span>;
   };
 
-  // ===== BADGE ÉVALUATION =====
   const getEvalBadge = (evalStatus) => {
     const badges = {
-      'Validé': { className: 'badge-eval-valide', label: 'Validé' },
-      'À faire': { className: 'badge-eval-en-attente', label: 'À faire' },
-      'À corriger': { className: 'badge-eval-refuse', label: 'À corriger' }
+      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
+      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
+      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
     };
     const badge = badges[evalStatus] || badges['À faire'];
-    return <span className={`badge ${badge.className}`}>{badge.label}</span>;
+    return <span className={badge.className}>{badge.label}</span>;
   };
 
-  // ===== ACTIONS =====
-  const openViewModal = (student) => {
-    setSelectedStudent(student);
-    setModalViewOpen(true);
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
+  const goToStudentDetail = (studentId) => {
+    navigate(`/enseignant/etudiant/${studentId}`);
   };
 
-  const closeViewModal = () => {
-    setModalViewOpen(false);
-    setSelectedStudent(null);
+  const goToEvaluations = (studentId) => {
+    navigate(`/enseignant/evaluations/${studentId}`);
   };
 
-  const handleViewStage = (student) => {
-    alert(`📋 Stage de ${student.prenom} ${student.nom}\n\n🏷️ Titre : ${student.stage.titre}\n🏢 Entreprise : ${student.stage.entreprise}\n📅 Période : ${formatDate(student.stage.dateDebut)} → ${formatDate(student.stage.dateFin)}\n📊 Progression : ${student.stage.progression}%`);
-  };
-
-  const handleEvaluate = (student) => {
-    alert(`⭐ Évaluation de ${student.prenom} ${student.nom}\n\nStatut actuel : ${student.evaluation}`);
-  };
-
-  const handleViewReports = (student) => {
-    alert(`📄 Rapports de ${student.prenom} ${student.nom}\n\nNombre de rapports : ${student.rapports}`);
+  const goToRapports = (studentId) => {
+    navigate(`/enseignant/rapports/${studentId}`);
   };
 
   return (
-    <div className="page-enseignant-etudiants">
+    <div className="enseignant-etudiants">
       {/* ===== EN-TÊTE ===== */}
       <div className="page-header">
         <div>
@@ -295,29 +245,29 @@ function EnseignantEtudiants() {
 
       {/* ===== STATISTIQUES ===== */}
       <div className="stats-cards">
-        <div className="stat-card stat-total">
-          <div className="stat-icon"><FaUserGraduate /></div>
+        <div className="stat-card">
+          <div className="stat-icon total"><FaUserGraduate /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total étudiants</span>
+            <span className="stat-label">Total</span>
           </div>
         </div>
-        <div className="stat-card stat-active">
-          <div className="stat-icon"><FaClock /></div>
+        <div className="stat-card">
+          <div className="stat-icon active"><FaClock /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.enStage}</span>
             <span className="stat-label">En stage</span>
           </div>
         </div>
-        <div className="stat-card stat-done">
-          <div className="stat-icon"><FaCheckCircle /></div>
+        <div className="stat-card">
+          <div className="stat-icon done"><FaCheckCircle /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.termines}</span>
-            <span className="stat-label">Stages terminés</span>
+            <span className="stat-label">Terminés</span>
           </div>
         </div>
-        <div className="stat-card stat-pending">
-          <div className="stat-icon"><FaStar /></div>
+        <div className="stat-card">
+          <div className="stat-icon pending"><FaStar /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.aEvaluer}</span>
             <span className="stat-label">À évaluer</span>
@@ -325,41 +275,45 @@ function EnseignantEtudiants() {
         </div>
       </div>
 
-      {/* ===== TABLEAU AVEC FILTRES ET RECHERCHE ===== */}
-      <div className="etudiants-table-wrapper">
+      {/* ===== TABLEAU ===== */}
+      <div className="table-container">
         {/* ===== TOOLBAR ===== */}
         <div className="table-toolbar">
-          <div className="toolbar-left">
-            <div className="filter-group">
-              <label><FaFilter /> Filière</label>
-              <select 
-                value={selectedFiliere} 
-                onChange={(e) => handleFilterChange('filiere', e.target.value)}
-              >
-                {filieres.map(opt => (
-                  <option key={opt} value={opt}>{opt === 'tous' ? 'Toutes' : opt}</option>
-                ))}
-              </select>
+          <div className="toolbar-filters">
+            <div className="filter-wrapper">
+              <div className="filter-group">
+                <FaFilter className="filter-icon" />
+                <select 
+                  value={selectedFiliere} 
+                  onChange={(e) => handleFilterChange('filiere', e.target.value)}
+                >
+                  {filieres.map(opt => (
+                    <option key={opt} value={opt}>{opt === 'tous' ? 'Toutes filières' : opt}</option>
+                  ))}
+                </select>
+              </div>
             </div>
-            <div className="filter-group">
-              <label><FaGraduationCap /> Niveau</label>
-              <select 
-                value={selectedNiveau} 
-                onChange={(e) => handleFilterChange('niveau', e.target.value)}
-              >
-                {niveaux.map(opt => (
-                  <option key={opt} value={opt}>{opt === 'tous' ? 'Tous' : opt}</option>
-                ))}
-              </select>
+            <div className="filter-wrapper">
+              <div className="filter-group">
+                <FaGraduationCap className="filter-icon" />
+                <select 
+                  value={selectedNiveau} 
+                  onChange={(e) => handleFilterChange('niveau', e.target.value)}
+                >
+                  {niveaux.map(opt => (
+                    <option key={opt} value={opt}>{opt === 'tous' ? 'Tous niveaux' : opt}</option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
           
-          <div className="toolbar-right">
+          <div className="search-wrapper">
             <div className="search-group">
               <FaSearch className="search-icon" />
               <input
                 type="text"
-                placeholder="Rechercher un étudiant..."
+                placeholder="Rechercher..."
                 value={searchTerm}
                 onChange={handleSearchChange}
                 className="search-input"
@@ -378,73 +332,73 @@ function EnseignantEtudiants() {
           <div className="empty-state">
             <FaUsers className="empty-icon" />
             <h3>Aucun étudiant trouvé</h3>
-            <p>Aucun étudiant ne correspond à vos critères de recherche</p>
           </div>
         ) : (
           <>
-            <table className="etudiants-table">
+            <table className="students-table">
               <thead>
                 <tr>
-                  <th><FaUserGraduate /> Étudiant</th>
-                  <th><FaGraduationCap /> Niveau</th>
-                  <th><FaBuilding /> Entreprise</th>
-                  <th><FaCalendarAlt /> Période</th>
+                  <th>Étudiant</th>
+                  <th>Filière / Niveau</th>
+                  <th>Stage</th>
+                  <th>Période</th>
                   <th>Statut</th>
-                  <th><FaStar /> Évaluation</th>
-                  <th>Actions</th>
+                  <th>Évaluation</th>
+                  <th className="actions-header">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedStudents.map((student) => (
                   <tr key={student.id}>
                     <td>
-                      <div className="student-name">
-                        <strong>{student.prenom} {student.nom}</strong>
+                      <div className="student-cell">
+                        <span className="student-name">{student.nom}</span>
+                        <span className="student-matricule">{student.matricule}</span>
                       </div>
                     </td>
                     <td>
-                      <span className="niveau-tag">{student.niveau}</span>
-                    </td>
-                    <td>
-                      <div className="entreprise-info">
-                        <span className="entreprise-name">{student.stage.entreprise}</span>
+                      <div className="filiere-cell">
+                        <span className="filiere-name">{student.filiere}</span>
+                        <span className="niveau-tag">{student.niveau}</span>
                       </div>
                     </td>
                     <td>
-                      <div className="date-info">
-                        <span>{formatDate(student.stage.dateDebut)}</span>
-                        <span className="date-separator">→</span>
-                        <span>{formatDate(student.stage.dateFin)}</span>
+                      <div className="stage-cell">
+                        <span className="stage-title">{student.stage.titre}</span>
+                        <span className="stage-company">{student.stage.entreprise}</span>
                       </div>
+                    </td>
+                    <td>
+                      <span className="date-text">
+                        {formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}
+                      </span>
                     </td>
                     <td>{getStatusBadge(student.stage.statut)}</td>
                     <td>{getEvalBadge(student.evaluation)}</td>
                     <td>
                       <div className="action-buttons">
+                        {/* ===== BOUTON VOIR DÉTAILS ===== */}
                         <button 
-                          className="btn-action" 
-                          onClick={() => openViewModal(student)}
+                          className="action-btn view" 
+                          onClick={() => goToStudentDetail(student.id)}
                           title="Voir les détails"
                         >
                           <FaEye />
                         </button>
+                        
+                        {/* ===== BOUTON ÉVALUER ===== */}
                         <button 
-                          className="btn-action" 
-                          onClick={() => handleViewStage(student)}
-                          title="Voir le stage"
-                        >
-                          <FaBriefcase />
-                        </button>
-                        <button 
-                          className="btn-action" 
-                          onClick={() => handleEvaluate(student)}
+                          className="action-btn eval" 
+                          onClick={() => goToEvaluations(student.id)}
                           title="Évaluer"
                         >
                           <FaStar />
                         </button>
+                        
+                        {/* ===== BOUTON VOIR RAPPORTS ===== */}
                         <button 
-                          className="btn-action" 
-                          onClick={() => handleViewReports(student)}
+                          className="action-btn report" 
+                          onClick={() => goToRapports(student.id)}
                           title="Voir les rapports"
                         >
                           <FaFileAlt />
@@ -460,7 +414,7 @@ function EnseignantEtudiants() {
             {totalPages > 1 && (
               <div className="pagination">
                 <button 
-                  className="pagination-btn"
+                  className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
@@ -470,7 +424,7 @@ function EnseignantEtudiants() {
                 {[...Array(totalPages)].map((_, index) => (
                   <button
                     key={index}
-                    className={`pagination-btn ${currentPage === index + 1 ? 'active' : ''}`}
+                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
                     onClick={() => goToPage(index + 1)}
                   >
                     {index + 1}
@@ -478,14 +432,14 @@ function EnseignantEtudiants() {
                 ))}
                 
                 <button 
-                  className="pagination-btn"
+                  className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
                   <FaChevronRight />
                 </button>
                 
-                <span className="pagination-info">
+                <span className="page-info">
                   {filteredStudents.length} étudiant{filteredStudents.length > 1 ? 's' : ''}
                 </span>
               </div>
@@ -493,13 +447,6 @@ function EnseignantEtudiants() {
           </>
         )}
       </div>
-
-      {/* ===== MODAL VIEW STUDENT ===== */}
-      <ViewStudentModal
-        student={selectedStudent}
-        isOpen={modalViewOpen}
-        onClose={closeViewModal}
-      />
     </div>
   );
 }

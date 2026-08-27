@@ -1,15 +1,12 @@
 import { useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaComment, FaPlus, FaEye, FaEdit, FaTrash,
   FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
   FaUserGraduate, FaBuilding, FaTimes, FaSave,
-  FaClock, FaInfoCircle, FaArrowLeft
+  FaClock, FaInfoCircle
 } from 'react-icons/fa';
 
-function EncadreurObservations() {
-  const { studentId } = useParams();
-  const navigate = useNavigate();
+function EnseignantObservations() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedEtudiant, setSelectedEtudiant] = useState('tous');
   const [currentPage, setCurrentPage] = useState(1);
@@ -20,29 +17,43 @@ function EncadreurObservations() {
   const [selectedObs, setSelectedObs] = useState(null);
 
   const [observations, setObservations] = useState([
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', date: '15 Mai 2024', contenu: "L'étudiant progresse bien, bon investissement dans le projet.", auteur: 'M. Rakotomalala' },
-    { id: 2, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', date: '10 Mai 2024', contenu: 'Difficultés rencontrées sur la partie technique, besoin d\'accompagnement.', auteur: 'M. Rakotomalala' }
+    {
+      id: 1,
+      etudiant: 'Rakoto Miora',
+      stage: 'Plateforme web RH',
+      entreprise: 'TechMada SARL',
+      date: '15 Mai 2024',
+      contenu: "L'étudiant progresse bien, bon investissement dans le projet.",
+      auteur: 'Prof. Andrianivo'
+    },
+    {
+      id: 2,
+      etudiant: 'Rakotondrabe Hery',
+      stage: 'App mobile comptes',
+      entreprise: 'Airtel Madagascar',
+      date: '10 Mai 2024',
+      contenu: 'Difficultés rencontrées sur la partie backend, besoin d\'accompagnement.',
+      auteur: 'Prof. Andrianivo'
+    },
+    {
+      id: 3,
+      etudiant: 'Ramanantsoa Tojo',
+      stage: 'Migration système',
+      entreprise: 'BNI Madagascar',
+      date: '05 Mai 2024',
+      contenu: 'Très bon travail, l\'étudiant est autonome et force de proposition.',
+      auteur: 'Prof. Andrianivo'
+    }
   ]);
 
-  const allObservations = observations;
-  const filteredObs = studentId 
-    ? observations.filter(o => o.etudiantId === parseInt(studentId))
-    : observations;
+  const [formData, setFormData] = useState({
+    etudiant: '',
+    contenu: ''
+  });
 
-  const getStudentName = () => {
-    if (studentId) {
-      const student = allObservations.find(o => o.etudiantId === parseInt(studentId));
-      return student ? student.etudiant : '';
-    }
-    return '';
-  };
+  const etudiants = ['tous', ...new Set(observations.map(o => o.etudiant))];
 
-  const studentName = getStudentName();
-  const etudiants = ['tous', ...new Set(allObservations.map(o => o.etudiant))];
-
-  const [formData, setFormData] = useState({ etudiant: '', contenu: '' });
-
-  const filteredData = filteredObs.filter(o => {
+  const filteredObs = observations.filter(o => {
     if (selectedEtudiant !== 'tous' && o.etudiant !== selectedEtudiant) return false;
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase().trim();
@@ -53,9 +64,9 @@ function EncadreurObservations() {
     return true;
   });
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredObs.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedObs = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedObs = filteredObs.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -69,8 +80,8 @@ function EncadreurObservations() {
   };
 
   const stats = {
-    total: filteredObs.length,
-    recents: filteredObs.filter(o => {
+    total: observations.length,
+    recents: observations.filter(o => {
       const date = new Date(o.date);
       const now = new Date();
       const diff = (now - date) / (1000 * 60 * 60 * 24);
@@ -83,18 +94,16 @@ function EncadreurObservations() {
       alert('Veuillez remplir tous les champs');
       return;
     }
-    const newObservation = {
+    const newObs = {
       id: Date.now(),
       etudiant: formData.etudiant,
-      etudiantId: 1,
       stage: 'Stage en cours',
       entreprise: 'Entreprise',
       date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
       contenu: formData.contenu,
-      auteur: 'M. Rakotomalala'
+      auteur: 'Prof. Andrianivo'
     };
-    setObservations([newObservation, ...observations]);
-    alert('✅ Observation ajoutée avec succès !');
+    setObservations([newObs, ...observations]);
     setShowAddModal(false);
     setFormData({ etudiant: '', contenu: '' });
   };
@@ -114,7 +123,6 @@ function EncadreurObservations() {
       o.id === selectedObs.id ? { ...o, etudiant: formData.etudiant, contenu: formData.contenu } : o
     );
     setObservations(updated);
-    alert('✅ Observation modifiée avec succès !');
     setShowEditModal(false);
     setSelectedObs(null);
     setFormData({ etudiant: '', contenu: '' });
@@ -123,7 +131,6 @@ function EncadreurObservations() {
   const handleDelete = (id) => {
     if (window.confirm('Supprimer cette observation ?')) {
       setObservations(observations.filter(o => o.id !== id));
-      alert('🗑️ Observation supprimée !');
     }
   };
 
@@ -134,23 +141,18 @@ function EncadreurObservations() {
 
   return (
     <div className="observations-page">
+      {/* ===== HEADER ===== */}
       <div className="page-header">
         <div>
-          {studentId && (
-            <button className="btn-back-header" onClick={() => navigate('/encadreur/etudiants')}>
-              <FaArrowLeft /> Retour
-            </button>
-          )}
           <h1><FaComment /> Observations</h1>
-          <p className="text-muted">
-            {studentId ? `Observations de ${studentName}` : 'Gérez les observations sur les étudiants'}
-          </p>
+          <p className="text-muted">Gérez les observations sur les étudiants</p>
         </div>
         <button className="btn-primary" onClick={() => setShowAddModal(true)}>
-          <FaPlus /> Ajouter
+          <FaPlus /> Ajouter une observation
         </button>
       </div>
 
+      {/* ===== STATISTIQUES ===== */}
       <div className="stats-cards">
         <div className="stat-card">
           <div className="stat-icon total"><FaComment /></div>
@@ -168,6 +170,7 @@ function EncadreurObservations() {
         </div>
       </div>
 
+      {/* ===== TABLEAU ===== */}
       <div className="table-container">
         <div className="table-toolbar">
           <div className="toolbar-filters">
@@ -185,6 +188,7 @@ function EncadreurObservations() {
               </div>
             </div>
           </div>
+          
           <div className="search-wrapper">
             <div className="search-group">
               <FaSearch className="search-icon" />
@@ -204,17 +208,18 @@ function EncadreurObservations() {
           </div>
         </div>
 
-        {paginatedObs.length === 0 ? (
+        {filteredObs.length === 0 ? (
           <div className="empty-state">
             <FaComment className="empty-icon" />
             <h3>Aucune observation</h3>
+            <p>Aucune observation ne correspond à vos critères</p>
           </div>
         ) : (
           <>
             <table className="observations-table">
               <thead>
                 <tr>
-                  {!studentId && <th>Étudiant</th>}
+                  <th><FaUserGraduate /> Étudiant</th>
                   <th><FaBuilding /> Stage</th>
                   <th>Observation</th>
                   <th>Date</th>
@@ -224,9 +229,11 @@ function EncadreurObservations() {
               <tbody>
                 {paginatedObs.map((obs) => (
                   <tr key={obs.id}>
-                    {!studentId && (
-                      <td><strong>{obs.etudiant}</strong></td>
-                    )}
+                    <td>
+                      <div className="student-cell">
+                        <span className="student-name">{obs.etudiant}</span>
+                      </div>
+                    </td>
                     <td>
                       <div className="stage-cell">
                         <span className="stage-title">{obs.stage}</span>
@@ -284,7 +291,7 @@ function EncadreurObservations() {
                   <FaChevronRight />
                 </button>
                 <span className="page-info">
-                  {paginatedObs.length} observation{paginatedObs.length > 1 ? 's' : ''}
+                  {filteredObs.length} observation{filteredObs.length > 1 ? 's' : ''}
                 </span>
               </div>
             )}
@@ -422,4 +429,4 @@ function EncadreurObservations() {
   );
 }
 
-export default EncadreurObservations;
+export default EnseignantObservations;

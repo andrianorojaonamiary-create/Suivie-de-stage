@@ -38,6 +38,9 @@ import EnseignantStages from './pages/enseignant/Stages';
 import EnseignantEtudiants from './pages/enseignant/Etudiants';
 import EnseignantEvaluations from './pages/enseignant/Evaluations';
 import EnseignantRapports from './pages/enseignant/Rapports';
+import EnseignantStudentDetail from './pages/enseignant/StudentDetail';
+import EnseignantObservations from './pages/enseignant/Observations';
+
 
 // ===== PAGES ENCADREUR =====
 import EncadreurEtudiants from './pages/encadreur/Etudiants';
@@ -45,6 +48,10 @@ import EncadreurStages from './pages/encadreur/Stages';
 import EncadreurEvaluations from './pages/encadreur/Evaluations';
 import EncadreurObservations from './pages/encadreur/Observations';
 import EncadreurRapports from './pages/encadreur/Rapports';
+import EncadreurStudentDetail from './pages/encadreur/StudentDetail';
+import EncadreurStageDetail from './pages/encadreur/StageDetail';
+import EncadreurEntreprise from './pages/encadreur/Entreprise';
+
 
 // Pages communes
 import Profil from './pages/Profil';
@@ -104,17 +111,27 @@ function App() {
             <Route path="/enseignant/stages" element={<EnseignantStages />} />
             <Route path="/enseignant/etudiants" element={<EnseignantEtudiants />} />
             <Route path="/enseignant/evaluations" element={<EnseignantEvaluations />} />
+            <Route path="/enseignant/evaluations/:studentId" element={<EnseignantEvaluations />} />
             <Route path="/enseignant/rapports" element={<EnseignantRapports />} />
+            <Route path="/enseignant/rapports/:studentId" element={<EnseignantRapports />} />
             <Route path="/enseignant/carte" element={<CarteStages />} />
+            <Route path="/enseignant/etudiant/:studentId" element={<EnseignantStudentDetail />} />
+            <Route path="/enseignant/observations" element={<EnseignantObservations />} />
 
             {/* ===== ENCADREUR ===== */}
             <Route path="/encadreur/dashboard" element={<EncadreurDashboard />} />
             <Route path="/encadreur/etudiants" element={<EncadreurEtudiants />} />
+            <Route path="/encadreur/etudiant/:studentId" element={<EncadreurStudentDetail />} />
             <Route path="/encadreur/stages" element={<EncadreurStages />} />
+            <Route path="/encadreur/stage/:id" element={<EncadreurStageDetail />} />
             <Route path="/encadreur/evaluations" element={<EncadreurEvaluations />} />
+            <Route path="/encadreur/evaluations/:studentId" element={<EncadreurEvaluations />} />
             <Route path="/encadreur/observations" element={<EncadreurObservations />} />
+            <Route path="/encadreur/observations/:studentId" element={<EncadreurObservations />} />
             <Route path="/encadreur/rapports" element={<EncadreurRapports />} />
+            <Route path="/encadreur/rapports/:studentId" element={<EncadreurRapports />} />
             <Route path="/encadreur/carte" element={<CarteStages />} />
+            <Route path="/encadreur/entreprise" element={<EncadreurEntreprise />} />
 
             {/* Communes */}
             <Route path="/profil" element={<Profil />} />

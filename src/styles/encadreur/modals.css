@@ -1,7 +1,10 @@
 /* ============================================================
-   MODALS - STYLES DE BASE
+   ENCADREUR - MODALS
    ============================================================ */
 
+/* ============================================================
+   OVERLAY
+   ============================================================ */
 .modal-overlay {
   position: fixed;
   top: 0;
@@ -23,6 +26,9 @@
   to { opacity: 1; }
 }
 
+/* ============================================================
+   CONTENU
+   ============================================================ */
 .modal-content {
   background: white;
   border-radius: 16px;
@@ -37,6 +43,10 @@
 @keyframes slideUp {
   from { transform: translateY(20px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-content.modal-view {
+  max-width: 580px;
 }
 
 /* ============================================================
@@ -81,7 +91,129 @@
 }
 
 /* ============================================================
-   FOOTER - BOUTONS
+   HEADER VIEW MODAL
+   ============================================================ */
+.modal-view-header {
+  background: linear-gradient(135deg, #1A3A6B 0%, #4A90D9 100%);
+  color: white;
+  border-bottom: none;
+  border-radius: 16px 16px 0 0;
+}
+
+.modal-view-header h2 {
+  color: white;
+}
+
+.modal-view-header .modal-close {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.modal-view-header .modal-close:hover {
+  color: white;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ============================================================
+   BODY
+   ============================================================ */
+.modal-body {
+  padding: 24px;
+}
+
+.modal-view-body {
+  padding: 24px;
+  background: #F8FAFC;
+}
+
+.modal-question {
+  font-size: 15px;
+  color: #1A3A6B;
+  margin: 0 0 16px 0;
+  line-height: 1.6;
+}
+
+.text-danger {
+  color: #E74C3C;
+}
+
+/* ============================================================
+   STAGE SUMMARY
+   ============================================================ */
+.stage-summary {
+  background: #F8FAFC;
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #1A3A6B;
+}
+
+.summary-item svg {
+  color: #4A90D9;
+  font-size: 16px;
+  min-width: 18px;
+}
+
+/* ============================================================
+   COMMENTAIRE
+   ============================================================ */
+.comment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comment-section label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1A3A6B;
+}
+
+.comment-section label svg {
+  color: #4A90D9;
+}
+
+.comment-textarea {
+  width: 100%;
+  min-height: 80px;
+  padding: 12px 14px;
+  border: 1.5px solid #D6E4F0;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.comment-textarea:focus {
+  outline: none;
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+}
+
+.comment-textarea.error {
+  border-color: #E74C3C;
+}
+
+.error-message {
+  font-size: 13px;
+  color: #E74C3C;
+}
+
+/* ============================================================
+   FOOTER
    ============================================================ */
 .modal-footer {
   display: flex;
@@ -91,7 +223,6 @@
   border-top: 1px solid #F5F8FC;
 }
 
-/* ===== BOUTON ANNULER ===== */
 .btn-modal-cancel {
   padding: 10px 24px;
   background: #F5F8FC;
@@ -109,7 +240,6 @@
   color: #1A3A6B;
 }
 
-/* ===== BOUTON VALIDER ===== */
 .btn-modal-confirm {
   padding: 10px 28px;
   border: none;
@@ -157,7 +287,154 @@
 }
 
 /* ============================================================
-   FORMULAIRE D'ÉVALUATION (MODAL)
+   VIEW MODAL - ROWS
+   ============================================================ */
+.view-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #F5F8FC;
+}
+
+.view-row:last-of-type {
+  border-bottom: none;
+}
+
+.view-label {
+  min-width: 140px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c7a8a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.view-label svg {
+  color: #4A90D9;
+  font-size: 14px;
+}
+
+.view-value {
+  font-size: 14px;
+  color: #1A3A6B;
+  word-break: break-word;
+}
+
+.view-value strong {
+  font-weight: 700;
+}
+
+.view-description {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-description .view-label {
+  min-width: unset;
+}
+
+.view-description-text {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  width: 100%;
+  border: 1px solid #E8EEF4;
+}
+
+.view-comment {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-comment .view-label {
+  min-width: unset;
+}
+
+.view-comment-text {
+  font-size: 14px;
+  color: #475569;
+  font-style: italic;
+  padding: 8px 12px;
+  background: #FFF8E7;
+  border-radius: 8px;
+  border-left: 3px solid #F39C12;
+  width: 100%;
+}
+
+.view-status .view-value {
+  display: flex;
+  align-items: center;
+}
+
+/* ============================================================
+   BADGE VIEW
+   ============================================================ */
+.badge-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-view.badge-valide {
+  background: #E8F5E9;
+  color: #27AE60;
+}
+
+.badge-view.badge-refuse {
+  background: #FDE8E8;
+  color: #E74C3C;
+}
+
+.badge-view.badge-en-attente {
+  background: #FFF3E0;
+  color: #F39C12;
+}
+
+.badge-view svg {
+  font-size: 13px;
+}
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+.progress-bar-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100px;
+  height: 6px;
+  background: #F5F8FC;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-right: 8px;
+  border: 1px solid #EEF2F7;
+}
+
+.progress-fill-view {
+  height: 100%;
+  background: linear-gradient(90deg, #4A90D9, #1A3A6B);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-text-view {
+  font-size: 13px;
+  font-weight: 600;
+  color: #4A90D9;
+}
+
+/* ============================================================
+   FORMULAIRE D'ÉVALUATION
    ============================================================ */
 .modal-evaluation {
   max-width: 700px;
@@ -418,18 +695,49 @@
   color: #A0B8D0;
 }
 
-.eval-form-footer {
-  background: white;
-  border-top: 1px solid #E8EEF4;
-}
-
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
+  .modal-content {
+    max-width: 95%;
+    margin: 16px;
+  }
+
   .modal-evaluation {
     max-width: 95%;
     margin: 16px;
+  }
+
+  .view-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .view-label {
+    min-width: unset;
+  }
+
+  .view-description-text {
+    font-size: 13px;
+  }
+
+  .view-comment-text {
+    font-size: 13px;
+  }
+
+  .progress-bar-view {
+    width: 80px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn-modal-confirm,
+  .btn-modal-cancel {
+    width: 100%;
+    justify-content: center;
   }
 
   .eval-info-header {
@@ -460,18 +768,81 @@
     max-height: 60vh;
   }
 
-  .modal-footer {
-    flex-direction: column;
+  .modal-view-body {
+    padding: 16px;
   }
 
-  .btn-modal-confirm,
-  .btn-modal-cancel {
-    width: 100%;
-    justify-content: center;
+  .modal-view-header {
+    padding: 14px 18px;
+  }
+
+  .modal-view-header h2 {
+    font-size: 16px;
   }
 }
 
 @media (max-width: 480px) {
+  .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .modal-body {
+    padding: 18px;
+  }
+
+  .modal-footer {
+    padding: 14px 18px 18px;
+  }
+
+  .btn-modal-confirm {
+    font-size: 13px;
+    padding: 10px 20px;
+    min-width: unset;
+  }
+
+  .btn-modal-cancel {
+    font-size: 13px;
+    padding: 10px 20px;
+  }
+
+  .modal-icon-validate,
+  .modal-icon-reject,
+  .modal-icon-view {
+    font-size: 20px;
+  }
+
+  .view-label {
+    font-size: 12px;
+  }
+
+  .view-value {
+    font-size: 13px;
+  }
+
+  .view-description-text {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .view-comment-text {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .badge-view {
+    font-size: 11px;
+    padding: 2px 10px;
+  }
+
+  .progress-text-view {
+    font-size: 12px;
+  }
+
+  .progress-bar-view {
+    width: 60px;
+    height: 5px;
+  }
+
   .eval-criteres-container,
   .eval-appreciation-container,
   .eval-info-header {

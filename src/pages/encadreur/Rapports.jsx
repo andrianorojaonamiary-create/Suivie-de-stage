@@ -1,52 +1,296 @@
 import { useState } from 'react';
-import {  FaDownload, FaEye, } from 'react-icons/fa';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  FaFileAlt, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
+  FaCheckCircle, FaClock, FaEye, FaDownload, 
+  FaFilePdf, FaFileWord, FaArrowLeft, FaTimes
+} from 'react-icons/fa';
 
 function EncadreurRapports() {
-  // ===== DONNÉES SIMULÉES (uniquement les étudiants encadrés) =====
-  const [rapports] = useState([
-    { id: 1, etudiant: 'Miora Rakoto', stage: 'TechMada SARL', titre: 'Rapport de prise en main', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, etudiant: 'Tojo Ramanantsoa', stage: 'JIRAMA', titre: 'Rapport intermédiaire', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-  ]);
+  const { studentId } = useParams();
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('tous');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const allRapports = [
+    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
+    { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
+    { id: 3, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', titre: 'Rapport de prise en main', fileName: null, date: '—', statut: 'À déposer', size: '—' }
+  ];
+
+  const rapports = studentId 
+    ? allRapports.filter(r => r.etudiantId === parseInt(studentId))
+    : allRapports;
+
+  const getStudentName = () => {
+    if (studentId) {
+      const student = allRapports.find(r => r.etudiantId === parseInt(studentId));
+      return student ? student.etudiant : '';
+    }
+    return '';
+  };
+
+  const studentName = getStudentName();
+
+  const stats = {
+    total: rapports.length,
+    valides: rapports.filter(r => r.statut === 'Validé').length,
+    revision: rapports.filter(r => r.statut === 'En révision').length,
+    deposer: rapports.filter(r => r.statut === 'À déposer').length
+  };
+
+  const filteredRapports = rapports.filter(r => {
+    if (selectedStatus !== 'tous' && r.statut !== selectedStatus) return false;
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase().trim();
+      return r.etudiant.toLowerCase().includes(term) ||
+             r.stage.toLowerCase().includes(term) ||
+             r.entreprise.toLowerCase().includes(term) ||
+             r.titre.toLowerCase().includes(term);
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredRapports.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRapports = filteredRapports.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleViewFile = (fileName) => {
+    if (fileName) {
+      window.open(`/documents/${fileName}`, '_blank');
+    }
+  };
+
+  const handleDownloadFile = (fileName) => {
+    if (fileName) {
+      const link = document.createElement('a');
+      link.href = `/documents/${fileName}`;
+      link.download = fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   const getStatusBadge = (statut) => {
-    const classes = {
+    const badges = {
       'Validé': 'badge-valide',
       'En révision': 'badge-en-cours',
-      'À corriger': 'badge-refuse',
+      'À déposer': 'badge-en-attente'
     };
-    return classes[statut] || 'badge-en-attente';
+    return <span className={`badge ${badges[statut] || 'badge-en-attente'}`}>{statut}</span>;
+  };
+
+  const getFileIcon = (fileName) => {
+    if (!fileName) return <FaFileAlt style={{ color: '#A0B8D0' }} />;
+    const ext = fileName.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return <FaFilePdf style={{ color: '#E74C3C' }} />;
+    if (ext === 'docx' || ext === 'doc') return <FaFileWord style={{ color: '#4A90D9' }} />;
+    return <FaFileAlt style={{ color: '#A0B8D0' }} />;
   };
 
   return (
-    <div className="rapports-encadreur">
+    <div className="rapports-page">
       <div className="page-header">
         <div>
-          <h1>📋 Rapports des étudiants</h1>
-          <p className="text-muted">Étudiants encadrés · {rapports.length} rapports</p>
+          {studentId && (
+            <button className="btn-back-header" onClick={() => navigate('/encadreur/etudiants')}>
+              <FaArrowLeft /> Retour
+            </button>
+          )}
+          <h1><FaFileAlt /> Rapports</h1>
+          <p className="text-muted">
+            {studentId ? `Rapports de ${studentName}` : 'Gérer les rapports des étudiants'}
+          </p>
         </div>
       </div>
 
-      <div className="reports-list">
-        {rapports.map((report) => (
-          <div key={report.id} className="report-card">
-            <div className="report-col-file">
-              <div className="report-info">
-                <span className="report-title">{report.titre}</span>
-                <span className="report-meta">{report.etudiant} · {report.stage}</span>
+      <div className="stats-cards">
+        <div className="stat-card">
+          <div className="stat-icon total"><FaFileAlt /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.total}</span>
+            <span className="stat-label">Total</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon done"><FaCheckCircle /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.valides}</span>
+            <span className="stat-label">Validés</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon active"><FaClock /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.revision}</span>
+            <span className="stat-label">En révision</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon pending"><FaClock /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.deposer}</span>
+            <span className="stat-label">À déposer</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="table-container">
+        <div className="table-toolbar">
+          <div className="toolbar-filters">
+            <div className="filter-wrapper">
+              <div className="filter-group">
+                <FaFilter className="filter-icon" />
+                <select 
+                  value={selectedStatus} 
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                >
+                  <option value="tous">Tous les statuts</option>
+                  <option value="Validé">Validé</option>
+                  <option value="En révision">En révision</option>
+                  <option value="À déposer">À déposer</option>
+                </select>
               </div>
             </div>
-            <div className="report-col-date">
-              <span className="report-date">{report.date}</span>
-            </div>
-            <div className="report-col-status">
-              <span className={getStatusBadge(report.statut)}>{report.statut}</span>
-            </div>
-            <div className="report-col-actions">
-              <button className="btn-action-icon"><FaEye /></button>
-              <button className="btn-action-icon"><FaDownload /></button>
+          </div>
+          
+          <div className="search-wrapper">
+            <div className="search-group">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button className="search-clear" onClick={() => setSearchTerm('')}>
+                  <FaTimes />
+                </button>
+              )}
             </div>
           </div>
-        ))}
+        </div>
+
+        {filteredRapports.length === 0 ? (
+          <div className="empty-state">
+            <FaFileAlt className="empty-icon" />
+            <h3>Aucun rapport</h3>
+          </div>
+        ) : (
+          <>
+            <table className="rapports-table">
+              <thead>
+                <tr>
+                  {!studentId && <th>Étudiant</th>}
+                  <th>Rapport</th>
+                  <th>Stage</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th className="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedRapports.map((rapport) => (
+                  <tr key={rapport.id}>
+                    {!studentId && (
+                      <td><strong>{rapport.etudiant}</strong></td>
+                    )}
+                    <td>
+                      <div className="rapport-cell">
+                        <div className="rapport-icon">
+                          {getFileIcon(rapport.fileName)}
+                        </div>
+                        <div className="rapport-info">
+                          <span className="rapport-title">{rapport.titre}</span>
+                          <span className="rapport-meta">
+                            {rapport.fileName || 'Fichier non déposé'} · {rapport.size}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="stage-cell">
+                        <span className="stage-title">{rapport.stage}</span>
+                        <span className="stage-company">{rapport.entreprise}</span>
+                      </div>
+                    </td>
+                    <td>{rapport.date}</td>
+                    <td>{getStatusBadge(rapport.statut)}</td>
+                    <td>
+                      <div className="action-buttons">
+                        {rapport.fileName && (
+                          <>
+                            <button 
+                              className="action-btn view" 
+                              onClick={() => handleViewFile(rapport.fileName)}
+                              title="Voir le fichier"
+                            >
+                              <FaEye />
+                            </button>
+                            <button 
+                              className="action-btn download" 
+                              onClick={() => handleDownloadFile(rapport.fileName)}
+                              title="Télécharger"
+                            >
+                              <FaDownload />
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button 
+                  className="page-btn"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <FaChevronLeft />
+                </button>
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
+                    onClick={() => goToPage(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                <button 
+                  className="page-btn"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <FaChevronRight />
+                </button>
+                <span className="page-info">
+                  {filteredRapports.length} rapport{filteredRapports.length > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

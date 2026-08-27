@@ -1,43 +1,64 @@
 /* ============================================================
-   ENSEIGNANT - STAGES À VALIDER (STYLE UNIFORMISÉ)
+   ENSEIGNANT - RAPPORTS
    ============================================================ */
 
-.enseignant-stages {
+.rapports-page {
   padding: 20px 0;
   max-width: 1000px;
   margin: 0 auto;
 }
 
-/* ===== EN-TÊTE ===== */
-.page-header {
+/* ===== PAGE HEADER ===== */
+.rapports-page .page-header {
   margin-bottom: 24px;
 }
 
-.page-header h1 {
+.rapports-page .page-header h1 {
   font-size: 24px;
   color: #1A3A6B;
-  margin: 0;
+  margin: 8px 0 4px 0;
   font-weight: 700;
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.page-header .text-muted {
+.rapports-page .page-header .text-muted {
   color: #6c7a8a;
   font-size: 14px;
-  margin: 4px 0 0 0;
+  margin: 0;
+}
+
+/* ===== BOUTON RETOUR ===== */
+.btn-back-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #F5F8FC;
+  border: 1px solid #D6E4F0;
+  border-radius: 8px;
+  color: #1A3A6B;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back-header:hover {
+  background: #D6E4F0;
+  border-color: #4A90D9;
 }
 
 /* ===== STATISTIQUES ===== */
-.stats-cards {
+.rapports-page .stats-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
 
-.stat-card {
+.rapports-page .stat-card {
   background: white;
   border-radius: 12px;
   padding: 16px 20px;
@@ -49,12 +70,12 @@
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
-.stat-card:hover {
+.rapports-page .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
 }
 
-.stat-icon {
+.rapports-page .stat-icon {
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -64,30 +85,30 @@
   font-size: 18px;
 }
 
-.stat-icon.pending { background: #FFF3E0; color: #F39C12; }
-.stat-icon.validated { background: #E8F5E9; color: #27AE60; }
-.stat-icon.rejected { background: #FDE8E8; color: #E74C3C; }
-.stat-icon.total { background: #DBEBF9; color: #4A90D9; }
+.rapports-page .stat-icon.total { background: #DBEBF9; color: #4A90D9; }
+.rapports-page .stat-icon.done { background: #E8F5E9; color: #27AE60; }
+.rapports-page .stat-icon.active { background: #DBEBF9; color: #1A3A6B; }
+.rapports-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
 
-.stat-info {
+.rapports-page .stat-info {
   display: flex;
   flex-direction: column;
 }
 
-.stat-value {
+.rapports-page .stat-value {
   font-size: 24px;
   font-weight: 700;
   color: #1A3A6B;
   line-height: 1.2;
 }
 
-.stat-label {
+.rapports-page .stat-label {
   font-size: 12px;
   color: #6c7a8a;
 }
 
 /* ===== TABLEAU ===== */
-.table-container {
+.rapports-page .table-container {
   background: white;
   border-radius: 12px;
   border: 1px solid #E8EEF4;
@@ -95,100 +116,105 @@
   overflow: hidden;
 }
 
-/* ===== TOOLBAR - ALIGNEMENT CORRIGÉ ===== */
-.table-toolbar {
+/* ===== TOOLBAR ===== */
+.rapports-page .table-toolbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 20px;
+  padding: 12px 20px;
   border-bottom: 1px solid #F0F4F8;
-  background: #FAFCFE;
-  gap: 16px;
   flex-wrap: wrap;
+  gap: 12px;
+  background: #FAFCFE;
 }
 
-.toolbar-filters {
+.rapports-page .toolbar-filters {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.filter-group {
+.rapports-page .filter-wrapper {
+  display: flex;
+  align-items: center;
+  height: 38px;
+}
+
+.rapports-page .filter-group {
   display: flex;
   align-items: center;
   gap: 8px;
   background: white;
   border: 1px solid #E8EEF4;
   border-radius: 8px;
-  padding: 4px 12px;
-  height: 36px;
+  padding: 0 12px;
+  height: 38px;
+  transition: border-color 0.2s;
 }
 
-.filter-group:hover {
+.rapports-page .filter-group:hover {
   border-color: #4A90D9;
 }
 
-.filter-icon {
+.rapports-page .filter-icon {
   color: #A0B8D0;
   font-size: 13px;
 }
 
-.filter-group select {
+.rapports-page .filter-group select {
   border: none;
-  padding: 4px 4px;
+  padding: 0 4px 0 0;
   font-size: 13px;
   color: #1A3A6B;
   background: transparent;
   cursor: pointer;
   outline: none;
-  min-width: 120px;
-  height: 28px;
-}
-
-.filter-group select:focus {
-  outline: none;
-}
-
-.search-group {
-  position: relative;
-  display: flex;
-  align-items: center;
+  min-width: 140px;
   height: 36px;
 }
 
-.search-icon {
+.rapports-page .search-wrapper {
+  display: flex;
+  align-items: center;
+  height: 38px;
+}
+
+.rapports-page .search-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 38px;
+}
+
+.rapports-page .search-icon {
   position: absolute;
   left: 12px;
   color: #A0B8D0;
   font-size: 14px;
 }
 
-.search-input {
-  height: 36px;
-  padding: 0 32px 0 36px;
+.rapports-page .search-input {
+  padding: 0 12px 0 36px;
   border: 1px solid #E8EEF4;
   border-radius: 8px;
   font-size: 14px;
   color: #1A3A6B;
   background: white;
   width: 220px;
+  height: 38px;
   transition: border-color 0.2s;
 }
 
-.search-input:focus {
+.rapports-page .search-input:focus {
   outline: none;
   border-color: #4A90D9;
   box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
 }
 
-.search-input::placeholder {
-  color: #A0B8D0;
-}
-
-.search-clear {
+.rapports-page .search-clear {
   position: absolute;
-  right: 8px;
+  right: 10px;
   background: none;
   border: none;
   color: #A0B8D0;
@@ -199,23 +225,23 @@
   transition: all 0.2s;
 }
 
-.search-clear:hover {
+.rapports-page .search-clear:hover {
   color: #E74C3C;
   background: #FDE8E8;
 }
 
 /* ===== TABLEAU ===== */
-.stages-table {
+.rapports-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
 }
 
-.stages-table thead {
+.rapports-table thead {
   background: #F8FAFC;
 }
 
-.stages-table thead th {
+.rapports-table thead th {
   padding: 12px 16px;
   text-align: left;
   font-weight: 600;
@@ -225,93 +251,106 @@
   letter-spacing: 0.5px;
 }
 
-.stages-table thead th.actions-header {
+.rapports-table thead th.actions-header {
   text-align: center;
-  min-width: 130px;
+  min-width: 160px;
 }
 
-.stages-table td {
-  padding: 14px 16px;
+.rapports-table td {
+  padding: 12px 16px;
   border-bottom: 1px solid #F0F4F8;
   vertical-align: middle;
 }
 
-.stages-table tbody tr {
-  transition: background 0.15s;
-}
-
-.stages-table tbody tr:hover {
+.rapports-table tbody tr:hover {
   background: #F8FAFC;
 }
 
-.stages-table tbody tr:last-child td {
+.rapports-table tbody tr:last-child td {
   border-bottom: none;
 }
 
 /* ===== CELLULES ===== */
-.stage-student {
+.rapports-page .student-cell {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.student-name {
+.rapports-page .student-name {
   font-weight: 600;
   color: #1A3A6B;
   font-size: 14px;
 }
 
-.stage-title-cell {
+.rapports-page .rapport-cell {
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 10px;
 }
 
-.stage-title {
+.rapports-page .rapport-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.rapports-page .rapport-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rapports-page .rapport-title {
   font-weight: 500;
   color: #1A3A6B;
   font-size: 13px;
 }
 
-.stage-company-cell {
+.rapports-page .rapport-meta {
+  font-size: 11px;
+  color: #6c7a8a;
+}
+
+.rapports-page .stage-cell {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
-.company-name {
+.rapports-page .stage-title {
+  font-weight: 500;
+  color: #1A3A6B;
   font-size: 13px;
-  color: #1A3A6B;
 }
 
-.date-text {
+.rapports-page .stage-company {
   font-size: 12px;
-  color: #1A3A6B;
-  white-space: nowrap;
+  color: #6c7a8a;
 }
 
-/* ===== STATUS BADGES ===== */
-.status-badge {
+/* ===== BADGES ===== */
+.rapports-page .badge {
   display: inline-block;
   padding: 3px 12px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  white-space: nowrap;
 }
 
-.status-en-cours { background: #DBEBF9; color: #1A3A6B; }
-.status-en-attente { background: #FFF3E0; color: #F39C12; }
-.status-termine { background: #E8F5E9; color: #27AE60; }
-.status-valide { background: #E8F5E9; color: #27AE60; }
-.status-refuse { background: #FDE8E8; color: #E74C3C; }
+.rapports-page .badge-valide { background: #E8F5E9; color: #27AE60; }
+.rapports-page .badge-en-cours { background: #DBEBF9; color: #1A3A6B; }
+.rapports-page .badge-en-attente { background: #FFF3E0; color: #F39C12; }
+.rapports-page .badge-refuse { background: #FDE8E8; color: #E74C3C; }
 
-/* ===== ACTIONS - TOOLTIP UNIQUE ===== */
-.action-buttons {
+/* ===== ACTIONS ===== */
+.rapports-page .action-buttons {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
 }
 
-.action-btn {
+.rapports-page .action-btn {
   width: 32px;
   height: 32px;
   border: none;
@@ -326,21 +365,17 @@
   color: #A0B8D0;
 }
 
-.action-btn:hover {
+.rapports-page .action-btn:hover {
   transform: scale(1.1);
 }
 
-.action-btn.validate:hover { background: #E8F5E9; color: #27AE60; }
-.action-btn.reject:hover { background: #FDE8E8; color: #E74C3C; }
-.action-btn.view:hover { background: #DBEBF9; color: #4A90D9; }
-.action-btn.stage:hover { background: #FFF3E0; color: #F39C12; }
-.action-btn.eval:hover { background: #FFF8E7; color: #FFD700; }
-.action-btn.report:hover { background: #E8F5E9; color: #27AE60; }
-
-
+.rapports-page .action-btn.view:hover { color: #4A90D9; }
+.rapports-page .action-btn.download:hover { color: #F39C12; }
+.rapports-page .action-btn.validate:hover { color: #27AE60; }
+.rapports-page .action-btn.reject:hover { color: #E74C3C; }
 
 /* ===== PAGINATION ===== */
-.pagination {
+.rapports-page .pagination {
   display: flex;
   align-items: center;
   justify-content: flex-end;
@@ -351,7 +386,7 @@
   background: #FAFCFE;
 }
 
-.page-btn {
+.rapports-page .page-btn {
   min-width: 34px;
   height: 34px;
   padding: 0 10px;
@@ -367,113 +402,125 @@
   justify-content: center;
 }
 
-.page-btn:hover:not(:disabled):not(.active) {
+.rapports-page .page-btn:hover:not(:disabled):not(.active) {
   border-color: #4A90D9;
   background: #F8FAFC;
 }
 
-.page-btn.active {
+.rapports-page .page-btn.active {
   background: #4A90D9;
   border-color: #4A90D9;
   color: white;
 }
 
-.page-btn:disabled {
+.rapports-page .page-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.page-info {
+.rapports-page .page-info {
   font-size: 13px;
   color: #6c7a8a;
   margin-left: 10px;
 }
 
 /* ===== EMPTY STATE ===== */
-.empty-state {
+.rapports-page .empty-state {
   text-align: center;
   padding: 60px 20px;
 }
 
-.empty-icon {
+.rapports-page .empty-icon {
   font-size: 48px;
   color: #D6E4F0;
   margin-bottom: 12px;
 }
 
-.empty-state h3 {
+.rapports-page .empty-state h3 {
   font-size: 18px;
   color: #1A3A6B;
+  margin: 0 0 8px 0;
+}
+
+.rapports-page .empty-state p {
+  color: #6c7a8a;
+  font-size: 14px;
   margin: 0;
 }
 
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 1024px) {
-  .stats-cards {
+@media (max-width: 992px) {
+  .rapports-page .stats-cards {
     grid-template-columns: repeat(2, 1fr);
   }
-}
 
-@media (max-width: 992px) {
-  .table-toolbar {
+  .rapports-page .table-toolbar {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .toolbar-filters {
+  .rapports-page .toolbar-filters {
     flex-wrap: wrap;
   }
 
-  .filter-group {
+  .rapports-page .filter-wrapper {
     flex: 1;
     min-width: 140px;
   }
 
-  .filter-group select {
+  .rapports-page .filter-group {
+    width: 100%;
+  }
+
+  .rapports-page .filter-group select {
     width: 100%;
     min-width: unset;
   }
 
-  .search-group {
+  .rapports-page .search-wrapper {
     width: 100%;
   }
 
-  .search-input {
+  .rapports-page .search-group {
+    width: 100%;
+  }
+
+  .rapports-page .search-input {
     width: 100%;
   }
 }
 
 @media (max-width: 768px) {
-  .stats-cards {
+  .rapports-page .stats-cards {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .stages-table {
+  .rapports-table {
     font-size: 13px;
   }
 
-  .stages-table thead th,
-  .stages-table td {
-    padding: 10px 12px;
+  .rapports-table thead th,
+  .rapports-table td {
+    padding: 8px 10px;
   }
 
-  .action-btn {
+  .rapports-page .action-btn {
     width: 28px;
     height: 28px;
     font-size: 12px;
   }
 
-  .action-btn[title]::after {
-    display: none;
+  .rapports-page .rapport-cell {
+    flex-wrap: wrap;
   }
 
-  .pagination {
+  .rapports-page .pagination {
     justify-content: center;
   }
 
-  .page-info {
+  .rapports-page .page-info {
     width: 100%;
     text-align: center;
     margin-left: 0;
@@ -481,63 +528,61 @@
 }
 
 @media (max-width: 480px) {
-  .stats-cards {
+  .rapports-page .stats-cards {
     grid-template-columns: 1fr;
   }
 
-  .stat-card {
+  .rapports-page .stat-card {
     padding: 12px 14px;
   }
 
-  .stat-value {
+  .rapports-page .stat-value {
     font-size: 20px;
   }
 
-  .stat-icon {
+  .rapports-page .stat-icon {
     width: 36px;
     height: 36px;
     font-size: 15px;
   }
 
-  .stages-table thead th,
-  .stages-table td {
-    padding: 8px 10px;
+  .rapports-table thead th,
+  .rapports-table td {
+    padding: 6px 8px;
     font-size: 12px;
   }
 
-  .student-name {
+  .rapports-page .student-name {
     font-size: 13px;
   }
 
-  .stage-title {
+  .rapports-page .rapport-title {
     font-size: 12px;
   }
 
-  .action-btn {
+  .rapports-page .stage-title {
+    font-size: 12px;
+  }
+
+  .rapports-page .action-btn {
     width: 26px;
     height: 26px;
     font-size: 11px;
     border-radius: 6px;
   }
 
-  .filter-group {
-    min-width: 100%;
+  .rapports-page .filter-group select {
+    font-size: 12px;
   }
 
-  .filter-group select {
-    min-width: unset;
-  }
-
-  .search-input {
+  .rapports-page .search-input {
     font-size: 13px;
-    padding: 0 28px 0 32px;
-    height: 32px;
+    padding: 0 10px 0 32px;
+    height: 34px;
   }
 
-  .search-icon {
+  .rapports-page .search-icon {
     font-size: 12px;
     left: 10px;
   }
 }
-
-
