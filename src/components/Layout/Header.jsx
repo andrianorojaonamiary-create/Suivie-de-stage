@@ -1,6 +1,6 @@
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaBell } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaBell, FaSearch } from 'react-icons/fa';
 
 function Header() {
   const { user, logout } = useAuth();
@@ -65,16 +65,34 @@ function Header() {
     return titles[path] || 'Suivi de Stage';
   };
 
+  // Helper pour afficher les initiales
+  const getInitials = () => {
+    const p = user?.prenom?.[0] || '';
+    const n = user?.nom?.[0] || '';
+    return (p + n).toUpperCase() || 'EM';
+  };
+
   return (
     <header className="header-emit">
       <div className="header-left">
         <div className="header-title-group">
-          <h1 className="header-title">Suivi de Stage</h1>
-          <span className="header-breadcrumb">&gt; {getPageTitle()}</span>
+          <h1 className="header-title">{getPageTitle()}</h1>
+          <span className="header-breadcrumb">EMIT Stage Manager &gt; {getPageTitle()}</span>
         </div>
       </div>
 
       <div className="header-right">
+        {/* Barre de recherche */}
+        <div className="header-search">
+          <FaSearch className="header-search-icon" />
+          <input 
+            type="text" 
+            placeholder="Rechercher..." 
+            className="header-search-input"
+            readOnly
+          />
+        </div>
+
         {/* Bouton Notifications */}
         <button 
           className="header-notif-btn" 
@@ -92,13 +110,15 @@ function Header() {
 
         {/* Utilisateur */}
         <div className="header-user" onClick={handleProfileClick}>
-          <FaUserCircle className="header-user-icon" />
+          <div className="header-user-avatar">
+            {getInitials()}
+          </div>
           <div className="header-user-info">
             <span className="header-user-name">
-              {user?.prenom} {user?.nom}
+              {user?.prenom || 'Jean'} {user?.nom || 'Randriamaro'}
             </span>
             <span className="header-user-role">
-              {getRoleLabel(user?.role)}
+              {getRoleLabel(user?.role) || 'Administrateur'}
             </span>
           </div>
         </div>

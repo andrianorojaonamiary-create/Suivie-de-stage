@@ -1,98 +1,109 @@
 .card-emit {
-  background: white;
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 2px 10px rgba(26, 58, 107, 0.08);
-  border-left: 4px solid var(--emit-blue-clair);
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px -2px rgba(22, 36, 73, 0.04);
+  border: 1px solid #DBEBF9;
+  transition: all 0.25s ease;
+}
+
+.card-emit:hover {
+  box-shadow: 0 10px 25px -3px rgba(22, 36, 73, 0.08);
 }
 
 .card-emit-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 15px;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
 .card-emit-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--emit-blue-tres-fonce);
+  font-size: 17px;
+  font-weight: 800;
+  color: #162449;
   margin: 0;
+  letter-spacing: -0.01em;
 }
 
 .card-emit-icon {
-  color: var(--emit-blue-clair);
-  font-size: 20px;
+  color: #6BA9E6;
+  font-size: 22px;
 }
 
 .btn-emit {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 10px 20px;
-  border-radius: 8px;
-  font-weight: 500;
+  border-radius: 10px;
+  font-weight: 700;
   font-size: 14px;
   border: none;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
 }
 
 .btn-emit-primary {
-  background: var(--emit-blue-clair);
-  color: white;
+  background: #6BA9E6;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(107, 169, 230, 0.3);
 }
 
 .btn-emit-primary:hover {
-  background: var(--emit-blue-clair-hover);
-  color: white;
+  background: #1F3566;
+  color: #FFFFFF;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+  box-shadow: 0 6px 20px rgba(31, 53, 102, 0.3);
 }
 
 .btn-emit-outline {
   background: transparent;
-  color: var(--emit-blue-clair);
-  border: 2px solid var(--emit-blue-clair);
+  color: #162449;
+  border: 1.5px solid #6BA9E6;
 }
 
 .btn-emit-outline:hover {
-  background: var(--emit-blue-clair);
-  color: white;
+  background: #6BA9E6;
+  color: #FFFFFF;
   transform: translateY(-1px);
 }
 
 .btn-emit-secondary {
-  background: var(--emit-white-off);
-  color: var(--emit-blue-tres-fonce);
+  background: #DBEBF9;
+  color: #162449;
 }
 
 .btn-emit-secondary:hover {
-  background: var(--emit-blue-pale);
+  background: #6BA9E6;
+  color: #FFFFFF;
 }
 
 .btn-emit-danger {
-  background: var(--emit-danger);
-  color: white;
+  background: #162449;
+  color: #FFFFFF;
 }
 
 .btn-emit-danger:hover {
-  background: #C0392B;
+  background: #1F3566;
+  transform: translateY(-1px);
 }
 
 .btn-emit-success {
-  background: var(--emit-success);
-  color: white;
+  background: #6BA9E6;
+  color: #FFFFFF;
 }
 
 .btn-emit-success:hover {
-  background: #219A52;
+  background: #1F3566;
+  transform: translateY(-1px);
 }
 
-.btn-sm { padding: 6px 14px; font-size: 12px; }
-.btn-md { padding: 10px 20px; font-size: 14px; }
-.btn-lg { padding: 14px 28px; font-size: 16px; }
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+.btn-md { padding: 10px 20px; font-size: 14px; border-radius: 10px; }
+.btn-lg { padding: 14px 28px; font-size: 16px; border-radius: 12px; }
 
 .btn-icon {
   display: inline-flex;
@@ -101,44 +112,45 @@
 
 .badge {
   padding: 4px 12px;
-  border-radius: 20px;
+  border-radius: 9999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   display: inline-block;
 }
 
 .badge-en-attente {
-  background: #FEF3C7;
-  color: #B45309;
+  background: #1F3566;
+  color: #FFFFFF;
 }
 .badge-valide {
-  background: #D1FAE5;
-  color: #065F46;
+  background: #6BA9E6;
+  color: #FFFFFF;
 }
 .badge-refuse {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: #162449;
+  color: #FFFFFF;
 }
 .badge-termine {
-  background: #DBEAFE;
-  color: #1E40AF;
+  background: #DBEBF9;
+  color: #162449;
 }
 
 .alert {
-  padding: 12px 16px;
-  border-radius: 8px;
-  margin-bottom: 15px;
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 18px;
   font-size: 14px;
+  font-weight: 600;
 }
 
 .alert-danger {
-  background: #FEE2E2;
-  color: #991B1B;
-  border: 1px solid #FECACA;
+  background: #DBEBF9;
+  color: #162449;
+  border: 1px solid #6BA9E6;
 }
 
 .alert-success {
-  background: #D1FAE5;
-  color: #065F46;
-  border: 1px solid #A7F3D0;
+  background: #DBEBF9;
+  color: #162449;
+  border: 1px solid #6BA9E6;
 }

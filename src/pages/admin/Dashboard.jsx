@@ -13,11 +13,11 @@ function AdminDashboard() {
   // ===== DONNÉES =====
 
   const kpis = [
-    { label: 'Étudiants total', value: 312, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#4A90D9', bg: '#DBEBF9' },
-    { label: 'Stages en attente', value: 24, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#F39C12', bg: '#FEF3C7' },
-    { label: 'Stages en cours', value: 187, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#27AE60', bg: '#D1FAE5' },
-    { label: 'Stages terminés', value: 89, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#1A3A6B', bg: '#DBEBF9' },
-    { label: 'Entreprises', value: 63, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#5BA3E6', bg: '#EEF5FC' },
+    { label: 'Étudiants total', value: 312, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#162449', bg: '#DBEBF9', trendColor: '#6BA9E6' },
+    { label: 'Stages en attente', value: 24, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#1F3566', bg: '#DBEBF9', trendColor: '#1F3566' },
+    { label: 'Stages en cours', value: 187, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#6BA9E6', bg: '#DBEBF9', trendColor: '#6BA9E6', featured: true },
+    { label: 'Stages terminés', value: 89, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#162449', bg: '#DBEBF9', trendColor: '#162449' },
+    { label: 'Entreprises', value: 63, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#1F3566', bg: '#DBEBF9', trendColor: '#6BA9E6' },
   ];
 
   const monthlyData = [
@@ -32,10 +32,10 @@ function AdminDashboard() {
   ];
 
   const statusData = [
-    { name: 'En cours', value: 187, color: '#4A90D9' },
-    { name: 'En attente', value: 24, color: '#F39C12' },
-    { name: 'Terminés', value: 89, color: '#1A3A6B' },
-    { name: 'Annulés', value: 12, color: '#E74C3C' },
+    { name: 'En cours', value: 187, color: '#6BA9E6' },
+    { name: 'En attente', value: 24, color: '#1F3566' },
+    { name: 'Terminés', value: 89, color: '#162449' },
+    { name: 'Annulés', value: 12, color: '#DBEBF9' },
   ];
 
   const cityData = [
@@ -55,11 +55,11 @@ function AdminDashboard() {
   ];
 
   const recentActivities = [
-    { text: 'Miora Rakoto a déposé son rapport intermédiaire', time: 'Il y a 12 min', icon: <FaFileAlt />, color: '#4A90D9', bg: '#DBEBF9' },
-    { text: 'Nouveau stage validé — TechMada SARL', time: 'Il y a 45 min', icon: <FaCheckCircle />, color: '#27AE60', bg: '#D1FAE5' },
-    { text: 'Hery Rakotondrabe a rejoint la plateforme', time: 'Il y a 2 h', icon: <FaUserPlus />, color: '#7C3AED', bg: '#EDE9FE' },
-    { text: 'Rapport de Fanja en révision', time: 'Il y a 3 h', icon: <FaClock />, color: '#F39C12', bg: '#FEF3C7' },
-    { text: 'Nouvelle entreprise ajoutée — JIRAMA', time: 'Hier à 14:30', icon: <FaBuilding />, color: '#4A6285', bg: '#EEF5FC' },
+    { text: 'Miora Rakoto a déposé son rapport intermédiaire', time: 'Il y a 12 min', icon: <FaFileAlt />, color: '#162449', bg: '#DBEBF9' },
+    { text: 'Nouveau stage validé — TechMada SARL', time: 'Il y a 45 min', icon: <FaCheckCircle />, color: '#6BA9E6', bg: '#DBEBF9' },
+    { text: 'Hery Rakotondrabe a rejoint la plateforme', time: 'Il y a 2 h', icon: <FaUserPlus />, color: '#1F3566', bg: '#DBEBF9' },
+    { text: 'Rapport de Fanja en révision', time: 'Il y a 3 h', icon: <FaClock />, color: '#162449', bg: '#DBEBF9' },
+    { text: 'Nouvelle entreprise ajoutée — JIRAMA', time: 'Hier à 14:30', icon: <FaBuilding />, color: '#1F3566', bg: '#DBEBF9' },
   ];
 
   const getStatusBadge = (status) => {
@@ -78,22 +78,28 @@ function AdminDashboard() {
     <div className="admin-dashboard-container">
       {/* ===== HEADER ===== */}
       <div className="dashboard-header">
-        <h2>Tableau de bord</h2>
-        <p className="text-muted">Vue générale du suivi des stages — Année universitaire 2023–2024</p>
+        <div className="dashboard-header-left">
+          <h2>Tableau de bord</h2>
+          <p className="dashboard-subtitle">Vue générale du suivi des stages — Année universitaire 2023–2024</p>
+        </div>
       </div>
 
       {/* ===== KPI CARDS ===== */}
       <div className="kpi-grid">
         {kpis.map((kpi, index) => (
-          <div key={index} className="kpi-card">
-            <div className="kpi-icon" style={{ backgroundColor: kpi.bg, color: kpi.color }}>
-              {kpi.icon}
+          <div key={index} className={`kpi-card${kpi.featured ? ' kpi-card--featured' : ''}`}>
+            <div className="kpi-card-top">
+              <div className="kpi-icon" style={{ backgroundColor: kpi.bg, color: kpi.color }}>
+                {kpi.icon}
+              </div>
+              <div className="kpi-trend-badge" style={{ color: kpi.trendColor || kpi.color, backgroundColor: `${kpi.trendColor || kpi.color}15` }}>
+                {kpi.up ? <FaArrowUp size={10} /> : <FaArrowDown size={10} />}
+              </div>
             </div>
             <div className="kpi-content">
               <div className="kpi-value">{kpi.value}</div>
               <div className="kpi-label">{kpi.label}</div>
-              <div className="kpi-change" style={{ color: kpi.color }}>
-                {kpi.up ? <FaArrowUp size={10} /> : <FaArrowDown size={10} />}
+              <div className="kpi-change" style={{ color: kpi.trendColor || kpi.color }}>
                 {kpi.change}
               </div>
             </div>
@@ -107,15 +113,15 @@ function AdminDashboard() {
         <div className="card-emit chart-card chart-line">
           <h3 className="card-title">Évolution des stages</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={monthlyData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EEF5FC" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#7A9BBE' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#7A9BBE' }} />
-              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #C8DCF0' }} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line type="monotone" dataKey="stages" stroke="#4A90D9" strokeWidth={2} dot={{ r: 3 }} name="Déclarés" />
-              <Line type="monotone" dataKey="valides" stroke="#27AE60" strokeWidth={2} dot={{ r: 3 }} name="Validés" />
-              <Line type="monotone" dataKey="termines" stroke="#1A3A6B" strokeWidth={2} dot={{ r: 3 }} name="Terminés" />
+            <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#DBEBF9" vertical={false} />
+              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#1F3566' }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 12, fill: '#1F3566' }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #DBEBF9', boxShadow: '0 4px 12px rgba(22, 36, 73, 0.08)' }} />
+              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 15 }} />
+              <Line type="monotone" dataKey="stages" stroke="#6BA9E6" strokeWidth={3} dot={{ r: 4, fill: '#6BA9E6', strokeWidth: 2, stroke: '#ffffff' }} name="Déclarés" />
+              <Line type="monotone" dataKey="valides" stroke="#1F3566" strokeWidth={3} dot={{ r: 4, fill: '#1F3566', strokeWidth: 2, stroke: '#ffffff' }} name="Validés" />
+              <Line type="monotone" dataKey="termines" stroke="#162449" strokeWidth={3} dot={{ r: 4, fill: '#162449', strokeWidth: 2, stroke: '#ffffff' }} name="Terminés" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -123,40 +129,34 @@ function AdminDashboard() {
         {/* Pie Chart */}
         <div className="card-emit chart-card">
           <h3 className="card-title">Répartition par statut</h3>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height={210}>
             <PieChart>
               <Pie
                 data={statusData}
                 cx="50%"
-                cy="48%"
-                innerRadius={45}
-                outerRadius={72}
-                paddingAngle={3}
+                cy="50%"
+                innerRadius={50}
+                outerRadius={76}
+                paddingAngle={4}
                 dataKey="value"
-                label={({ name, value }) => `${name} ${Math.round((value / totalStatus) * 100)}%`}
-                labelLine={false}
-                fontSize={10}
-                fontWeight={500}
+                label={false}
               >
                 {statusData.map((entry, index) => (
-                  <Cell key={index} fill={entry.color} stroke="white" strokeWidth={2} />
+                  <Cell key={index} fill={entry.color} stroke="#ffffff" strokeWidth={3} />
                 ))}
               </Pie>
               <Tooltip 
-                contentStyle={{ fontSize: 11, borderRadius: 8 }}
+                contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #DBEBF9', boxShadow: '0 4px 12px rgba(22, 36, 73, 0.08)' }}
                 formatter={(value, name) => [`${value} stages`, name]}
               />
             </PieChart>
           </ResponsiveContainer>
-          <div className="status-list-horizontal">
+          <div className="status-grid-legend">
             {statusData.map((item, index) => (
-              <div key={index} className="status-item-small">
-                <span className="status-dot-small" style={{ backgroundColor: item.color }} />
-                <span className="status-name-small">{item.name}</span>
-                <span className="status-value-small">{item.value}</span>
-                <span className="status-percent-small">
-                  ({Math.round((item.value / totalStatus) * 100)}%)
-                </span>
+              <div key={index} className="status-legend-item">
+                <span className="status-dot-bullet" style={{ backgroundColor: item.color }} />
+                <span className="status-legend-label">{item.name}</span>
+                <span className="status-legend-count">({item.value})</span>
               </div>
             ))}
           </div>
@@ -167,12 +167,12 @@ function AdminDashboard() {
       <div className="card-emit chart-card">
         <h3 className="card-title">Stages par ville</h3>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={cityData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#EEF5FC" horizontal={false} />
-            <XAxis type="number" tick={{ fontSize: 11, fill: '#7A9BBE' }} />
-            <YAxis type="category" dataKey="city" tick={{ fontSize: 11, fill: '#4A6285' }} width={90} />
-            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #C8DCF0' }} />
-            <Bar dataKey="count" fill="#4A90D9" radius={[0, 4, 4, 0]} name="Stages" />
+          <BarChart data={cityData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#DBEBF9" horizontal={false} />
+            <XAxis type="number" tick={{ fontSize: 11, fill: '#1F3566' }} axisLine={false} tickLine={false} />
+            <YAxis type="category" dataKey="city" tick={{ fontSize: 12, fill: '#162449', fontWeight: 600 }} width={100} axisLine={false} tickLine={false} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #DBEBF9' }} />
+            <Bar dataKey="count" fill="#6BA9E6" radius={[0, 6, 6, 0]} name="Stages" barSize={16} />
           </BarChart>
         </ResponsiveContainer>
       </div>
