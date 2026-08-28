@@ -69,7 +69,7 @@
   padding: 16px 0;
 }
 
-.sidebar-emit.collapsed + .layout-right {
+.sidebar-emit.collapsed+.layout-right {
   margin-left: var(--sidebar-collapsed-width);
 }
 
@@ -341,7 +341,7 @@
   position: absolute;
   top: -2px;
   right: -2px;
-  background: #162449;
+  background: red;
   color: #FFFFFF;
   font-size: 10px;
   font-weight: 800;
@@ -477,14 +477,12 @@
   height: 1.5px;
   width: 80%;
   margin: 6px auto;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(255, 255, 255, 0.08) 15%,
-    rgba(255, 255, 255, 0.15) 50%,
-    rgba(255, 255, 255, 0.08) 85%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.08) 15%,
+      rgba(255, 255, 255, 0.15) 50%,
+      rgba(255, 255, 255, 0.08) 85%,
+      transparent 100%);
   border: none;
   flex-shrink: 0;
 }
@@ -615,7 +613,7 @@
     padding: 16px;
   }
 
-  .sidebar-emit.collapsed + .layout-right {
+  .sidebar-emit.collapsed+.layout-right {
     margin-left: 0 !important;
   }
 }

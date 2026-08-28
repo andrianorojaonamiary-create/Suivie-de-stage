@@ -5,7 +5,7 @@ import {
 } from 'recharts';
 import {
   FaUsers, FaClock, FaPlayCircle, FaCheckCircle,
-  FaBuilding, FaArrowUp, FaArrowDown, 
+  FaBuilding, FaArrowUp, FaArrowDown,
   FaFileAlt, FaUserPlus
 } from 'react-icons/fa';
 
@@ -13,11 +13,11 @@ function AdminDashboard() {
   // ===== DONNÉES =====
 
   const kpis = [
-    { label: 'Étudiants total', value: 312, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#162449', bg: '#DBEBF9', trendColor: '#6BA9E6' },
-    { label: 'Stages en attente', value: 24, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#1F3566', bg: '#DBEBF9', trendColor: '#1F3566' },
-    { label: 'Stages en cours', value: 187, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#6BA9E6', bg: '#DBEBF9', trendColor: '#6BA9E6', featured: true },
-    { label: 'Stages terminés', value: 89, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#162449', bg: '#DBEBF9', trendColor: '#162449' },
-    { label: 'Entreprises', value: 63, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#1F3566', bg: '#DBEBF9', trendColor: '#6BA9E6' },
+    { label: 'Étudiants total', value: 312, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#DBEBF9', trendColor: '#6BA9E6' },
+    { label: 'Stages en attente', value: 24, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
+    { label: 'Stages en cours', value: 187, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
+    { label: 'Stages terminés', value: 89, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#DBEBF9', trendColor: '#1F2937' },
+    { label: 'Entreprises', value: 63, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#1F3566', bg: '#E1E7FE', trendColor: '#1F3566' },
   ];
 
   const monthlyData = [
@@ -145,7 +145,7 @@ function AdminDashboard() {
                   <Cell key={index} fill={entry.color} stroke="#ffffff" strokeWidth={3} />
                 ))}
               </Pie>
-              <Tooltip 
+              <Tooltip
                 contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #DBEBF9', boxShadow: '0 4px 12px rgba(22, 36, 73, 0.08)' }}
                 formatter={(value, name) => [`${value} stages`, name]}
               />
