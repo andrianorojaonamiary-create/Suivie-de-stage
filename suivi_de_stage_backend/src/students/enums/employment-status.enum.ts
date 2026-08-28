@@ -1,0 +1,5 @@
+export enum EmploymentStatus {
+  NON_RENSEIGNE = 'NON_RENSEIGNE',
+  EMPLOYE = 'EMPLOYE',
+  RECHERCHE_EMPLOI = 'RECHERCHE_EMPLOI',
+}

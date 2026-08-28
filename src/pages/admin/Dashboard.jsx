@@ -72,8 +72,6 @@ function AdminDashboard() {
     return classes[status] || 'badge-en-attente';
   };
 
-  const totalStatus = statusData.reduce((acc, item) => acc + item.value, 0);
-
   return (
     <div className="admin-dashboard-container">
       {/* ===== HEADER ===== */}

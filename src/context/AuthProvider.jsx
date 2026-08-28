@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
-import { mockApi } from '../api/mockApi';
+import apiClient, { getApiErrorMessage, normalizeUser } from '../api/apiClient';
 import { toast } from 'react-toastify';
 
 // Création du contexte (à l'intérieur du fichier)
@@ -18,8 +18,8 @@ export function AuthProvider({ children }) {
       }
 
       try {
-        const userData = await mockApi.getProfile(token);
-        setUser(userData);
+        const { data: userData } = await apiClient.get('/auth/me');
+        setUser(normalizeUser(userData));
       } catch (error) {
         console.error('Erreur:', error);
         localStorage.removeItem('token');
@@ -35,28 +35,37 @@ export function AuthProvider({ children }) {
 
   const login = async (email, password) => {
     try {
-      const response = await mockApi.login(email, password);
-      const { token, user } = response;
+      const response = await apiClient.post('/auth/login', {
+        email,
+        motDePasse: password
+      });
+      const { accessToken, user } = response.data;
       
-      localStorage.setItem('token', token);
-      setToken(token);
-      setUser(user);
+      localStorage.setItem('token', accessToken);
+      setToken(accessToken);
+      const normalizedUser = normalizeUser(user);
+      setUser(normalizedUser);
       
-      toast.success(`Bienvenue ${user.prenom} !`);
-      return user;
+      toast.success(`Bienvenue ${normalizedUser.prenom} !`);
+      return normalizedUser;
     } catch (error) {
-      toast.error(error.message || 'Erreur de connexion');
+      toast.error(getApiErrorMessage(error, 'Erreur de connexion'));
       throw error;
     }
   };
 
   const register = async (userData) => {
     try {
-      const response = await mockApi.register(userData);
+      const response = await apiClient.post('/auth/register', {
+        nom: userData.nom,
+        prenom: userData.prenom,
+        email: userData.email,
+        motDePasse: userData.password
+      });
       toast.success('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-      return response.user;
+      return response.data.user;
     } catch (error) {
-      toast.error(error.message || "Erreur lors de l'inscription");
+      toast.error(getApiErrorMessage(error, "Erreur lors de l'inscription"));
       throw error;
     }
   };

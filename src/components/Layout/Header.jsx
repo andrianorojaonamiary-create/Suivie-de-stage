@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaBell, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaSignOutAlt, FaBell, FaSearch, FaTimes } from 'react-icons/fa';
 
 function Header() {
   const { user, logout } = useAuth();

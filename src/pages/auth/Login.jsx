@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getApiErrorMessage } from '../../api/apiClient';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import logo from '../../assets/logo_emit.jpg';
 
@@ -16,6 +17,12 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    if (password.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -26,7 +33,7 @@ function Login() {
       else if (user.role === 'ROLE_ENCADREUR') navigate('/encadreur/dashboard');
       else navigate('/dashboard');
     } catch (err) {
-      setError(err.message || 'Erreur de connexion');
+      setError(getApiErrorMessage(err, 'Erreur de connexion'));
     } finally {
       setIsLoading(false);
     }
@@ -66,9 +73,10 @@ function Login() {
                 type={showPassword ? 'text' : 'password'}
                 id="password"
                 className="form-control"
-                placeholder="••••••••"
+                placeholder="Minimum 8 caractères"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                minLength={8}
                 required
               />
               <button

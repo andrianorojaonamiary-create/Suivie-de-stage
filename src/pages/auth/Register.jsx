@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
+import { getApiErrorMessage } from '../../api/apiClient';
 import { 
   FaEye, FaEyeSlash, FaArrowLeft, FaArrowRight, FaCheck,
   FaGraduationCap, FaChalkboardTeacher, FaUserTie
@@ -95,7 +96,26 @@ function Register() {
   };
 
   const handleNext = () => {
-    if (step === 2) setStep(3);
+    if (step !== 2) return;
+
+    const missingField = fields.find((field) => field.required && !formData[field.name]?.trim());
+    if (missingField) {
+      setError(`Le champ « ${missingField.label} » est obligatoire.`);
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Les mots de passe ne correspondent pas.');
+      return;
+    }
+
+    setError('');
+    setStep(3);
   };
 
   const handleBack = () => {
@@ -122,8 +142,8 @@ function Register() {
       return;
     }
 
-    if (formData.password && formData.password.length < 6) {
-      setError('Le mot de passe doit contenir au moins 6 caractères');
+    if (formData.password && formData.password.length < 8) {
+      setError('Le mot de passe doit contenir au moins 8 caractères');
       setIsLoading(false);
       return;
     }
@@ -134,14 +154,14 @@ function Register() {
       setSuccess('Inscription réussie ! Redirection...');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError(err.message || "Erreur lors de l'inscription");
+      setError(getApiErrorMessage(err, "Erreur lors de l'inscription"));
     } finally {
       setIsLoading(false);
     }
   };
 
   const passwordFields = [
-    { name: 'password', label: 'Mot de passe', placeholder: 'Minimum 6 caractères', type: 'password', required: true },
+    { name: 'password', label: 'Mot de passe', placeholder: 'Minimum 8 caractères', type: 'password', required: true },
     { name: 'confirmPassword', label: 'Confirmer le mot de passe', placeholder: 'Répéter', type: 'password', required: true },
   ];
 
@@ -261,6 +281,8 @@ function Register() {
             <>
               <h2 className="register-form-title">{selectedRoleMeta?.label}</h2>
               <p className="register-form-subtitle">Renseignez vos informations</p>
+
+              {error && <div className="alert alert-danger">{error}</div>}
 
               <form className="register-form">
                 {fields.map((field) => (
