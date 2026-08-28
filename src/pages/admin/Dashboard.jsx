@@ -32,10 +32,10 @@ function AdminDashboard() {
   ];
 
   const statusData = [
-    { name: 'En cours', value: 187, color: '#6BA9E6' },
-    { name: 'En attente', value: 24, color: '#1F3566' },
-    { name: 'Terminés', value: 89, color: '#162449' },
-    { name: 'Annulés', value: 12, color: '#DBEBF9' },
+    { name: 'En cours', value: 187, color: '#3B82F6' },
+    { name: 'En attente', value: 24, color: '#F59E0B' },
+    { name: 'Terminés', value: 89, color: '#1F2937' },
+    { name: 'Annulés', value: 12, color: '#EF4444' },
   ];
 
   const cityData = [
@@ -119,9 +119,9 @@ function AdminDashboard() {
               <YAxis tick={{ fontSize: 12, fill: '#1F3566' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #DBEBF9', boxShadow: '0 4px 12px rgba(22, 36, 73, 0.08)' }} />
               <Legend wrapperStyle={{ fontSize: 12, paddingTop: 15 }} />
-              <Line type="monotone" dataKey="stages" stroke="#6BA9E6" strokeWidth={3} dot={{ r: 4, fill: '#6BA9E6', strokeWidth: 2, stroke: '#ffffff' }} name="Déclarés" />
-              <Line type="monotone" dataKey="valides" stroke="#1F3566" strokeWidth={3} dot={{ r: 4, fill: '#1F3566', strokeWidth: 2, stroke: '#ffffff' }} name="Validés" />
-              <Line type="monotone" dataKey="termines" stroke="#162449" strokeWidth={3} dot={{ r: 4, fill: '#162449', strokeWidth: 2, stroke: '#ffffff' }} name="Terminés" />
+              <Line type="monotone" dataKey="stages" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6', strokeWidth: 2, stroke: '#ffffff' }} name="Déclarés" />
+              <Line type="monotone" dataKey="termines" stroke="#6B7280" strokeWidth={3} dot={{ r: 4, fill: '#6B7280', strokeWidth: 2, stroke: '#ffffff' }} name="Terminés" />
+              <Line type="monotone" dataKey="valides" stroke="#22C55E" strokeWidth={3} dot={{ r: 4, fill: '#22C55E', strokeWidth: 2, stroke: '#ffffff' }} name="Validés" />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaUserCircle, FaSignOutAlt, FaBell, FaSearch } from 'react-icons/fa';
+import { FaUserCircle, FaSignOutAlt, FaBell, FaSearch, FaTimes } from 'react-icons/fa';
 
 function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchTerm, setSearchTerm] = useState('');
 
   const unreadNotifications = 3;
 
@@ -89,8 +91,30 @@ function Header() {
             type="text" 
             placeholder="Rechercher..." 
             className="header-search-input"
-            readOnly
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
+          {searchTerm && (
+            <button 
+              type="button"
+              className="header-search-clear"
+              onClick={() => setSearchTerm('')}
+              style={{
+                position: 'absolute',
+                right: '12px',
+                background: 'none',
+                border: 'none',
+                color: '#6BA9E6',
+                cursor: 'pointer',
+                fontSize: '12px',
+                display: 'flex',
+                alignItems: 'center',
+                padding: 0
+              }}
+            >
+              <FaTimes />
+            </button>
+          )}
         </div>
 
         {/* Bouton Notifications */}

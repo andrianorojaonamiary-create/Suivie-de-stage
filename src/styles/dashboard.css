@@ -7,7 +7,7 @@
 
 /* ===== BANNIÈRE HÉRO ===== */
 .dashboard-header {
-  background: linear-gradient(135deg, #162449 0%, #1F3566 100%);
+  background: linear-gradient(135deg, #1F3566 50%, #6BA9E6 100%);
   border-radius: 18px;
   padding: 28px 180px 28px 32px;
   color: #FFFFFF;
