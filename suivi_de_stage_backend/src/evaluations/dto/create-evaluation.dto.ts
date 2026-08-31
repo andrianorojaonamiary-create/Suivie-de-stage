@@ -43,6 +43,12 @@ export class CreateEvaluationDto {
   @Length(2, 5000)
   observation?: string;
 
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 5000)
+  appreciationGenerale?: string;
+
   @IsOptional()
   @IsDateString()
   dateEvaluation?: string;

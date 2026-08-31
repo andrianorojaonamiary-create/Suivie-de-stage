@@ -59,20 +59,42 @@ export class NotificationsService {
   }
 
   async notifyStageAssigned(stage: Internship) {
+    const supervisorId = stage.supervisor?.user?.id;
+    if (supervisorId) {
+      await this.createNotification(
+        supervisorId,
+        NotificationType.STAGE_AFFECTE,
+        'Nouvel étudiant affecté',
+        'Un étudiant vous a été affecté.',
+        stage.id,
+      );
+    }
     await this.notifyParticipants(
       stage,
       NotificationType.STAGE_AFFECTE,
       'Stage affecté',
       `Le stage « ${stage.intitule} » vous a été affecté.`,
+      supervisorId,
     );
   }
 
   async notifyStageModified(stage: Internship) {
+    const supervisorId = stage.supervisor?.user?.id;
+    if (supervisorId) {
+      await this.createNotification(
+        supervisorId,
+        NotificationType.STAGE_MODIFIE,
+        'Stage modifié',
+        `Le stage de ${this.getStudentName(stage)} a été modifié.`,
+        stage.id,
+      );
+    }
     await this.notifyParticipants(
       stage,
       NotificationType.STAGE_MODIFIE,
       'Stage modifié',
       `Le stage « ${stage.intitule} » a été modifié.`,
+      supervisorId,
     );
   }
 
@@ -116,10 +138,13 @@ export class NotificationsService {
           userId,
           NotificationType.FIN_STAGE_PROCHE,
           'Fin de stage proche',
-          `La fin du stage « ${stage.intitule} » approche.`,
+          userId === stage.supervisor?.user?.id
+            ? `Le stage de ${this.getStudentName(stage)} se termine bientôt.`
+            : `La fin du stage « ${stage.intitule} » approche.`,
           stage.id,
         );
     }
+    await this.notifyEvaluationRequired(stage);
   }
 
   private async notifyParticipants(
@@ -127,16 +152,45 @@ export class NotificationsService {
     type: NotificationType,
     titre: string,
     message: string,
+    excludedUserId?: string,
   ) {
     const participants = [
       stage.student?.user?.id,
       stage.company?.user?.id,
       stage.supervisor?.user?.id,
-    ].filter((id): id is string => Boolean(id));
+    ].filter((id): id is string => Boolean(id) && id !== excludedUserId);
     await Promise.all(
       [...new Set(participants)].map((userId) =>
         this.createNotification(userId, type, titre, message, stage.id),
       ),
+    );
+  }
+
+  private async notifyEvaluationRequired(stage: Internship) {
+    const supervisorId = stage.supervisor?.user?.id;
+    if (!supervisorId) return;
+    const existing = await this.notificationsRepository.findOne({
+      where: {
+        utilisateurDestinataireId: supervisorId,
+        type: NotificationType.EVALUATION,
+        referenceId: stage.id,
+      },
+    });
+    if (!existing)
+      await this.createNotification(
+        supervisorId,
+        NotificationType.EVALUATION,
+        'Évaluation à effectuer',
+        'Une évaluation est à effectuer.',
+        stage.id,
+      );
+  }
+
+  private getStudentName(stage: Internship) {
+    return (
+      [stage.student?.user?.nom, stage.student?.user?.prenom]
+        .filter(Boolean)
+        .join(' ') || 'cet étudiant'
     );
   }
 

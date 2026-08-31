@@ -83,6 +83,33 @@
   border-color: #4A90D9;
 }
 
+.map-search-group {
+  position: relative;
+  margin-bottom: 12px;
+}
+
+.map-search-group input {
+  width: 100%;
+  padding: 8px 10px 8px 32px;
+  border: 1px solid #D6E4F0;
+  border-radius: 8px;
+  color: #1A3A6B;
+  font-size: 12px;
+}
+
+.map-search-group input:focus {
+  outline: none;
+  border-color: #4A90D9;
+}
+
+.map-search-icon {
+  position: absolute;
+  top: 10px;
+  left: 11px;
+  color: #A0B8D0;
+  font-size: 12px;
+}
+
 /* ===== LÉGENDE ===== */
 .legend-item {
   display: flex;
@@ -147,6 +174,7 @@
 
 /* ===== CARTE ===== */
 .map-container {
+  position: relative;
   flex: 1;
   min-height: 500px;
   border-radius: 12px;
@@ -156,6 +184,20 @@
 }
 
 /* ===== POPUP ===== */
+.stage-marker-icon {
+  background: transparent;
+  border: 0;
+}
+
+.stage-marker-icon span {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border: 3px solid white;
+  border-radius: 50%;
+  box-shadow: 0 2px 6px rgba(26, 58, 107, 0.45);
+}
+
 .popup-content h4 {
   margin: 0 0 6px 0;
   color: #1A3A6B;
@@ -211,4 +253,40 @@
   .map-container {
     min-height: 350px;
   }
+}
+
+.popup-content .popup-description {
+  max-width: 240px;
+  margin-top: 8px;
+  color: #6c7a8a;
+  line-height: 1.4;
+}
+
+.map-loading {
+  position: absolute;
+  z-index: 1000;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: white;
+  color: #1A3A6B;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(26, 58, 107, 0.2);
+}
+
+.map-empty {
+  position: absolute;
+  z-index: 1000;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 8px 14px;
+  border-radius: 6px;
+  background: white;
+  color: #6c7a8a;
+  font-size: 12px;
+  box-shadow: 0 2px 8px rgba(26, 58, 107, 0.2);
+  white-space: nowrap;
 }

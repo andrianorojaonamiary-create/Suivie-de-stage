@@ -25,6 +25,7 @@ export class MapService {
       .createQueryBuilder('internship')
       .innerJoin('internship.company', 'company')
       .innerJoin('internship.student', 'student')
+      .innerJoin('student.user', 'studentUser')
       .innerJoin('internship.supervisor', 'supervisor')
       .select([
         'internship.id AS id',
@@ -41,6 +42,10 @@ export class MapService {
         'internship.lieu AS lieu',
         'internship.date_debut AS "dateDebut"',
         'internship.date_fin AS "dateFin"',
+        'studentUser.nom AS "nomEtudiant"',
+        'studentUser.prenom AS "prenomEtudiant"',
+        'student.formation AS formation',
+        'student.promotion AS promotion',
       ])
       .where('internship.latitude IS NOT NULL')
       .andWhere('internship.longitude IS NOT NULL');
@@ -68,10 +73,14 @@ export class MapService {
       lieu: point.lieu,
       dateDebut: point.dateDebut,
       dateFin: point.dateFin,
+      nomEtudiant: point.nomEtudiant,
+      prenomEtudiant: point.prenomEtudiant,
+      formation: point.formation,
+      promotion: point.promotion,
     }));
   }
 
-  async findCompanyPoints(filters: FindMapDto) {
+  async findCompanyPoints(filters: FindMapDto, actor: AuthenticatedUser) {
     const query = this.companiesRepository
       .createQueryBuilder('company')
       .leftJoin(
@@ -80,6 +89,11 @@ export class MapService {
         'internship.company_id = company.id AND internship.date_suppression IS NULL',
       )
       .leftJoin('students', 'student', 'student.id = internship.student_id')
+      .leftJoin(
+        'supervisors',
+        'supervisor',
+        'supervisor.id = internship.supervisor_id',
+      )
       .select([
         'company.id AS id',
         'company.nom AS nom',
@@ -95,6 +109,7 @@ export class MapService {
       .andWhere('company.longitude IS NOT NULL');
 
     this.applyFilters(query, filters, 'internship', 'company', 'student');
+    this.applyCompanyAccess(query, actor);
 
     const points = await query
       .groupBy('company.id')
@@ -139,6 +154,11 @@ export class MapService {
         { domaine: `%${filters.domaine}%` },
       );
     }
+    if (filters.formation) {
+      query.andWhere(`LOWER(student.formation) LIKE LOWER(:formation)`, {
+        formation: `%${filters.formation}%`,
+      });
+    }
     if (filters.promotion) {
       query.andWhere(`student.promotion = :promotion`, {
         promotion: filters.promotion,
@@ -161,6 +181,19 @@ export class MapService {
       query.andWhere('company.user_id = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
       query.andWhere('supervisor.user_id = :actorId', { actorId: actor.id });
+    }
+  }
+
+  private applyCompanyAccess(
+    query: SelectQueryBuilder<ObjectLiteral>,
+    actor: AuthenticatedUser,
+  ) {
+    if (actor.role === Role.ENCADREUR) {
+      query.andWhere('supervisor.user_id = :actorId', { actorId: actor.id });
+    } else if (actor.role === Role.ETUDIANT) {
+      query.andWhere('student.user_id = :actorId', { actorId: actor.id });
+    } else if (actor.role === Role.ENTREPRISE) {
+      query.andWhere('company.user_id = :actorId', { actorId: actor.id });
     }
   }
 }

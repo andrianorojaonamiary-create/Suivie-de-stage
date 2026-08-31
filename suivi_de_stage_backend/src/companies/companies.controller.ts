@@ -61,7 +61,7 @@ export class CompaniesController {
   }
 
   @Get(':id')
-  @Roles(Role.ENTREPRISE, Role.ADMINISTRATEUR)
+  @Roles(Role.ENTREPRISE, Role.ENCADREUR, Role.ADMINISTRATEUR)
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,

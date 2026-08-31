@@ -361,6 +361,21 @@
 .evaluations-page .action-btn.eval:hover { color: #FFD700; }
 .evaluations-page .action-btn.view:hover { color: #4A90D9; }
 
+.evaluations-table-scroll { overflow-x: auto; }
+.evaluate-button, .evaluation-complete { display: inline-flex; align-items: center; gap: 7px; border-radius: 8px; font-size: 13px; font-weight: 600; }
+.evaluate-button { border: 0; padding: 8px 12px; background: #1A3A6B; color: #fff; cursor: pointer; }
+.evaluate-button:hover { background: #274d85; }
+.evaluation-complete { color: #23834e; font-size: 12px; }
+.simple-evaluation-form { max-width: 640px; }
+.evaluation-field { display: grid; gap: 7px; margin: 18px 0; color: #1A3A6B; font-weight: 600; font-size: 14px; }
+.evaluation-field > span { color: #d64545; }
+.evaluation-field input, .evaluation-field textarea { width: 100%; box-sizing: border-box; border: 1px solid #d6e4f0; border-radius: 8px; color: #1A3A6B; font: inherit; padding: 10px 12px; resize: vertical; }
+.evaluation-field input:focus, .evaluation-field textarea:focus { outline: none; border-color: #4A90D9; box-shadow: 0 0 0 3px rgba(74, 144, 217, .1); }
+.note-input { display: flex; align-items: center; gap: 8px; }
+.note-input input { max-width: 150px; }
+.note-input small { color: #6c7a8a; }
+.evaluation-form-error { color: #c0392b; margin: 8px 0; font-size: 13px; }
+
 .evaluations-page .pagination {
   display: flex;
   align-items: center;

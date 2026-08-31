@@ -1,0 +1,214 @@
+/* ============================================================
+   MAP PAGE
+   ============================================================ */
+.map-page-container {
+  padding: 20px 0;
+}
+
+.map-page-header {
+  margin-bottom: 24px;
+}
+
+.map-page-header h2 {
+  font-size: 24px;
+  color: #162449;
+  margin: 0;
+}
+
+.text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+/* ===== LAYOUT ===== */
+.map-layout {
+  display: flex;
+  gap: 20px;
+}
+
+/* ===== SIDEBAR FILTRES ===== */
+.map-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-emit {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  border: 1px solid #E1ECFE;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+}
+
+.filter-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 12px 0;
+}
+
+.filter-group {
+  margin-bottom: 12px;
+}
+
+.filter-group:last-child {
+  margin-bottom: 0;
+}
+
+.filter-label {
+  display: block;
+  font-size: 12px;
+  color: #6c7a8a;
+  margin-bottom: 4px;
+}
+
+.filter-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #162449;
+  background: white;
+}
+
+.filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+}
+
+/* ===== LÉGENDE ===== */
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.legend-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.legend-label {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+/* ===== STATISTIQUES ===== */
+.city-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.city-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.city-stat-name {
+  font-size: 12px;
+  color: #6c7a8a;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.city-stat-bar {
+  flex: 1;
+  height: 4px;
+  background: #FAFBFF;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.city-stat-fill {
+  height: 100%;
+  background: #6BA9E6;
+  border-radius: 4px;
+}
+
+.city-stat-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: #162449;
+  width: 24px;
+  text-align: right;
+}
+
+/* ===== CARTE ===== */
+.map-container {
+  flex: 1;
+  min-height: 500px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #E1ECFE;
+  background: white;
+}
+
+/* ===== POPUP ===== */
+.popup-content h4 {
+  margin: 0 0 6px 0;
+  color: #162449;
+}
+
+.popup-content p {
+  margin: 2px 0;
+  font-size: 12px;
+  color: #162449;
+}
+
+.popup-content .badge-en-cours,
+.popup-content .badge-en-attente,
+.popup-content .badge-termine,
+.popup-content .badge-valide {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+  .map-layout {
+    flex-direction: column;
+  }
+
+  .map-sidebar {
+    width: 100%;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .map-sidebar .card-emit {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .map-container {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .map-sidebar .card-emit {
+    min-width: 100%;
+  }
+
+  .map-container {
+    min-height: 350px;
+  }
+}

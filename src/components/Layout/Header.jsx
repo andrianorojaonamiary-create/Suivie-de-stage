@@ -1,15 +1,28 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaSignOutAlt, FaBell, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaSignOutAlt, FaBell, FaSearch, FaTimes, FaBars } from 'react-icons/fa';
+import apiClient from '../../api/apiClient';
 
-function Header() {
+function Header({ onMobileMenuToggle }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
 
-  const unreadNotifications = 3;
+  useEffect(() => {
+    const loadUnreadCount = async () => {
+      if (!user) return;
+      try {
+        const { data } = await apiClient.get('/notifications', { params: { lu: false, limit: 1 } });
+        setUnreadNotifications(data.meta?.total || 0);
+      } catch {
+        setUnreadNotifications(0);
+      }
+    };
+    loadUnreadCount();
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -17,7 +30,7 @@ function Header() {
   };
 
   const handleProfileClick = () => {
-    navigate('/profil');
+    navigate(user?.role === 'ROLE_ENCADREUR' ? '/encadreur/profil' : '/profil');
   };
 
   const handleNotificationsClick = () => {
@@ -57,10 +70,12 @@ function Header() {
       '/enseignant/etudiants': 'Mes étudiants',
       '/enseignant/carte': 'Carte des stages',
       '/enseignant/evaluations': 'Évaluations',
-      '/encadreur/stages': 'Stages suivis',
-      '/encadreur/etudiants': 'Étudiants',
-      '/encadreur/carte': 'Carte des stages',
-      '/encadreur/rapports': 'Rapports',
+      '/encadreur/stages': 'Mes stages',
+      '/encadreur/etudiants': 'Mes étudiants',
+      '/encadreur/carte': 'Voir la carte',
+      '/encadreur/observations': 'Suivi des stages',
+      '/encadreur/evaluations': 'Évaluations',
+      '/encadreur/profil': 'Mon profil',
       '/notifications': 'Notifications',
       '/profil': 'Mon profil',
     };
@@ -77,6 +92,7 @@ function Header() {
   return (
     <header className="header-emit">
       <div className="header-left">
+        <button type="button" className="mobile-menu-toggle" onClick={onMobileMenuToggle} aria-label="Ouvrir le menu"><FaBars /></button>
         <div className="header-title-group">
           <h1 className="header-title">{getPageTitle()}</h1>
           <span className="header-breadcrumb">EMIT Stage Manager &gt; {getPageTitle()}</span>
@@ -139,10 +155,10 @@ function Header() {
           </div>
           <div className="header-user-info">
             <span className="header-user-name">
-              {user?.prenom || 'Jean'} {user?.nom || 'Randriamaro'}
+              {[user?.prenom, user?.nom].filter(Boolean).join(' ') || 'Utilisateur connecté'}
             </span>
             <span className="header-user-role">
-              {getRoleLabel(user?.role) || 'Administrateur'}
+              {getRoleLabel(user?.role) || 'Utilisateur'}
             </span>
           </div>
         </div>

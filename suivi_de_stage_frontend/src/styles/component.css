@@ -1,0 +1,156 @@
+.card-emit {
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px -2px rgba(22, 36, 73, 0.04);
+  border: 1px solid #E1ECFE;
+  transition: all 0.25s ease;
+}
+
+.card-emit:hover {
+  box-shadow: 0 10px 25px -3px rgba(22, 36, 73, 0.08);
+}
+
+.card-emit-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.card-emit-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: #162449;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+.card-emit-icon {
+  color: #6BA9E6;
+  font-size: 22px;
+}
+
+.btn-emit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+.btn-emit-primary {
+  background: #6BA9E6;
+  color: #FFFFFF;
+  box-shadow: 0 4px 14px rgba(107, 169, 230, 0.3);
+}
+
+.btn-emit-primary:hover {
+  background: #192543;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(25, 37, 67, 0.3);
+}
+
+.btn-emit-outline {
+  background: transparent;
+  color: #162449;
+  border: 1.5px solid #6BA9E6;
+}
+
+.btn-emit-outline:hover {
+  background: #6BA9E6;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.btn-emit-secondary {
+  background: #E1ECFE;
+  color: #162449;
+}
+
+.btn-emit-secondary:hover {
+  background: #6BA9E6;
+  color: #FFFFFF;
+}
+
+.btn-emit-danger {
+  background: #162449;
+  color: #FFFFFF;
+}
+
+.btn-emit-danger:hover {
+  background: #192543;
+  transform: translateY(-1px);
+}
+
+.btn-emit-success {
+  background: #6BA9E6;
+  color: #FFFFFF;
+}
+
+.btn-emit-success:hover {
+  background: #192543;
+  transform: translateY(-1px);
+}
+
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 8px; }
+.btn-md { padding: 10px 20px; font-size: 14px; border-radius: 10px; }
+.btn-lg { padding: 14px 28px; font-size: 16px; border-radius: 12px; }
+
+.btn-icon {
+  display: inline-flex;
+  align-items: center;
+}
+
+.badge {
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-block;
+}
+
+.badge-en-attente {
+  background: #192543;
+  color: #FFFFFF;
+}
+.badge-valide {
+  background: #6BA9E6;
+  color: #FFFFFF;
+}
+.badge-refuse {
+  background: #162449;
+  color: #FFFFFF;
+}
+.badge-termine {
+  background: #E1ECFE;
+  color: #162449;
+}
+
+.alert {
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 18px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.alert-danger {
+  background: #E1ECFE;
+  color: #162449;
+  border: 1px solid #6BA9E6;
+}
+
+.alert-success {
+  background: #E1ECFE;
+  color: #162449;
+  border: 1px solid #6BA9E6;
+}

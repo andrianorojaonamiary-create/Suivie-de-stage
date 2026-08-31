@@ -1,21 +1,22 @@
 /* ============================================================
-   ENCADREUR - RAPPORTS
+   ENSEIGNANT - RAPPORTS
    ============================================================ */
 
 .rapports-page {
   padding: 20px 0;
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
+/* ===== PAGE HEADER ===== */
 .rapports-page .page-header {
   margin-bottom: 24px;
 }
 
 .rapports-page .page-header h1 {
   font-size: 24px;
-  color: #1A3A6B;
-  margin: 0;
+  color: #162449;
+  margin: 8px 0 4px 0;
   font-weight: 700;
   display: flex;
   align-items: center;
@@ -25,31 +26,31 @@
 .rapports-page .page-header .text-muted {
   color: #6c7a8a;
   font-size: 14px;
-  margin: 4px 0 0 0;
+  margin: 0;
 }
 
-.rapports-page .btn-back-header {
+/* ===== BOUTON RETOUR ===== */
+.btn-back-header {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: #F5F8FC;
-  border: 1px solid #D6E4F0;
+  background: #FAFBFF;
+  border: 1px solid #E1ECFE;
   border-radius: 8px;
-  color: #1A3A6B;
+  color: #162449;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  width: fit-content;
-  margin-bottom: 4px;
 }
 
-.rapports-page .btn-back-header:hover {
-  background: #D6E4F0;
-  border-color: #4A90D9;
+.btn-back-header:hover {
+  background: #E1ECFE;
+  border-color: #6BA9E6;
 }
 
+/* ===== STATISTIQUES ===== */
 .rapports-page .stats-cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -84,9 +85,9 @@
   font-size: 18px;
 }
 
-.rapports-page .stat-icon.total { background: #DBEBF9; color: #4A90D9; }
+.rapports-page .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
 .rapports-page .stat-icon.done { background: #E8F5E9; color: #27AE60; }
-.rapports-page .stat-icon.active { background: #DBEBF9; color: #1A3A6B; }
+.rapports-page .stat-icon.active { background: #E1ECFE; color: #162449; }
 .rapports-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
 
 .rapports-page .stat-info {
@@ -97,7 +98,7 @@
 .rapports-page .stat-value {
   font-size: 24px;
   font-weight: 700;
-  color: #1A3A6B;
+  color: #162449;
   line-height: 1.2;
 }
 
@@ -106,6 +107,7 @@
   color: #6c7a8a;
 }
 
+/* ===== TABLEAU ===== */
 .rapports-page .table-container {
   background: white;
   border-radius: 12px;
@@ -114,6 +116,7 @@
   overflow: hidden;
 }
 
+/* ===== TOOLBAR ===== */
 .rapports-page .table-toolbar {
   display: flex;
   justify-content: space-between;
@@ -151,7 +154,7 @@
 }
 
 .rapports-page .filter-group:hover {
-  border-color: #4A90D9;
+  border-color: #6BA9E6;
 }
 
 .rapports-page .filter-icon {
@@ -163,7 +166,7 @@
   border: none;
   padding: 0 4px 0 0;
   font-size: 13px;
-  color: #1A3A6B;
+  color: #162449;
   background: transparent;
   cursor: pointer;
   outline: none;
@@ -196,7 +199,7 @@
   border: 1px solid #E8EEF4;
   border-radius: 8px;
   font-size: 14px;
-  color: #1A3A6B;
+  color: #162449;
   background: white;
   width: 220px;
   height: 38px;
@@ -205,7 +208,7 @@
 
 .rapports-page .search-input:focus {
   outline: none;
-  border-color: #4A90D9;
+  border-color: #6BA9E6;
   box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
 }
 
@@ -227,6 +230,7 @@
   background: #FDE8E8;
 }
 
+/* ===== TABLEAU ===== */
 .rapports-table {
   width: 100%;
   border-collapse: collapse;
@@ -249,7 +253,7 @@
 
 .rapports-table thead th.actions-header {
   text-align: center;
-  min-width: 120px;
+  min-width: 160px;
 }
 
 .rapports-table td {
@@ -266,6 +270,7 @@
   border-bottom: none;
 }
 
+/* ===== CELLULES ===== */
 .rapports-page .student-cell {
   display: flex;
   flex-direction: column;
@@ -274,7 +279,7 @@
 
 .rapports-page .student-name {
   font-weight: 600;
-  color: #1A3A6B;
+  color: #162449;
   font-size: 14px;
 }
 
@@ -297,7 +302,7 @@
 
 .rapports-page .rapport-title {
   font-weight: 500;
-  color: #1A3A6B;
+  color: #162449;
   font-size: 13px;
 }
 
@@ -314,7 +319,7 @@
 
 .rapports-page .stage-title {
   font-weight: 500;
-  color: #1A3A6B;
+  color: #162449;
   font-size: 13px;
 }
 
@@ -323,6 +328,7 @@
   color: #6c7a8a;
 }
 
+/* ===== BADGES ===== */
 .rapports-page .badge {
   display: inline-block;
   padding: 3px 12px;
@@ -332,9 +338,11 @@
 }
 
 .rapports-page .badge-valide { background: #E8F5E9; color: #27AE60; }
-.rapports-page .badge-en-cours { background: #DBEBF9; color: #1A3A6B; }
+.rapports-page .badge-en-cours { background: #E1ECFE; color: #162449; }
 .rapports-page .badge-en-attente { background: #FFF3E0; color: #F39C12; }
+.rapports-page .badge-refuse { background: #FDE8E8; color: #E74C3C; }
 
+/* ===== ACTIONS ===== */
 .rapports-page .action-buttons {
   display: flex;
   align-items: center;
@@ -361,9 +369,12 @@
   transform: scale(1.1);
 }
 
-.rapports-page .action-btn.view:hover { color: #4A90D9; }
+.rapports-page .action-btn.view:hover { color: #6BA9E6; }
 .rapports-page .action-btn.download:hover { color: #F39C12; }
+.rapports-page .action-btn.validate:hover { color: #27AE60; }
+.rapports-page .action-btn.reject:hover { color: #E74C3C; }
 
+/* ===== PAGINATION ===== */
 .rapports-page .pagination {
   display: flex;
   align-items: center;
@@ -382,7 +393,7 @@
   border: 1px solid #E8EEF4;
   border-radius: 6px;
   background: white;
-  color: #1A3A6B;
+  color: #162449;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
@@ -392,13 +403,13 @@
 }
 
 .rapports-page .page-btn:hover:not(:disabled):not(.active) {
-  border-color: #4A90D9;
+  border-color: #6BA9E6;
   background: #F8FAFC;
 }
 
 .rapports-page .page-btn.active {
-  background: #4A90D9;
-  border-color: #4A90D9;
+  background: #6BA9E6;
+  border-color: #6BA9E6;
   color: white;
 }
 
@@ -413,6 +424,7 @@
   margin-left: 10px;
 }
 
+/* ===== EMPTY STATE ===== */
 .rapports-page .empty-state {
   text-align: center;
   padding: 60px 20px;
@@ -420,13 +432,13 @@
 
 .rapports-page .empty-icon {
   font-size: 48px;
-  color: #D6E4F0;
+  color: #E1ECFE;
   margin-bottom: 12px;
 }
 
 .rapports-page .empty-state h3 {
   font-size: 18px;
-  color: #1A3A6B;
+  color: #162449;
   margin: 0 0 8px 0;
 }
 
@@ -436,6 +448,9 @@
   margin: 0;
 }
 
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 992px) {
   .rapports-page .stats-cards {
     grid-template-columns: repeat(2, 1fr);
@@ -510,15 +525,6 @@
     text-align: center;
     margin-left: 0;
   }
-
-  .rapports-page .page-header h1 {
-    font-size: 20px;
-  }
-
-  .rapports-page .btn-back-header {
-    font-size: 12px;
-    padding: 4px 10px;
-  }
 }
 
 @media (max-width: 480px) {
@@ -578,14 +584,5 @@
   .rapports-page .search-icon {
     font-size: 12px;
     left: 10px;
-  }
-
-  .rapports-page .page-header h1 {
-    font-size: 18px;
-  }
-
-  .rapports-page .btn-back-header {
-    font-size: 12px;
-    padding: 4px 10px;
   }
 }

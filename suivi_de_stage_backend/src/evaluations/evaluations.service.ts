@@ -111,7 +111,13 @@ export class EvaluationsService {
       const keys = Object.keys(dto);
       if (
         keys.some(
-          (key) => !['note', 'commentaire', 'observation'].includes(key),
+          (key) =>
+            ![
+              'note',
+              'commentaire',
+              'observation',
+              'appreciationGenerale',
+            ].includes(key),
         )
       ) {
         throw new ForbiddenException(
@@ -220,6 +226,7 @@ export class EvaluationsService {
       note: evaluation.note,
       commentaire: evaluation.commentaire,
       observation: evaluation.observation,
+      appreciationGenerale: evaluation.appreciationGenerale,
       dateEvaluation: evaluation.dateEvaluation,
       validee: evaluation.validee,
       dateCreation: evaluation.dateCreation,

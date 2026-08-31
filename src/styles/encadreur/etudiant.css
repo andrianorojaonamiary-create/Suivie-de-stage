@@ -561,3 +561,87 @@
     left: 10px;
   }
 }
+
+/* ===== NOUVEAU TABLEAU API ===== */
+.encadreur-etudiants .students-table-scroll {
+  overflow-x: auto;
+}
+
+.encadreur-etudiants .students-table {
+  min-width: 1180px;
+}
+
+.encadreur-etudiants .student-cell {
+  align-items: center;
+  flex-direction: row;
+  gap: 10px;
+  min-width: 150px;
+}
+
+.encadreur-etudiants .student-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+  background: #DBEBF9;
+  color: #1A3A6B;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.encadreur-etudiants .students-table td small {
+  display: block;
+  margin-top: 3px;
+  color: #8A9AAC;
+  font-size: 10px;
+}
+
+.encadreur-etudiants .status-suspendu {
+  background: #FDE8E8;
+  color: #E74C3C;
+}
+
+.encadreur-etudiants .student-progress {
+  min-width: 90px;
+}
+
+.encadreur-etudiants .student-progress strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #1A3A6B;
+  font-size: 11px;
+}
+
+.encadreur-etudiants .student-progress > div {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: #E8EEF4;
+}
+
+.encadreur-etudiants .student-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #4A90D9;
+}
+
+.encadreur-etudiants .follow-button {
+  padding: 7px 10px;
+  border: 1px solid #D6E4F0;
+  border-radius: 6px;
+  background: white;
+  color: #4A90D9;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.encadreur-etudiants .follow-button:hover {
+  border-color: #4A90D9;
+  background: #F8FAFC;
+}

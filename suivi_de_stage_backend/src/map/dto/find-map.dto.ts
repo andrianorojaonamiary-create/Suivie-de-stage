@@ -17,6 +17,10 @@ export class FindMapDto {
 
   @IsOptional()
   @IsString()
+  formation?: string;
+
+  @IsOptional()
+  @IsString()
   promotion?: string;
 
   @IsOptional()

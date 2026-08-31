@@ -410,3 +410,21 @@
     margin-bottom: 14px;
   }
 }
+
+.btn-read-notification {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border: 1px solid #D6E4F0;
+  border-radius: 7px;
+  background: #F5F8FC;
+  color: #1A3A6B;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.btn-read-notification:hover:not(:disabled) { background: #DBEBF9; }
+.btn-read-notification:disabled { opacity: .6; cursor: wait; }

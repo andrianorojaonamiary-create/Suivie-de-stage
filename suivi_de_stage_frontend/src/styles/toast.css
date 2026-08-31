@@ -1,0 +1,81 @@
+/* ============================================================
+   TOASTS STYLE - Nouvelle palette EMIT
+   ============================================================ */
+.Toastify__toast {
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.08) !important;
+  padding: 14px 20px !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
+  border: 1px solid #E1ECFE !important;
+  min-height: 60px !important;
+}
+
+/* ===== SUCCÈS ===== */
+.Toastify__toast--success {
+  background: #FAFBFF !important;
+  color: #162449 !important;
+}
+
+.Toastify__toast--success .Toastify__toast-icon {
+  color: #27AE60 !important;
+}
+
+/* ===== ERREUR ===== */
+.Toastify__toast--error {
+  background: #FAFBFF !important;
+  color: #162449 !important;
+}
+
+.Toastify__toast--error .Toastify__toast-icon {
+  color: #E74C3C !important;
+}
+
+/* ===== INFO ===== */
+.Toastify__toast--info {
+  background: #FAFBFF !important;
+  color: #162449 !important;
+}
+
+.Toastify__toast--info .Toastify__toast-icon {
+  color: #6BA9E6 !important;
+}
+
+/* ===== WARNING ===== */
+.Toastify__toast--warning {
+  background: #FAFBFF !important;
+  color: #162449 !important;
+}
+
+.Toastify__toast--warning .Toastify__toast-icon {
+  color: #F39C12 !important;
+}
+
+/* ===== SUPPRIMER LA BARRE DE PROGRESSION ===== */
+.Toastify__progress-bar {
+  display: none !important;
+}
+
+/* ===== SUPPRIMER LA BORDURE DU BAS ===== */
+.Toastify__toast-body {
+  border-bottom: none !important;
+  padding: 0 !important;
+}
+
+/* ===== TEXTE ===== */
+.Toastify__toast-body {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #162449 !important;
+}
+
+/* ===== BOUTON DE FERMETURE ===== */
+.Toastify__close-button {
+  color: #192543 !important;
+  opacity: 0.6 !important;
+  align-self: center !important;
+}
+
+.Toastify__close-button:hover {
+  opacity: 1 !important;
+  color: #162449 !important;
+}

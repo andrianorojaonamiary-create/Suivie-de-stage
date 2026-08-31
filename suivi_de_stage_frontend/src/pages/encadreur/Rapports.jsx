@@ -98,7 +98,7 @@ function EncadreurRapports() {
     if (!fileName) return <FaFileAlt style={{ color: '#A0B8D0' }} />;
     const ext = fileName.split('.').pop()?.toLowerCase();
     if (ext === 'pdf') return <FaFilePdf style={{ color: '#E74C3C' }} />;
-    if (ext === 'docx' || ext === 'doc') return <FaFileWord style={{ color: '#4A90D9' }} />;
+    if (ext === 'docx' || ext === 'doc') return <FaFileWord style={{ color: '#6BA9E6' }} />;
     return <FaFileAlt style={{ color: '#A0B8D0' }} />;
   };
 

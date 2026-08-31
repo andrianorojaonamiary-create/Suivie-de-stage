@@ -1,22 +1,28 @@
 import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { 
   FaHome, FaList, FaUsers, FaBuilding, FaFileAlt,
   FaMapMarkedAlt, FaStar, FaBell, FaUserCog, 
   FaChevronLeft, FaChevronRight, FaPlus, FaClipboardCheck, 
   FaChartBar, FaUserTie,  FaCalendarAlt,
-  FaGraduationCap, FaComment,
+  FaGraduationCap, FaComment, FaSignOutAlt,
   
 } from 'react-icons/fa';
 import logo from '../../assets/logo_emit.jpg';
 
-function Sidebar() {
-  const { user } = useAuth();
+function Sidebar({ mobileOpen = false }) {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSidebar = () => {
     setIsCollapsed(!isCollapsed);
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
   };
 
   // ===== DÉTERMINER LE BON DASHBOARD SELON LE RÔLE =====
@@ -95,19 +101,18 @@ function Sidebar() {
     // ===== MENU ENCADREUR =====
     if (role === 'ROLE_ENCADREUR') {
       return [
-        { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
+        { path: dashboardPath, icon: <FaHome />, label: 'Tableau de bord' },
         { divider: true },
         { path: '/encadreur/etudiants', icon: <FaUsers />, label: 'Mes étudiants' },
-        { path: '/encadreur/stages', icon: <FaClipboardCheck />, label: 'Stages suivis' },
+        { path: '/encadreur/stages', icon: <FaClipboardCheck />, label: 'Mes stages' },
+        { path: '/encadreur/observations', icon: <FaCalendarAlt />, label: 'Suivi des stages' },
         { path: '/encadreur/evaluations', icon: <FaStar />, label: 'Évaluations' },
-        { path: '/encadreur/observations', icon: <FaComment />, label: 'Observations' },
-        { path: '/encadreur/rapports', icon: <FaFileAlt />, label: 'Rapports' },
-        { path: '/encadreur/entreprise', icon: <FaBuilding />, label: 'Mon entreprise' },
         { divider: true },
-        { path: '/encadreur/carte', icon: <FaMapMarkedAlt />, label: 'Carte des stages' },
+        { path: '/encadreur/carte', icon: <FaMapMarkedAlt />, label: 'Voir la carte' },
         { divider: true },
         { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
-        { path: '/profil', icon: <FaUserCog />, label: 'Mon profil' },
+        { path: '/encadreur/profil', icon: <FaUserCog />, label: 'Mon profil' },
+        { action: 'logout', icon: <FaSignOutAlt />, label: 'Déconnexion' },
       ];
     }
 
@@ -123,7 +128,7 @@ function Sidebar() {
   const menuItems = getMenuItems();
 
   return (
-    <aside className={`sidebar-emit ${isCollapsed ? 'collapsed' : ''}`}>
+    <aside className={`sidebar-emit ${isCollapsed ? 'collapsed' : ''} ${mobileOpen ? 'open' : ''}`}>
       <div className="sidebar-logo">
         <img src={logo} alt="EMIT" className="sidebar-logo-img" />
         {!isCollapsed && (
@@ -139,6 +144,20 @@ function Sidebar() {
           // ===== AFFICHER UN SÉPARATEUR =====
           if (item.divider) {
             return <div key={index} className="sidebar-divider"></div>;
+          }
+
+          if (item.action === 'logout') {
+            return (
+              <NavLink
+                key={index}
+                to="/login"
+                className="sidebar-link"
+                onClick={handleLogout}
+              >
+                <span className="sidebar-icon">{item.icon}</span>
+                <span className="sidebar-label">{item.label}</span>
+              </NavLink>
+            );
           }
 
           // ===== AFFICHER UN LIEN =====

@@ -1,388 +1,119 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaUsers, FaUserGraduate, FaEye, FaStar, FaFileAlt, 
-  FaSearch, FaFilter, FaChevronLeft, FaChevronRight, 
-  FaClock, FaCheckCircle, FaTimes, FaGraduationCap, 
-  FaComment
-} from 'react-icons/fa';
+import { FaFilter, FaSearch, FaTimes, FaUsers } from 'react-icons/fa';
+import { getApiErrorMessage } from '../../api/apiClient';
+import encadreurService from '../../services/encadreurService';
+import { useAuth } from '../../hooks/useAuth';
+
+const statusLabels = { A_VENIR: 'À venir', EN_COURS: 'En cours', TERMINE: 'Terminé', SUSPENDU: 'Suspendu', ANNULE: 'Annulé' };
+const statusClasses = { A_VENIR: 'status-en-attente', EN_COURS: 'status-en-cours', TERMINE: 'status-termine', SUSPENDU: 'status-suspendu', ANNULE: 'status-suspendu' };
+
+const formatDate = (value) => value
+  ? new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(value))
+  : 'Non renseignée';
+
+const getProgress = (stage, now) => {
+  if (!stage) return 0;
+  if (stage.statut === 'TERMINE') return 100;
+  if (stage.statut !== 'EN_COURS') return 0;
+  const start = new Date(stage.dateDebut).getTime();
+  const end = new Date(stage.dateFin).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+  return Math.min(99, Math.max(1, Math.round(((now - start) / (end - start)) * 100)));
+};
+
+const getStudentName = (student) =>
+  [student.user?.nom, student.user?.prenom].filter(Boolean).join(' ') || 'Étudiant';
+
+const stagePriority = { EN_COURS: 0, A_VENIR: 1, SUSPENDU: 2, TERMINE: 3, ANNULE: 4 };
 
 function EncadreurEtudiants() {
+  const { user } = useAuth();
   const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [stages, setStages] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFiliere, setSelectedFiliere] = useState('tous');
-  const [selectedNiveau, setSelectedNiveau] = useState('tous');
+  const [selectedPromotion, setSelectedPromotion] = useState('tous');
+  const [selectedFormation, setSelectedFormation] = useState('toutes');
+  const [selectedStatus, setSelectedStatus] = useState('tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5;
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [now] = useState(() => Date.now());
+  const itemsPerPage = 8;
 
-  const [students] = useState([
-    {
-      id: 1,
-      nom: 'Rakoto Miora',
-      matricule: 'ETU-2024-0421',
-      filiere: 'Génie Logiciel',
-      niveau: 'Master 2',
-      stage: {
-        id: 1,
-        titre: "Plateforme web RH",
-        entreprise: 'TechMada SARL',
-        statut: 'En cours',
-        dateDebut: '2024-03-01',
-        dateFin: '2024-09-15',
-        progression: 65
-      },
-      evaluation: 'Validé',
-      rapports: 2
-    },
-    {
-      id: 2,
-      nom: 'Ramanantsoa Tojo',
-      matricule: 'ETU-2024-0423',
-      filiere: 'Sécurité Info.',
-      niveau: 'Master 1',
-      stage: {
-        id: 2,
-        titre: "Migration système",
-        entreprise: 'BNI Madagascar',
-        statut: 'En attente',
-        dateDebut: '2024-05-01',
-        dateFin: '2024-11-01',
-        progression: 15
-      },
-      evaluation: 'À faire',
-      rapports: 0
-    },
-    {
-      id: 3,
-      nom: 'Razafindramary Fy',
-      matricule: 'ETU-2024-0427',
-      filiere: 'Génie Logiciel',
-      niveau: 'Master 2',
-      stage: {
-        id: 3,
-        titre: "Gestion rendez-vous",
-        entreprise: 'Santé Plus',
-        statut: 'En cours',
-        dateDebut: '2024-08-01',
-        dateFin: '2025-01-15',
-        progression: 5
-      },
-      evaluation: 'À faire',
-      rapports: 0
-    },
-    {
-      id: 4,
-      nom: 'Rajaonarivelo Ando',
-      matricule: 'ETU-2024-0426',
-      filiere: 'Réseaux',
-      niveau: 'Licence 1',
-      stage: {
-        id: 4,
-        titre: "Gestion de stock",
-        entreprise: 'DistriTech',
-        statut: 'Refusé',
-        dateDebut: '2024-07-01',
-        dateFin: '2024-12-31',
-        progression: 20
-      },
-      evaluation: 'À corriger',
-      rapports: 1
-    }
-  ]);
-
-  const stats = {
-    total: students.length,
-    enStage: students.filter(s => s.stage.statut === 'En cours' || s.stage.statut === 'En attente').length,
-    termines: students.filter(s => s.stage.statut === 'Terminé' || s.stage.statut === 'Validé').length,
-    aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
-  };
-
-  const filieres = ['tous', ...new Set(students.map(s => s.filiere))];
-  const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'];
-
-  const filteredStudents = students.filter(s => {
-    if (selectedFiliere !== 'tous' && s.filiere !== selectedFiliere) return false;
-    if (selectedNiveau !== 'tous' && s.niveau !== selectedNiveau) return false;
-    if (searchTerm.trim() !== '') {
-      const term = searchTerm.toLowerCase().trim();
-      return s.nom.toLowerCase().includes(term) ||
-             s.matricule.toLowerCase().includes(term) ||
-             s.filiere.toLowerCase().includes(term);
-    }
-    return true;
-  });
-
-  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleFilterChange = (key, value) => {
-    if (key === 'filiere') setSelectedFiliere(value);
-    if (key === 'niveau') setSelectedNiveau(value);
-    setCurrentPage(1);
-  };
-
-  const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value);
-    setCurrentPage(1);
-  };
-
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  const getStatusBadge = (statut) => {
-    const badges = {
-      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
-      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
-      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
-      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+  useEffect(() => {
+    const loadStudents = async () => {
+      try {
+        setIsLoading(true);
+        const { data: supervisor } = await encadreurService.getMe();
+        const [studentsResponse, stagesResponse] = await Promise.all([
+          encadreurService.getStudents(supervisor.id),
+          encadreurService.getInternships(supervisor.id),
+        ]);
+        setStudents(studentsResponse.data || []);
+        setStages(stagesResponse.data.data || []);
+        setError('');
+      } catch (loadError) {
+        setError(getApiErrorMessage(loadError, 'Impossible de charger vos étudiants.'));
+      } finally {
+        setIsLoading(false);
+      }
     };
-    const badge = badges[statut] || badges['En attente'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
+    if (user) loadStudents();
+  }, [user]);
 
-  const getEvalBadge = (evalStatus) => {
-    const badges = {
-      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
-      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
-      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
-    };
-    const badge = badges[evalStatus] || badges['À faire'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
+  const rows = useMemo(() => {
+    const stagesByStudent = new Map();
+    stages.forEach((stage) => {
+      const current = stagesByStudent.get(stage.student?.id) || [];
+      stagesByStudent.set(stage.student?.id, [...current, stage]);
+    });
+    return students.map((student) => {
+      const studentStages = stagesByStudent.get(student.id) || [];
+      const stage = [...studentStages].sort((first, second) => {
+        const priorityDifference = (stagePriority[first.statut] ?? 99) - (stagePriority[second.statut] ?? 99);
+        if (priorityDifference !== 0) return priorityDifference;
+        return new Date(second.dateDebut || 0).getTime() - new Date(first.dateDebut || 0).getTime();
+      })[0] || null;
+      return { student, stage, id: `${student.id}-${stage?.id || 'sans-stage'}` };
+    });
+  }, [students, stages]);
 
-  const goToStudentDetail = (studentId) => {
-    navigate(`/encadreur/etudiant/${studentId}`);
-  };
+  const promotions = useMemo(() => ['tous', ...new Set(students.map((student) => student.promotion).filter(Boolean))], [students]);
+  const formations = useMemo(() => ['toutes', ...new Set(students.map((student) => student.formation).filter(Boolean))], [students]);
 
-  const goToEvaluations = (studentId) => {
-    navigate(`/encadreur/evaluations/${studentId}`);
-  };
+  const filteredRows = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    return rows.filter(({ student, stage }) => {
+      const searchable = [getStudentName(student), student.matricule, student.formation, student.promotion, stage?.company?.nom, stage?.domaine, stage?.intitule].filter(Boolean).join(' ').toLowerCase();
+      const statusMatches = selectedStatus === 'tous' || stage?.statut === selectedStatus || (!stage && selectedStatus === 'A_VENIR');
+      return (term === '' || searchable.includes(term)) &&
+        (selectedPromotion === 'tous' || student.promotion === selectedPromotion) &&
+        (selectedFormation === 'toutes' || student.formation === selectedFormation) && statusMatches;
+    });
+  }, [rows, searchTerm, selectedPromotion, selectedFormation, selectedStatus]);
 
-  const goToRapports = (studentId) => {
-    navigate(`/encadreur/rapports/${studentId}`);
-  };
-
-  const goToObservations = (studentId) => {
-    navigate(`/encadreur/observations/${studentId}`);
-  };
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / itemsPerPage));
+  const visibleRows = filteredRows.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const updateFilter = (setter) => (event) => { setter(event.target.value); setCurrentPage(1); };
+  const initials = (student) => `${student.user?.prenom?.[0] || ''}${student.user?.nom?.[0] || ''}`.toUpperCase() || 'ET';
 
   return (
     <div className="encadreur-etudiants">
-      <div className="page-header">
-        <div>
-          <h1><FaUsers /> Mes étudiants</h1>
-          <p className="text-muted">{students.length} étudiants encadrés</p>
-        </div>
-      </div>
-
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total"><FaUserGraduate /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enStage}</span>
-            <span className="stat-label">En stage</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon done"><FaCheckCircle /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.termines}</span>
-            <span className="stat-label">Terminés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaStar /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.aEvaluer}</span>
-            <span className="stat-label">À évaluer</span>
-          </div>
-        </div>
-      </div>
-
+      <div className="page-header"><div><h1><FaUsers /> Mes étudiants</h1><p className="text-muted">Étudiants dont vous assurez le suivi</p></div></div>
+      {error && <div className="alert alert-danger">{error}</div>}
       <div className="table-container">
         <div className="table-toolbar">
           <div className="toolbar-filters">
-            <div className="filter-wrapper">
-              <div className="filter-group">
-                <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedFiliere} 
-                  onChange={(e) => handleFilterChange('filiere', e.target.value)}
-                >
-                  {filieres.map(opt => (
-                    <option key={opt} value={opt}>{opt === 'tous' ? 'Toutes filières' : opt}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="filter-wrapper">
-              <div className="filter-group">
-                <FaGraduationCap className="filter-icon" />
-                <select 
-                  value={selectedNiveau} 
-                  onChange={(e) => handleFilterChange('niveau', e.target.value)}
-                >
-                  {niveaux.map(opt => (
-                    <option key={opt} value={opt}>{opt === 'tous' ? 'Tous niveaux' : opt}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            <div className="filter-group"><FaFilter className="filter-icon" /><select value={selectedPromotion} onChange={updateFilter(setSelectedPromotion)}><option value="tous">Toutes promotions</option>{promotions.slice(1).map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
+            <div className="filter-group"><FaFilter className="filter-icon" /><select value={selectedFormation} onChange={updateFilter(setSelectedFormation)}><option value="toutes">Toutes formations</option>{formations.slice(1).map((item) => <option key={item} value={item}>{item}</option>)}</select></div>
+            <div className="filter-group"><FaFilter className="filter-icon" /><select value={selectedStatus} onChange={updateFilter(setSelectedStatus)}><option value="tous">Tous les statuts</option><option value="A_VENIR">À venir</option><option value="EN_COURS">En cours</option><option value="TERMINE">Terminé</option><option value="SUSPENDU">Suspendu</option></select></div>
           </div>
-          
-          <div className="search-wrapper">
-            <div className="search-group">
-              <FaSearch className="search-icon" />
-              <input
-                type="text"
-                placeholder="Rechercher..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="search-input"
-              />
-              {searchTerm && (
-                <button className="search-clear" onClick={() => setSearchTerm('')}>
-                  <FaTimes />
-                </button>
-              )}
-            </div>
-          </div>
+          <div className="search-wrapper"><div className="search-group"><FaSearch className="search-icon" /><input type="search" className="search-input" placeholder="Rechercher un étudiant, une entreprise..." value={searchTerm} onChange={(event) => { setSearchTerm(event.target.value); setCurrentPage(1); }} />{searchTerm && <button type="button" className="search-clear" onClick={() => { setSearchTerm(''); setCurrentPage(1); }} aria-label="Effacer la recherche"><FaTimes /></button>}</div></div>
         </div>
-
-        {filteredStudents.length === 0 ? (
-          <div className="empty-state">
-            <FaUsers className="empty-icon" />
-            <h3>Aucun étudiant trouvé</h3>
-          </div>
-        ) : (
-          <>
-            <table className="students-table">
-              <thead>
-                <tr>
-                  <th>Étudiant</th>
-                  <th>Filière / Niveau</th>
-                  <th>Stage</th>
-                  <th>Période</th>
-                  <th>Statut</th>
-                  <th>Évaluation</th>
-                  <th className="actions-header">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {paginatedStudents.map((student) => (
-                  <tr key={student.id}>
-                    <td>
-                      <div className="student-cell">
-                        <span className="student-name">{student.nom}</span>
-                        <span className="student-matricule">{student.matricule}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="filiere-cell">
-                        <span className="filiere-name">{student.filiere}</span>
-                        <span className="niveau-tag">{student.niveau}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="stage-cell">
-                        <span className="stage-title">{student.stage.titre}</span>
-                        <span className="stage-company">{student.stage.entreprise}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="date-text">
-                        {formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}
-                      </span>
-                    </td>
-                    <td>{getStatusBadge(student.stage.statut)}</td>
-                    <td>{getEvalBadge(student.evaluation)}</td>
-                    <td>
-                      <div className="action-buttons">
-                        <button 
-                          className="action-btn view" 
-                          onClick={() => goToStudentDetail(student.id)}
-                          title="Voir les détails"
-                        >
-                          <FaEye />
-                        </button>
-                        <button 
-                          className="action-btn eval" 
-                          onClick={() => goToEvaluations(student.id)}
-                          title="Évaluer"
-                        >
-                          <FaStar />
-                        </button>
-                        <button 
-                          className="action-btn report" 
-                          onClick={() => goToRapports(student.id)}
-                          title="Voir les rapports"
-                        >
-                          <FaFileAlt />
-                        </button>
-                        <button 
-                          className="action-btn observe" 
-                          onClick={() => goToObservations(student.id)}
-                          title="Observations"
-                        >
-                          <FaComment />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {totalPages > 1 && (
-              <div className="pagination">
-                <button 
-                  className="page-btn"
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  <FaChevronLeft />
-                </button>
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index}
-                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
-                    onClick={() => goToPage(index + 1)}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                <button 
-                  className="page-btn"
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  <FaChevronRight />
-                </button>
-                <span className="page-info">
-                  {filteredStudents.length} étudiant{filteredStudents.length > 1 ? 's' : ''}
-                </span>
-              </div>
-            )}
-          </>
-        )}
+        {isLoading ? <div className="empty-state"><p>Chargement de vos étudiants...</p></div> : visibleRows.length === 0 ? <div className="empty-state"><FaUsers className="empty-icon" /><h3>Aucun étudiant trouvé</h3><p>Modifiez les filtres ou vérifiez vos affectations.</p></div> : <div className="students-table-scroll"><table className="students-table"><thead><tr><th>Étudiant</th><th>Formation</th><th>Promotion</th><th>Entreprise</th><th>Domaine du stage</th><th>Dates</th><th>Statut</th><th>Progression</th><th>Action</th></tr></thead><tbody>{visibleRows.map(({ student, stage, id }) => { const progress = getProgress(stage, now); return <tr key={id}><td><div className="student-cell"><span className="student-avatar">{initials(student)}</span><div><strong>{student.user?.nom || 'Nom non renseigné'}</strong><span>{student.user?.prenom || 'Prénom non renseigné'}</span><small>{student.matricule || 'Matricule non renseigné'}</small></div></div></td><td>{student.formation || 'Non renseignée'}</td><td>{student.promotion || 'Non renseignée'}</td><td>{stage?.company?.nom || 'Non affectée'}</td><td>{stage?.domaine || 'Non renseigné'}{stage?.intitule && <small>{stage.intitule}</small>}</td><td><span className="date-text">{formatDate(stage?.dateDebut)}</span><small>{formatDate(stage?.dateFin)}</small></td><td><span className={`status-badge ${statusClasses[stage?.statut || 'A_VENIR']}`}>{statusLabels[stage?.statut || 'A_VENIR']}</span></td><td><div className="student-progress"><strong>{progress}%</strong><div><i style={{ width: `${progress}%` }} /></div></div></td><td><button type="button" className="follow-button" onClick={() => navigate(`/encadreur/etudiant/${student.id}`)}>Voir le suivi</button></td></tr>; })}</tbody></table></div>}
+        {filteredRows.length > 0 && <div className="pagination"><span className="page-info">{filteredRows.length} étudiant{filteredRows.length > 1 ? 's' : ''}</span><button type="button" className="page-btn" disabled={currentPage === 1} onClick={() => setCurrentPage((page) => page - 1)}>Précédent</button><span className="page-number">Page {currentPage} / {totalPages}</span><button type="button" className="page-btn" disabled={currentPage === totalPages} onClick={() => setCurrentPage((page) => page + 1)}>Suivant</button></div>}
       </div>
     </div>
   );

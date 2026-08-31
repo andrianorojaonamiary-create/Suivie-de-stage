@@ -1,0 +1,453 @@
+/* ============================================================
+   RAPPORTS - GESTION (ADMIN, ENSEIGNANT, ENCADREUR)
+   Style unifié pour les rôles qui gèrent les rapports des étudiants
+   ============================================================ */
+
+/* ===== CONTENEUR PRINCIPAL ===== */
+.rapports-admin,
+.rapports-enseignant,
+.rapports-encadreur {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.rapports-admin .page-header,
+.rapports-enseignant .page-header,
+.rapports-encadreur .page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.rapports-admin .page-header h1,
+.rapports-enseignant .page-header h1,
+.rapports-encadreur .page-header h1 {
+  font-size: 26px;
+  color: #162449;
+  font-weight: 700;
+  margin: 0;
+}
+
+.rapports-admin .page-header .text-muted,
+.rapports-enseignant .page-header .text-muted,
+.rapports-encadreur .page-header .text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+/* ===== FILTRES ===== */
+/* Admin et Enseignant ont des filtres */
+.rapports-admin .filters-section,
+.rapports-enseignant .filters-section {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  background: white;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  margin-bottom: 24px;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+}
+
+/* Encadreur n'a pas de filtres */
+.rapports-encadreur .filters-section {
+  display: none;
+}
+
+.rapports-admin .filter-group,
+.rapports-enseignant .filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 150px;
+}
+
+.rapports-admin .filter-group label,
+.rapports-enseignant .filter-group label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rapports-admin .filter-select,
+.rapports-enseignant .filter-select {
+  padding: 8px 12px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #162449;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rapports-admin .filter-select:focus,
+.rapports-enseignant .filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
+}
+
+/* ===== CARTES RAPPORT ===== */
+.rapports-admin .report-card,
+.rapports-enseignant .report-card,
+.rapports-encadreur .report-card {
+  display: grid;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  padding: 14px 18px;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+/* Admin et Enseignant : 4 colonnes */
+.rapports-admin .report-card,
+.rapports-enseignant .report-card {
+  grid-template-columns: 1fr 120px 120px 140px;
+  gap: 12px;
+}
+
+/* Encadreur : 3 colonnes (moins d'actions) */
+.rapports-encadreur .report-card {
+  grid-template-columns: 1fr 120px 100px;
+  gap: 12px;
+}
+
+.rapports-admin .report-card:hover,
+.rapports-enseignant .report-card:hover,
+.rapports-encadreur .report-card:hover {
+  border-color: #6BA9E6;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.06);
+}
+
+/* ===== COLONNE FICHIER ===== */
+.rapports-admin .report-col-file,
+.rapports-enseignant .report-col-file,
+.rapports-encadreur .report-col-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rapports-admin .report-info,
+.rapports-enseignant .report-info,
+.rapports-encadreur .report-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rapports-admin .report-title,
+.rapports-enseignant .report-title,
+.rapports-encadreur .report-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #162449;
+}
+
+.rapports-admin .report-meta,
+.rapports-enseignant .report-meta,
+.rapports-encadreur .report-meta {
+  font-size: 12px;
+  color: #6c7a8a;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rapports-admin .report-meta span,
+.rapports-enseignant .report-meta span,
+.rapports-encadreur .report-meta span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ===== COLONNE DATE ===== */
+.rapports-admin .report-col-date,
+.rapports-enseignant .report-col-date,
+.rapports-encadreur .report-col-date {
+  text-align: left;
+}
+
+.rapports-admin .report-date,
+.rapports-enseignant .report-date,
+.rapports-encadreur .report-date {
+  font-size: 13px;
+  color: #6c7a8a;
+}
+
+/* ===== COLONNE STATUT ===== */
+.rapports-admin .report-col-status,
+.rapports-enseignant .report-col-status,
+.rapports-encadreur .report-col-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* ===== COLONNE ACTIONS ===== */
+.rapports-admin .report-col-actions,
+.rapports-enseignant .report-col-actions,
+.rapports-encadreur .report-col-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: flex-end;
+}
+
+/* ===== BOUTONS ACTIONS ===== */
+.rapports-admin .btn-action-icon,
+.rapports-enseignant .btn-action-icon,
+.rapports-encadreur .btn-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: none;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  color: #6BA9E6;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rapports-admin .btn-action-icon:hover,
+.rapports-enseignant .btn-action-icon:hover,
+.rapports-encadreur .btn-action-icon:hover {
+  background: #FAFBFF;
+  border-color: #6BA9E6;
+}
+
+/* Bouton Valider (Admin & Enseignant) */
+.rapports-admin .btn-action-icon.btn-success,
+.rapports-enseignant .btn-action-icon.btn-success {
+  color: #27AE60;
+  border-color: #D1FAE5;
+}
+
+.rapports-admin .btn-action-icon.btn-success:hover,
+.rapports-enseignant .btn-action-icon.btn-success:hover {
+  background: #D1FAE5;
+  border-color: #27AE60;
+}
+
+/* Bouton Refuser (Admin & Enseignant) */
+.rapports-admin .btn-action-icon.btn-danger,
+.rapports-enseignant .btn-action-icon.btn-danger {
+  color: #E74C3C;
+  border-color: #FEE2E2;
+}
+
+.rapports-admin .btn-action-icon.btn-danger:hover,
+.rapports-enseignant .btn-action-icon.btn-danger:hover {
+  background: #FEE2E2;
+  border-color: #E74C3C;
+}
+
+/* Bouton Supprimer (Admin seulement) */
+.rapports-admin .btn-action-icon.btn-delete {
+  color: #E74C3C;
+  border-color: #FEE2E2;
+}
+
+.rapports-admin .btn-action-icon.btn-delete:hover {
+  background: #FEE2E2;
+  border-color: #E74C3C;
+}
+
+/* Encadreur : actions limitées (Voir, Télécharger) */
+.rapports-encadreur .report-col-actions .btn-action-icon {
+  width: 32px;
+  height: 32px;
+}
+
+/* ===== BADGES ===== */
+.badge-valide {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  width: fit-content;
+}
+
+.badge-en-cours {
+  background: #E1ECFE;
+  color: #162449;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  width: fit-content;
+}
+
+.badge-refuse {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  width: fit-content;
+}
+
+.badge-en-attente {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+  width: fit-content;
+}
+
+/* ===== EMPTY STATE ===== */
+.rapports-admin .empty-state,
+.rapports-enseignant .empty-state,
+.rapports-encadreur .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 2px dashed #E1ECFE;
+}
+
+.rapports-admin .empty-state p,
+.rapports-enseignant .empty-state p,
+.rapports-encadreur .empty-state p {
+  font-size: 16px;
+  color: #6c7a8a;
+  margin: 0;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* Tablettes */
+@media (max-width: 992px) {
+  .rapports-admin .report-card,
+  .rapports-enseignant .report-card {
+    grid-template-columns: 1fr 100px 100px 120px;
+  }
+
+  .rapports-encadreur .report-card {
+    grid-template-columns: 1fr 100px 80px;
+  }
+
+  .rapports-admin .filters-section,
+  .rapports-enseignant .filters-section {
+    flex-wrap: wrap;
+  }
+}
+
+/* Mobiles */
+@media (max-width: 768px) {
+  .rapports-admin .report-card,
+  .rapports-enseignant .report-card,
+  .rapports-encadreur .report-card {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .rapports-admin .report-col-date,
+  .rapports-enseignant .report-col-date,
+  .rapports-encadreur .report-col-date,
+  .rapports-admin .report-col-status,
+  .rapports-enseignant .report-col-status,
+  .rapports-encadreur .report-col-status,
+  .rapports-admin .report-col-actions,
+  .rapports-enseignant .report-col-actions,
+  .rapports-encadreur .report-col-actions {
+    padding-left: 0;
+  }
+
+  .rapports-admin .report-col-actions,
+  .rapports-enseignant .report-col-actions,
+  .rapports-encadreur .report-col-actions {
+    justify-content: flex-start;
+  }
+
+  .rapports-admin .filters-section,
+  .rapports-enseignant .filters-section {
+    flex-direction: column;
+    padding: 16px;
+  }
+
+  .rapports-admin .filter-group,
+  .rapports-enseignant .filter-group {
+    min-width: 100%;
+  }
+
+  .rapports-admin .page-header,
+  .rapports-enseignant .page-header,
+  .rapports-encadreur .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  /* Encadreur : afficher les filtres cachés sur mobile */
+  .rapports-encadreur .filters-section {
+    display: none; /* Toujours caché */
+  }
+
+  .rapports-admin .page-header h1,
+  .rapports-enseignant .page-header h1,
+  .rapports-encadreur .page-header h1 {
+    font-size: 22px;
+  }
+}
+
+/* Petits mobiles */
+@media (max-width: 480px) {
+  .rapports-admin .report-title,
+  .rapports-enseignant .report-title,
+  .rapports-encadreur .report-title {
+    font-size: 13px;
+  }
+
+  .rapports-admin .report-meta,
+  .rapports-enseignant .report-meta,
+  .rapports-encadreur .report-meta {
+    font-size: 11px;
+  }
+
+  .rapports-admin .btn-action-icon,
+  .rapports-enseignant .btn-action-icon,
+  .rapports-encadreur .btn-action-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+
+  .rapports-admin .report-card,
+  .rapports-enseignant .report-card,
+  .rapports-encadreur .report-card {
+    padding: 12px 14px;
+  }
+}

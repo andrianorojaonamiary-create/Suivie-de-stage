@@ -53,6 +53,9 @@ export class Evaluation {
   @Column({ type: 'text', nullable: true })
   observation: string | null;
 
+  @Column({ name: 'appreciation_generale', type: 'text', nullable: true })
+  appreciationGenerale: string | null;
+
   @Column({
     name: 'date_evaluation',
     type: 'timestamptz',

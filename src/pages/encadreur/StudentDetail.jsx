@@ -1,353 +1,161 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FaArrowLeft, FaUserGraduate, FaEnvelope, FaFileAlt, FaStar,
-   FaBriefcase, FaInfoCircle,
-  FaFilePdf, FaDownload, FaEye, FaUserTie
-} from 'react-icons/fa';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaArrowLeft, FaBuilding, FaCalendarAlt, FaPlus, FaUserGraduate } from 'react-icons/fa';
+import { getApiErrorMessage } from '../../api/apiClient';
+import encadreurService from '../../services/encadreurService';
+import { useAuth } from '../../hooks/useAuth';
 
-function EncadreurStudentDetail() {
+const statusLabels = { A_VENIR: 'À venir', EN_COURS: 'En cours', TERMINE: 'Terminé', SUSPENDU: 'Suspendu', ANNULE: 'Annulé' };
+const statusClasses = { A_VENIR: 'status-en-attente', EN_COURS: 'status-en-cours', TERMINE: 'status-termine', SUSPENDU: 'status-suspendu', ANNULE: 'status-termine' };
+
+const formatDate = (value) => value
+  ? new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }).format(new Date(value))
+  : 'Non renseignée';
+
+const getProgress = (stage) => {
+  if (!stage) return 0;
+  if (stage.statut === 'TERMINE') return 100;
+  if (stage.statut !== 'EN_COURS') return 0;
+  const start = new Date(stage.dateDebut).getTime();
+  const end = new Date(stage.dateFin).getTime();
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0;
+  return Math.min(99, Math.max(1, Math.round(((Date.now() - start) / (end - start)) * 100)));
+};
+
+function StudentDetail() {
   const { studentId } = useParams();
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [student, setStudent] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('info');
+  const [stage, setStage] = useState(null);
+  const [company, setCompany] = useState(null);
+  const [followUps, setFollowUps] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [observation, setObservation] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
+
+  const loadFollowUps = async (stageId) => {
+    const { data } = await encadreurService.getFollowUps(stageId);
+    setFollowUps(data.data || []);
+  };
 
   useEffect(() => {
-    setTimeout(() => {
-      const students = {
-        1: {
-          id: 1,
-          nom: 'Rakoto Miora',
-          prenom: 'Miora',
-          matricule: 'ETU-2024-0421',
-          email: 'miora.rakoto@emit.mg',
-          telephone: '+261 34 12 345 01',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 1,
-            titre: "Développement d'une plateforme web de gestion RH",
-            entreprise: 'TechMada SARL',
-            statut: 'En cours',
-            dateDebut: '2024-03-01',
-            dateFin: '2024-09-15',
-            progression: 65,
-            description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js."
-          },
-          evaluation: 'Validé',
-          rapports: 2,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        2: {
-          id: 2,
-          nom: 'Ramanantsoa Tojo',
-          prenom: 'Tojo',
-          matricule: 'ETU-2024-0423',
-          email: 'tojo.ramanantsoa@emit.mg',
-          telephone: '+261 34 12 345 03',
-          filiere: 'Sécurité Info.',
-          niveau: 'Master 1',
-          ville: 'Antananarivo',
-          stage: {
-            id: 2,
-            titre: "Migration et sécurisation du système d'information",
-            entreprise: 'BNI Madagascar',
-            statut: 'En attente',
-            dateDebut: '2024-05-01',
-            dateFin: '2024-11-01',
-            progression: 15,
-            description: "Migration du système d'information vers une architecture sécurisée."
-          },
-          evaluation: 'À faire',
-          rapports: 0,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        3: {
-          id: 3,
-          nom: 'Razafindramary Fy',
-          prenom: 'Fy',
-          matricule: 'ETU-2024-0427',
-          email: 'fy.razafindramary@emit.mg',
-          telephone: '+261 34 12 345 07',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 3,
-            titre: "Application de gestion des rendez-vous",
-            entreprise: 'Santé Plus',
-            statut: 'En cours',
-            dateDebut: '2024-08-01',
-            dateFin: '2025-01-15',
-            progression: 5,
-            description: "Application mobile de gestion des rendez-vous médicaux avec React Native."
-          },
-          evaluation: 'À faire',
-          rapports: 0,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        4: {
-          id: 4,
-          nom: 'Rajaonarivelo Ando',
-          prenom: 'Ando',
-          matricule: 'ETU-2024-0426',
-          email: 'ando.rajaonarivelo@emit.mg',
-          telephone: '+261 34 12 345 06',
-          filiere: 'Réseaux',
-          niveau: 'Licence 1',
-          ville: 'Antananarivo',
-          stage: {
-            id: 4,
-            titre: "Système de gestion de stock",
-            entreprise: 'DistriTech',
-            statut: 'Refusé',
-            dateDebut: '2024-07-01',
-            dateFin: '2024-12-31',
-            progression: 20,
-            description: "Développement d'un système de gestion de stock pour entreprise de distribution."
-          },
-          evaluation: 'À corriger',
-          rapports: 1,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Dr. Ranaivo'
+    const loadDetails = async () => {
+      try {
+        setIsLoading(true);
+        const { data: supervisor } = await encadreurService.getMe();
+        const [studentsResponse, stagesResponse] = await Promise.all([
+          encadreurService.getStudents(supervisor.id),
+          encadreurService.getInternships(supervisor.id),
+        ]);
+        const selectedStudent = (studentsResponse.data || []).find((item) => item.id === studentId);
+        const selectedStage = (stagesResponse.data.data || []).find((item) => item.student?.id === studentId);
+        if (!selectedStudent || !selectedStage) throw new Error('Étudiant ou stage introuvable dans vos affectations.');
+        setStudent(selectedStudent);
+        setStage(selectedStage);
+        const [followUpsResult, companyResult] = await Promise.allSettled([
+          encadreurService.getFollowUps(selectedStage.id),
+          selectedStage.company?.id
+            ? encadreurService.getCompany(selectedStage.company.id)
+            : Promise.resolve({ data: null }),
+        ]);
+        if (followUpsResult.status === 'fulfilled') {
+          setFollowUps(followUpsResult.value.data.data || []);
+        } else {
+          throw followUpsResult.reason;
         }
-      };
-
-      setStudent(students[studentId] || null);
-      setLoading(false);
-    }, 500);
-  }, [studentId]);
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  const getStatusBadge = (statut) => {
-    const badges = {
-      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
-      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
-      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
-      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+        setCompany(companyResult.status === 'fulfilled' ? companyResult.value.data : null);
+        setError('');
+      } catch (loadError) {
+        setError(getApiErrorMessage(loadError, 'Impossible de charger le suivi de cet étudiant.'));
+      } finally {
+        setIsLoading(false);
+      }
     };
-    const badge = badges[statut] || badges['En attente'];
-    return <span className={badge.className}>{badge.label}</span>;
+    if (user) loadDetails();
+  }, [studentId, user]);
+
+  const progress = useMemo(() => getProgress(stage), [stage]);
+  const supervisorName = [user?.prenom, user?.nom].filter(Boolean).join(' ') || 'Encadreur affecté';
+  const companySector = company?.secteurActivite || stage?.domaine || 'Non renseigné';
+  const companyAddress = company?.adresse || stage?.lieu || 'Non renseignée';
+  const companyCity = company?.ville || stage?.ville || 'Non renseignée';
+  const latitude = company?.latitude ?? stage?.latitude;
+  const longitude = company?.longitude ?? stage?.longitude;
+
+  const openCreateForm = () => {
+    setEditingId(null);
+    setObservation('');
+    setIsFormOpen(true);
   };
 
-  const getEvalBadge = (evalStatus) => {
-    const badges = {
-      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
-      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
-      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
-    };
-    const badge = badges[evalStatus] || badges['À faire'];
-    return <span className={badge.className}>{badge.label}</span>;
+  const openEditForm = (followUp) => {
+    setEditingId(followUp.id);
+    setObservation(followUp.contenu);
+    setIsFormOpen(true);
   };
 
-  const tabs = [
-    { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
-    { id: 'stage', label: 'Stage', icon: <FaBriefcase /> },
-    { id: 'evaluations', label: 'Évaluations', icon: <FaStar /> },
-    { id: 'rapports', label: 'Rapports', icon: <FaFileAlt /> }
-  ];
+  const saveObservation = async (event) => {
+    event.preventDefault();
+    if (!observation.trim() || !stage) return;
+    try {
+      setIsSaving(true);
+      if (editingId) {
+        await encadreurService.updateFollowUp(editingId, { contenu: observation.trim() });
+      } else {
+        await encadreurService.addFollowUp(stage.id, { contenu: observation.trim() });
+      }
+      await loadFollowUps(stage.id);
+      setObservation('');
+      setEditingId(null);
+      setIsFormOpen(false);
+      setError('');
+    } catch (saveError) {
+      setError(getApiErrorMessage(saveError, 'Impossible d’enregistrer cette observation.'));
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
-  const evaluations = [
-    { id: 1, type: 'Maître de stage', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux' },
-    { id: 2, type: 'Entreprise', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null }
-  ];
+  const deleteObservation = async (id) => {
+    try {
+      await encadreurService.deleteFollowUp(id);
+      await loadFollowUps(stage.id);
+    } catch (deleteError) {
+      setError(getApiErrorMessage(deleteError, 'Impossible de supprimer cette observation.'));
+    }
+  };
 
-  const rapports = [
-    { id: 1, titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' }
-  ];
+  if (isLoading) return <div className="student-detail-loading"><div className="spinner" /><p>Chargement du suivi...</p></div>;
+  if (!student || !stage) return <div className="student-detail-notfound"><h2>Suivi introuvable</h2><p>{error || 'Ce stage ne fait pas partie de vos affectations.'}</p><button type="button" className="btn-back-detail" onClick={() => navigate('/encadreur/etudiants')}><FaArrowLeft /> Retour</button></div>;
 
-  if (loading) {
-    return (
-      <div className="student-detail-loading">
-        <div className="spinner"></div>
-        <p>Chargement...</p>
-      </div>
-    );
-  }
-
-  if (!student) {
-    return (
-      <div className="student-detail-notfound">
-        <FaInfoCircle className="notfound-icon" />
-        <h2>Étudiant non trouvé</h2>
-        <p>L'étudiant que vous recherchez n'existe pas.</p>
-        <button className="btn-back-detail" onClick={() => navigate('/encadreur/etudiants')}>
-          <FaArrowLeft /> Retour
-        </button>
-      </div>
-    );
-  }
+  const studentFullName = [student.user?.prenom, student.user?.nom].filter(Boolean).join(' ') || 'Étudiant';
+  const canManage = (followUp) => followUp.auteur?.id === user?.id;
 
   return (
-    <div className="encadreur-student-detail">
-      <div className="page-header">
-        <div>
-          <button className="btn-back-header" onClick={() => navigate('/encadreur/etudiants')}>
-            <FaArrowLeft /> Retour
-          </button>
-          <h1><FaUserGraduate /> {student.nom}</h1>
-          <p className="text-muted">{student.matricule} · {student.filiere} · {student.niveau}</p>
-        </div>
+    <div className="encadreur-stage-follow-up">
+      <div className="follow-up-header"><button type="button" className="btn-back-header" onClick={() => navigate('/encadreur/etudiants')}><FaArrowLeft /> Retour</button><div><h1><FaUserGraduate /> Suivi du stage</h1><p className="text-muted">Suivi de {studentFullName}</p></div></div>
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      <section className="follow-up-progress-card"><div><span className="follow-up-progress-label">{statusLabels[stage.statut] || stage.statut}</span><strong>{progress} %</strong></div><div className="follow-up-progress-track"><span style={{ width: `${progress}%` }} /></div><div className="follow-up-progress-dates"><span>{formatDate(stage.dateDebut)}</span><span>{formatDate(stage.dateFin)}</span></div></section>
+
+      <div className="follow-up-info-grid">
+        <section className="follow-up-card"><h2><FaUserGraduate /> Informations étudiant</h2><dl><div><dt>Nom</dt><dd>{student.user?.nom || 'Non renseigné'}</dd></div><div><dt>Prénom</dt><dd>{student.user?.prenom || 'Non renseigné'}</dd></div><div><dt>Formation</dt><dd>{student.formation || 'Non renseignée'}</dd></div><div><dt>Promotion</dt><dd>{student.promotion || 'Non renseignée'}</dd></div></dl></section>
+        <section className="follow-up-card"><h2><FaCalendarAlt /> Informations stage</h2><dl><div><dt>Intitulé</dt><dd>{stage.intitule}</dd></div><div><dt>Domaine</dt><dd>{stage.domaine || 'Non renseigné'}</dd></div><div><dt>Date de début</dt><dd>{formatDate(stage.dateDebut)}</dd></div><div><dt>Date de fin</dt><dd>{formatDate(stage.dateFin)}</dd></div><div><dt>Statut</dt><dd><span className={`status-badge ${statusClasses[stage.statut] || 'status-en-attente'}`}>{statusLabels[stage.statut] || stage.statut}</span></dd></div></dl></section>
+        <section className="follow-up-card"><h2><FaBuilding /> Entreprise</h2><dl><div><dt>Nom</dt><dd>{company?.nom || stage.company?.nom || 'Non renseigné'}</dd></div><div><dt>Domaine</dt><dd>{companySector}</dd></div><div><dt>Adresse</dt><dd>{companyAddress}</dd></div><div><dt>Ville</dt><dd>{companyCity}</dd></div><div><dt>Localisation</dt><dd>{latitude != null && longitude != null ? `${latitude}, ${longitude}` : 'Coordonnées non renseignées'}</dd></div></dl></section>
+        <section className="follow-up-card"><h2><FaUserGraduate /> Encadreur</h2><dl><div><dt>Nom</dt><dd>{supervisorName}</dd></div></dl></section>
       </div>
 
-      <div className="student-detail-status">
-        <div className="status-item">
-          <span className="status-label">Stage</span>
-          {getStatusBadge(student.stage.statut)}
-        </div>
-        <div className="status-item">
-          <span className="status-label">Évaluation</span>
-          {getEvalBadge(student.evaluation)}
-        </div>
-        <div className="status-item">
-          <span className="status-label">Progression</span>
-          <span className="progress-text">{student.stage.progression}%</span>
-        </div>
-      </div>
+      <section className="follow-up-card follow-up-history"><div className="follow-up-section-header"><div><h2>Historique des observations</h2><p>Les observations enregistrées pendant le stage</p></div><button type="button" className="follow-up-add-button" onClick={openCreateForm}><FaPlus /> Ajouter une observation</button></div>
+        {followUps.length === 0 ? <div className="follow-up-empty">Aucune observation enregistrée.</div> : <div className="follow-up-timeline">{followUps.map((followUp) => <article className="follow-up-entry" key={followUp.id}><span className="follow-up-dot" /><div className="follow-up-entry-content"><div className="follow-up-entry-meta"><strong>{formatDate(followUp.date)}</strong><span>Par {[followUp.auteur?.prenom, followUp.auteur?.nom].filter(Boolean).join(' ') || 'Auteur non renseigné'}</span></div><p>{followUp.contenu}</p>{canManage(followUp) && <div className="follow-up-entry-actions"><button type="button" onClick={() => openEditForm(followUp)}>Modifier</button><button type="button" onClick={() => deleteObservation(followUp.id)}>Supprimer</button></div>}</div></article>)}</div>}
+      </section>
 
-      <div className="detail-tabs">
-        {tabs.map(tab => (
-          <button
-            key={tab.id}
-            className={`detail-tab ${activeTab === tab.id ? 'active' : ''}`}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.icon} {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="detail-content">
-        {activeTab === 'info' && (
-          <div className="detail-info-grid">
-            <div className="info-card">
-              <div className="info-card-header"><FaUserGraduate /> Identité</div>
-              <div className="info-card-body">
-                <div className="info-row"><span className="info-label">Nom complet</span><span className="info-value"><strong>{student.nom}</strong></span></div>
-                <div className="info-row"><span className="info-label">Matricule</span><span className="info-value">{student.matricule}</span></div>
-                <div className="info-row"><span className="info-label">Filière</span><span className="info-value">{student.filiere}</span></div>
-                <div className="info-row"><span className="info-label">Niveau</span><span className="info-value">{student.niveau}</span></div>
-              </div>
-            </div>
-            <div className="info-card">
-              <div className="info-card-header"><FaEnvelope /> Contact</div>
-              <div className="info-card-body">
-                <div className="info-row"><span className="info-label">Email</span><span className="info-value">{student.email}</span></div>
-                <div className="info-row"><span className="info-label">Téléphone</span><span className="info-value">{student.telephone || 'Non renseigné'}</span></div>
-                <div className="info-row"><span className="info-label">Ville</span><span className="info-value">{student.ville || 'Non renseignée'}</span></div>
-              </div>
-            </div>
-            <div className="info-card">
-              <div className="info-card-header"><FaUserTie /> Encadrement</div>
-              <div className="info-card-body">
-                <div className="info-row"><span className="info-label">Encadreur</span><span className="info-value">{student.encadreur || 'Non renseigné'}</span></div>
-                <div className="info-row"><span className="info-label">Tuteur pédagogique</span><span className="info-value">{student.tuteur || 'Non renseigné'}</span></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'stage' && (
-          <div className="detail-stage">
-            <div className="info-card full-width">
-              <div className="info-card-header"><FaBriefcase /> Détails du stage</div>
-              <div className="info-card-body">
-                <div className="info-row"><span className="info-label">Titre</span><span className="info-value"><strong>{student.stage.titre}</strong></span></div>
-                <div className="info-row"><span className="info-label">Entreprise</span><span className="info-value">{student.stage.entreprise}</span></div>
-                <div className="info-row"><span className="info-label">Période</span><span className="info-value">{formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}</span></div>
-                <div className="info-row"><span className="info-label">Progression</span><span className="info-value"><div className="progress-bar"><div className="progress-fill" style={{ width: `${student.stage.progression}%` }} /></div><span className="progress-text">{student.stage.progression}%</span></span></div>
-                <div className="info-row"><span className="info-label">Statut</span><span className="info-value">{getStatusBadge(student.stage.statut)}</span></div>
-                <div className="info-row"><span className="info-label">Description</span><span className="info-value description-text">{student.stage.description || 'Non renseignée'}</span></div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'evaluations' && (
-          <div className="detail-evaluations">
-            <div className="info-card full-width">
-              <div className="info-card-header"><FaStar /> Évaluations</div>
-              <div className="info-card-body">
-                {evaluations.length === 0 ? (
-                  <p className="detail-empty">Aucune évaluation disponible</p>
-                ) : (
-                  evaluations.map((evalItem) => (
-                    <div key={evalItem.id} className="eval-item">
-                      <div className="eval-item-header">
-                        <span className="eval-type">{evalItem.type}</span>
-                        <span className="eval-date">{evalItem.date}</span>
-                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : 'badge-en-attente'}`}>{evalItem.statut}</span>
-                      </div>
-                      <div className="eval-item-body">
-                        <div className="eval-note">
-                          <span className="eval-note-label">Note</span>
-                          <span className="eval-note-value">{evalItem.note || '—'}</span>
-                          {evalItem.note && <span className="eval-stars">{'★'.repeat(Math.round(evalItem.note / 4))}{'☆'.repeat(5 - Math.round(evalItem.note / 4))}</span>}
-                        </div>
-                        {evalItem.commentaire && (
-                          <div className="eval-comment">
-                            <span className="eval-comment-label">Commentaire</span>
-                            <p>{evalItem.commentaire}</p>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'rapports' && (
-          <div className="detail-rapports">
-            <div className="info-card full-width">
-              <div className="info-card-header"><FaFileAlt /> Rapports</div>
-              <div className="info-card-body">
-                {rapports.length === 0 ? (
-                  <p className="detail-empty">Aucun rapport disponible</p>
-                ) : (
-                  rapports.map((rapport) => (
-                    <div key={rapport.id} className="rapport-item">
-                      <div className="rapport-item-left">
-                        <div className="rapport-icon">{rapport.fileName ? <FaFilePdf style={{ color: '#E74C3C' }} /> : <FaFileAlt style={{ color: '#A0B8D0' }} />}</div>
-                        <div className="rapport-info">
-                          <span className="rapport-title">{rapport.titre}</span>
-                          <span className="rapport-meta">{rapport.fileName || 'Fichier non déposé'} · {rapport.size}</span>
-                        </div>
-                      </div>
-                      <div className="rapport-item-right">
-                        <span className="rapport-date">{rapport.date}</span>
-                        <span className={`badge ${rapport.statut === 'Validé' ? 'badge-valide' : rapport.statut === 'En révision' ? 'badge-en-cours' : 'badge-en-attente'}`}>{rapport.statut}</span>
-                        {rapport.fileName && (
-                          <div className="rapport-actions">
-                            <button className="btn-action-icon" title="Voir"><FaEye /></button>
-                            <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {isFormOpen && <div className="follow-up-modal-backdrop"><form className="follow-up-modal" onSubmit={saveObservation}><h2>{editingId ? 'Modifier l’observation' : 'Ajouter une observation'}</h2><label htmlFor="observation">Observation</label><textarea id="observation" value={observation} onChange={(event) => setObservation(event.target.value)} minLength={2} maxLength={5000} required placeholder="Décrivez le suivi de l’étudiant..." /><div className="follow-up-modal-actions"><button type="button" onClick={() => setIsFormOpen(false)}>Annuler</button><button type="submit" disabled={isSaving}>{isSaving ? 'Enregistrement...' : 'Enregistrer'}</button></div></form></div>}
     </div>
   );
 }
 
-export default EncadreurStudentDetail;
+export default StudentDetail;

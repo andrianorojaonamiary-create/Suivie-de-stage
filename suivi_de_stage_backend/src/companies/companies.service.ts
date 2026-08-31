@@ -80,7 +80,7 @@ export class CompaniesService {
 
   async findOne(id: string, actor: AuthenticatedUser) {
     const company = await this.findEntity(id);
-    this.ensureCanAccess(company, actor);
+    await this.ensureCanRead(company, actor);
     return this.toPublicCompany(company);
   }
 
@@ -183,6 +183,21 @@ export class CompaniesService {
         'Vous ne pouvez pas consulter cette entreprise.',
       );
     }
+  }
+
+  private async ensureCanRead(company: Company, actor: AuthenticatedUser) {
+    if (actor.role === Role.ADMINISTRATEUR) return;
+    if (actor.role === Role.ENTREPRISE && company.userId === actor.id) return;
+    if (actor.role === Role.ENCADREUR) {
+      const assignedStudent = await this.studentsRepository.findOne({
+        where: { encadreurId: actor.id, entrepriseId: company.userId },
+        select: { id: true },
+      });
+      if (assignedStudent) return;
+    }
+    throw new ForbiddenException(
+      'Vous ne pouvez pas consulter cette entreprise.',
+    );
   }
 
   private async saveAndSerialize(company: Company) {

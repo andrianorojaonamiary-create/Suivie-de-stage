@@ -5,10 +5,12 @@ import {
   Index,
   JoinColumn,
   OneToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { User } from '../../users/entities/user.entity';
+import { Internship } from '../../internships/entities/internship.entity';
 
 @Entity('supervisors')
 @Index('UQ_supervisors_user_id', ['userId'], { unique: true })
@@ -31,6 +33,9 @@ export class Supervisor {
   @OneToOne(() => User)
   @JoinColumn({ name: 'user_id' })
   user: User;
+
+  @OneToMany(() => Internship, (internship) => internship.supervisor)
+  internships: Internship[];
 
   @CreateDateColumn({ name: 'date_creation', type: 'timestamptz' })
   dateCreation: Date;

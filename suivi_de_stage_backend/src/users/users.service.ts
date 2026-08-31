@@ -11,6 +11,7 @@ import { FindUsersDto } from './dto/find-users.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto';
+import { UpdateOwnProfileDto } from '../auth/dto/update-own-profile.dto';
 
 interface PostgresError {
   code?: string;
@@ -108,6 +109,10 @@ export class UsersService {
     }
 
     return this.saveAndSanitize(user);
+  }
+
+  async updateOwnProfile(id: string, dto: UpdateOwnProfileDto) {
+    return this.update(id, dto);
   }
 
   async updateStatus(id: string, updateUserStatusDto: UpdateUserStatusDto) {

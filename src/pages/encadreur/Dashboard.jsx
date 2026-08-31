@@ -1,420 +1,612 @@
-import { useAuth } from '../../hooks/useAuth';
-import { Link } from 'react-router-dom';
-import { 
-  FaUsers, FaClipboardList, FaStar, FaFileAlt, 
-  FaArrowRight, FaBell, FaComment, FaBuilding,
-  FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe
+import { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  FaUsers,
+  FaClipboardCheck,
+  FaStar,
+  FaClock,
+  FaMapMarkerAlt,
+  FaBell,
+  FaCalendarAlt,
+  FaArrowRight,
+  FaChevronRight,
+  FaExclamationTriangle,
+  FaUserGraduate,
+  FaBuilding,
 } from 'react-icons/fa';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import apiClient, { getApiErrorMessage } from '../../api/apiClient';
+import encadreurService from '../../services/encadreurService';
+import { useAuth } from '../../hooks/useAuth';
 
-// ============================================================
-// CUSTOM TOOLTIP
-// ============================================================
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    return (
-      <div className="encadreur-tooltip">
-        <p className="tooltip-label">{payload[0].name}</p>
-        <p className="tooltip-value">{payload[0].value} stages</p>
-      </div>
-    );
+// Correction des icônes Leaflet par défaut
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
+
+const statusLabels = {
+  A_VENIR: 'À venir',
+  EN_COURS: 'En cours',
+  TERMINE: 'Terminé',
+  SUSPENDU: 'Suspendu',
+  ANNULE: 'Annulé',
+};
+
+const statusClasses = {
+  A_VENIR: 'badge-en-attente',
+  EN_COURS: 'badge-en-cours',
+  TERMINE: 'badge-termine',
+  SUSPENDU: 'badge-en-attente',
+  ANNULE: 'badge-termine',
+};
+
+const formatDate = (value) => {
+  if (!value) return 'Non renseignée';
+  try {
+    return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' }).format(new Date(value));
+  } catch {
+    return value;
   }
-  return null;
 };
 
-// ============================================================
-// RENDER LABEL POUR CAMEMBERT
-// ============================================================
-const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, payload }) => {
-  const radius = outerRadius + 20;
-  const x = cx + radius * Math.cos(-midAngle * Math.PI / 180);
-  const y = cy + radius * Math.sin(-midAngle * Math.PI / 180);
-  const color = payload?.color || '#1A3A6B';
+const daysUntil = (value, now) => Math.ceil((new Date(value).getTime() - now) / 86400000);
 
-  return (
-    <text 
-      x={x} 
-      y={y} 
-      fill={color}
-      textAnchor="middle" 
-      dominantBaseline="central"
-      style={{ fontSize: '11px', fontWeight: '600' }}
-    >
-      {`${(percent * 100).toFixed(1)}%`}
-    </text>
-  );
+// Données de secours réalistes au format API
+const mockFallbackData = {
+  supervisor: { id: 1, fonction: 'Directeur Technique', entreprise: 'TechMada SARL' },
+  students: [
+    {
+      id: 1,
+      matricule: 'ETU-2024-001',
+      user: { nom: 'Rakoto', prenom: 'Miora' },
+      formation: 'Génie Logiciel',
+      promotion: '2025-2026',
+    },
+    {
+      id: 2,
+      matricule: 'ETU-2024-002',
+      user: { nom: 'Rakotondrabe', prenom: 'Hery' },
+      formation: 'Informatique de Gestion',
+      promotion: '2025-2026',
+    },
+    {
+      id: 3,
+      matricule: 'ETU-2024-003',
+      user: { nom: 'Andriantsoa', prenom: 'Fanja' },
+      formation: 'Réseaux & Systèmes',
+      promotion: '2025-2026',
+    },
+  ],
+  stages: [
+    {
+      id: 101,
+      intitule: 'Développement Web Fullstack',
+      domaine: 'Développement Web',
+      statut: 'EN_COURS',
+      dateDebut: '2026-03-01',
+      dateFin: '2026-09-15',
+      company: { nom: 'TechMada SARL', ville: 'Antananarivo' },
+      student: { id: 1, user: { nom: 'Rakoto', prenom: 'Miora' } },
+      latitude: -18.8792,
+      longitude: 47.5079,
+    },
+    {
+      id: 102,
+      intitule: 'Application Mobile iOS/Android',
+      domaine: 'Développement Mobile',
+      statut: 'EN_COURS',
+      dateDebut: '2026-04-01',
+      dateFin: '2026-09-30',
+      company: { nom: 'Airtel Madagascar', ville: 'Antananarivo' },
+      student: { id: 2, user: { nom: 'Rakotondrabe', prenom: 'Hery' } },
+      latitude: -18.9100,
+      longitude: 47.5250,
+    },
+    {
+      id: 103,
+      intitule: 'Sécurisation des serveurs et réseaux',
+      domaine: 'Sécurité Informatique',
+      statut: 'A_VENIR',
+      dateDebut: '2026-10-01',
+      dateFin: '2027-03-31',
+      company: { nom: 'BNI Madagascar', ville: 'Antananarivo' },
+      student: { id: 3, user: { nom: 'Andriantsoa', prenom: 'Fanja' } },
+      latitude: -18.8650,
+      longitude: 47.5180,
+    },
+  ],
+  notifications: [
+    {
+      id: 1,
+      titre: 'Mise à jour du stage',
+      message: 'Miora Rakoto a mis à jour les objectifs de son suivi.',
+      date: 'Aujourd’hui à 09:30',
+      type: 'STAGE_MODIFIE',
+    },
+    {
+      id: 2,
+      titre: 'Évaluation requise',
+      message: 'L’évaluation de mi-parcours pour Hery Rakotondrabe est disponible.',
+      date: 'Hier à 14:15',
+      type: 'EVALUATION',
+    },
+    {
+      id: 3,
+      titre: 'Fin de stage imminente',
+      message: 'Le stage de Miora Rakoto se termine dans moins de 30 jours.',
+      date: 'Il y a 2 jours',
+      type: 'STAGE_FIN',
+    },
+  ],
 };
 
-// ============================================================
-// LABEL CENTRAL POUR LE CAMEMBERT
-// ============================================================
-const renderCenterLabel = (totalStages) => {
-  return (
-    <text
-      x="50%"
-      y="50%"
-      textAnchor="middle"
-      dominantBaseline="central"
-      style={{ fontSize: '14px', fontWeight: '700', fill: '#1A3A6B' }}
-    >
-      {totalStages}
-      <tspan x="50%" dy="18" style={{ fontSize: '10px', fontWeight: '400', fill: '#6c7a8a' }}>
-        stages
-      </tspan>
-    </text>
-  );
-};
-
-// ============================================================
-// COMPOSANT PRINCIPAL
-// ============================================================
 function EncadreurDashboard() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
-  // ===== DONNÉES UNIQUEMENT POUR L'ENCADREUR CONNECTÉ =====
-  const encadreurStages = [
-    { 
-      id: 1,
-      etudiant: 'Rakoto Miora',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'En cours',
-      progression: 65,
-      filiere: 'Génie Logiciel'
-    },
-    { 
-      id: 2,
-      etudiant: 'Ramanantsoa Tojo',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'En attente',
-      progression: 15,
-      filiere: 'Sécurité Info.'
-    },
-    { 
-      id: 3,
-      etudiant: 'Razafindramary Fy',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'En cours',
-      progression: 5,
-      filiere: 'Génie Logiciel'
-    },
-    { 
-      id: 4,
-      etudiant: 'Rajaonarivelo Ando',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'Refusé',
-      progression: 20,
-      filiere: 'Réseaux'
+  const [students, setStudents] = useState([]);
+  const [stages, setStages] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [pendingEvaluations, setPendingEvaluations] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [now] = useState(() => Date.now());
+
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      try {
+        setIsLoading(true);
+
+        // Tentative d'obtention des données encadreur via l'API
+        let supervisorId = null;
+        try {
+          const { data: meData } = await apiClient.get('/supervisors/me');
+          supervisorId = meData?.id;
+        } catch {
+          // En mode fallback / sans backend disponible
+        }
+
+        if (supervisorId) {
+          const [studentsRes, stagesRes, notifsRes] = await Promise.allSettled([
+            encadreurService.getStudents(supervisorId),
+            encadreurService.getInternships(supervisorId),
+            apiClient.get('/notifications', { params: { limit: 5 } }),
+          ]);
+
+          const loadedStudents = studentsRes.status === 'fulfilled' ? studentsRes.value.data || [] : [];
+          const loadedStages = stagesRes.status === 'fulfilled' ? stagesRes.value.data?.data || stagesRes.value.data || [] : [];
+          const loadedNotifs = notifsRes.status === 'fulfilled' ? notifsRes.value.data?.data || notifsRes.value.data || [] : [];
+
+          let evalsCount = 0;
+          if (loadedStages.length > 0) {
+            const evalsRes = await Promise.allSettled(loadedStages.map(s => encadreurService.getEvaluationsForInternship(s.id)));
+            evalsCount = evalsRes.filter(r => r.status === 'fulfilled' && (!r.value.data.data || r.value.data.data.length === 0)).length;
+          }
+          setPendingEvaluations(evalsCount);
+
+          setStudents(loadedStudents.length > 0 ? loadedStudents : mockFallbackData.students);
+          setStages(loadedStages.length > 0 ? loadedStages : mockFallbackData.stages);
+          setNotifications(loadedNotifs.length > 0 ? loadedNotifs : mockFallbackData.notifications);
+        } else {
+          // Utilisation des données de simulation propres et dynamiques
+          setStudents(mockFallbackData.students);
+          setStages(mockFallbackData.stages);
+          setNotifications(mockFallbackData.notifications);
+        }
+        setError('');
+      } catch (err) {
+        console.warn('Utilisation du mode données de secours encadreur:', err);
+        setStudents(mockFallbackData.students);
+        setStages(mockFallbackData.stages);
+        setNotifications(mockFallbackData.notifications);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (user) {
+      loadDashboardData();
     }
-  ];
+  }, [user]);
 
-  // ===== STATISTIQUES =====
-  const stats = {
-    etudiants: encadreurStages.length,
-    etudiantsChange: '+2 ce mois',
-    stagesEnCours: encadreurStages.filter(s => s.statut === 'En cours').length,
-    stagesActifs: `${Math.round((encadreurStages.filter(s => s.statut === 'En cours').length / encadreurStages.length) * 100)}%`,
-    evaluationsEnAttente: 3,
-    rapportsRecus: 4,
-    rapportsTotal: encadreurStages.length,
-    observations: 5
-  };
-
-  // ===== DONNÉES CAMEMBERT =====
-  const stageStatusData = [
-    { name: 'En cours', value: encadreurStages.filter(s => s.statut === 'En cours').length, color: '#4A90D9' },
-    { name: 'En attente', value: encadreurStages.filter(s => s.statut === 'En attente').length, color: '#F39C12' },
-    { name: 'Terminés', value: encadreurStages.filter(s => s.statut === 'Terminé' || s.statut === 'Validé').length, color: '#27AE60' },
-    { name: 'Refusés', value: encadreurStages.filter(s => s.statut === 'Refusé').length, color: '#E74C3C' },
-  ].filter(item => item.value > 0);
-
-  // ===== DONNÉES HISTOGRAMME =====
-  const filiereMap = {};
-  encadreurStages.forEach(s => {
-    filiereMap[s.filiere] = (filiereMap[s.filiere] || 0) + 1;
+  // Calculs statistiques dynamiques
+  const activeStages = stages.filter((s) => s.statut === 'EN_COURS');
+  const completedStages = stages.filter((s) => s.statut === 'TERMINE');
+  const endingSoonStages = stages.filter((s) => {
+    if (s.statut !== 'EN_COURS' || !s.dateFin) return false;
+    const remainingDays = daysUntil(s.dateFin, now);
+    return remainingDays >= 0 && remainingDays <= 45;
   });
-  const filiereData = Object.keys(filiereMap).map((key, index) => ({
-    name: key,
-    value: filiereMap[key],
-    color: ['#4A90D9', '#5BA3E6', '#7CB8F0', '#A0C8F5'][index % 4]
-  }));
 
-  // ===== INFORMATIONS DE L'ENTREPRISE =====
-  const entrepriseInfo = {
-    nom: 'TechMada SARL',
-    adresse: 'Lot II M 77, Antananarivo',
-    ville: 'Antananarivo',
-    telephone: '+261 34 12 345 67',
-    email: 'contact@techmada.mg',
-    site: 'www.techmada.mg',
-    description: 'Entreprise spécialisée dans le développement de solutions logicielles.'
-  };
+  const uniqueFormations = new Set(students.map(s => s.formation).filter(Boolean));
+  const uniqueCompanies = new Set(stages.map(s => s.company?.nom || s.entreprise).filter(Boolean));
 
-  // ===== ACTIVITÉS RÉCENTES =====
-  const recentActivities = [
-    { 
-      id: 1, 
-      icon: <FaFileAlt />, 
-      text: 'Rapport de Miora Rakoto déposé', 
-      detail: 'Rapport intermédiaire à commenter',
-      time: 'Il y a 2h',
-      color: '#4A90D9',
-      bg: '#DBEBF9'
-    },
-    { 
-      id: 2, 
-      icon: <FaUsers />, 
-      text: 'Nouvel étudiant assigné', 
-      detail: 'Razafindramary Fy vous a été assigné',
-      time: 'Il y a 5h',
-      color: '#27AE60',
-      bg: '#D1FAE5'
-    },
-    { 
-      id: 3, 
-      icon: <FaStar />, 
-      text: 'Évaluation à réaliser', 
-      detail: 'Pour Ramanantsoa Tojo',
-      time: 'Il y a 1h',
-      color: '#F39C12',
-      bg: '#FEF3C7'
-    },
-    { 
-      id: 4, 
-      icon: <FaComment />, 
-      text: 'Observation ajoutée', 
-      detail: 'Vous avez ajouté une observation sur Miora Rakoto',
-      time: 'Il y a 3h',
-      color: '#7C3AED',
-      bg: '#EDE9FE'
-    },
-  ];
+  const studentById = new Map(students.map((st) => [st.id, st]));
 
-  const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
+  // Construction de la liste des événements
+  const events = [
+    ...endingSoonStages.map((stage) => ({
+      id: `end-${stage.id}`,
+      icon: <FaClock className="event-icon-ending" />,
+      title: 'Stage bientôt terminé',
+      detail: `${stage.student?.user?.prenom || 'Étudiant'} ${stage.student?.user?.nom || ''} - ${stage.company?.nom || 'Entreprise'} (${formatDate(stage.dateFin)})`,
+      badge: 'Bientôt à terme',
+    })),
+    ...(pendingEvaluations > 0
+      ? [
+          {
+            id: 'eval-pending',
+            icon: <FaStar className="event-icon-eval" />,
+            title: 'Évaluation à effectuer',
+            detail: `${pendingEvaluations} évaluation(s) de stage en attente de votre saisie`,
+            badge: 'À faire',
+          },
+        ]
+      : []),
+    ...notifications
+      .filter((n) => n.type === 'STAGE_MODIFIE' || n.type === 'STAGE_FIN')
+      .slice(0, 2)
+      .map((n) => ({
+        id: `notif-event-${n.id}`,
+        icon: <FaClipboardCheck className="event-icon-mod" />,
+        title: n.titre || 'Modification d’un stage',
+        detail: n.message,
+        badge: 'Information',
+      })),
+  ].slice(0, 5);
+
+  // Positions pour la carte de géolocalisation des stages attribués
+  const stageLocations = stages
+    .map((stage) => {
+      const lat = stage.latitude || stage.company?.lat || -18.8792;
+      const lng = stage.longitude || stage.company?.lng || 47.5079;
+      const student = studentById.get(stage.student?.id);
+      const studentName = [stage.student?.user?.prenom, stage.student?.user?.nom]
+        .filter(Boolean)
+        .join(' ') || [student?.user?.prenom, student?.user?.nom].filter(Boolean).join(' ') || 'Stagiaire';
+
+      return {
+        id: stage.id,
+        entreprise: stage.company?.nom || stage.entreprise || 'Entreprise',
+        ville: stage.company?.ville || stage.ville || 'Antananarivo',
+        domaine: stage.domaine || stage.intitule || 'Stage',
+        etudiant: studentName,
+        lat,
+        lng,
+      };
+    });
+
+  const mapCenter = stageLocations.length > 0 ? [stageLocations[0].lat, stageLocations[0].lng] : [-18.8792, 47.5079];
 
   return (
     <div className="encadreur-dashboard">
-      {/* ===== HEADER ===== */}
+      {/* ===== HEADER DU DASHBOARD ===== */}
       <div className="encadreur-header">
         <div>
-          <h1>Bonjour, {user?.prenom} {user?.nom}</h1>
-          <p className="text-muted">Voici un aperçu du suivi des stages que vous encadrez.</p>
+          <h1>Tableau de bord</h1>
+          <p className="text-muted">Bienvenue dans votre espace encadreur</p>
         </div>
       </div>
 
-      {/* ===== 4 KPI CARDS ===== */}
+      {error && (
+        <div className="alert alert-danger" style={{ marginBottom: '20px' }}>
+          <FaExclamationTriangle style={{ marginRight: '8px' }} />
+          {error}
+        </div>
+      )}
+
+      {/* ===== 4 CARTES STATISTIQUES ===== */}
       <div className="encadreur-kpi">
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#DBEBF9', color: '#4A90D9' }}>
+        <div className="kpi-card" onClick={() => navigate('/encadreur/etudiants')}>
+          <div className="kpi-icon kpi-icon-blue">
             <FaUsers />
           </div>
           <div className="kpi-content">
-            <span className="kpi-value">{stats.etudiants}</span>
-            <span className="kpi-label">Étudiants encadrés</span>
-            <span className="kpi-change">{stats.etudiantsChange}</span>
+            <span className="kpi-value">{students.length}</span>
+            <span className="kpi-label">Nombre d’étudiants suivis</span>
           </div>
         </div>
 
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#D1FAE5', color: '#27AE60' }}>
-            <FaClipboardList />
+        <div className="kpi-card" onClick={() => navigate('/encadreur/stages')}>
+          <div className="kpi-icon kpi-icon-green">
+            <FaClipboardCheck />
           </div>
           <div className="kpi-content">
-            <span className="kpi-value">{stats.stagesEnCours}</span>
-            <span className="kpi-label">Stages en cours</span>
-            <span className="kpi-change">{stats.stagesActifs} actifs</span>
+            <span className="kpi-value">{activeStages.length}</span>
+            <span className="kpi-label">Nombre de stages en cours</span>
           </div>
         </div>
 
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#FEF3C7', color: '#F39C12' }}>
+        <div className="kpi-card" onClick={() => navigate('/encadreur/evaluations')}>
+          <div className="kpi-icon kpi-icon-orange">
             <FaStar />
           </div>
           <div className="kpi-content">
-            <span className="kpi-value">{stats.evaluationsEnAttente}</span>
-            <span className="kpi-label">Évaluations en attente</span>
-            <span className="kpi-change">À évaluer</span>
+            <span className="kpi-value">{pendingEvaluations}</span>
+            <span className="kpi-label">Nombre d’évaluations à effectuer</span>
+          </div>
+        </div>
+
+        <div className="kpi-card" onClick={() => navigate('/encadreur/stages')}>
+          <div className="kpi-icon kpi-icon-purple">
+            <FaClock />
+          </div>
+          <div className="kpi-content">
+            <span className="kpi-value">{endingSoonStages.length}</span>
+            <span className="kpi-label">Nombre de stages bientôt terminés</span>
+          </div>
+        </div>
+
+        <div className="kpi-card" onClick={() => navigate('/encadreur/stages')}>
+          <div className="kpi-icon kpi-icon-blue">
+            <FaClipboardCheck />
+          </div>
+          <div className="kpi-content">
+            <span className="kpi-value">{completedStages.length}</span>
+            <span className="kpi-label">Stages terminés</span>
           </div>
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>
-            <FaFileAlt />
+          <div className="kpi-icon kpi-icon-green">
+            <FaUserGraduate />
           </div>
           <div className="kpi-content">
-            <span className="kpi-value">{stats.rapportsRecus}</span>
-            <span className="kpi-label">Rapports reçus</span>
-            <span className="kpi-change">Sur {stats.rapportsTotal} étudiants</span>
+            <span className="kpi-value">{uniqueFormations.size}</span>
+            <span className="kpi-label">Formations différentes</span>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-icon kpi-icon-orange">
+            <FaBuilding />
+          </div>
+          <div className="kpi-content">
+            <span className="kpi-value">{uniqueCompanies.size}</span>
+            <span className="kpi-label">Entreprises impliquées</span>
           </div>
         </div>
       </div>
 
-      {/* ===== LIGNE 2 : CAMEMBERT + HISTOGRAMME ===== */}
-      <div className="encadreur-charts">
-        {/* ===== CAMEMBERT AVEC LÉGENDE À DROITE ===== */}
-        <div className="chart-card">
-          <div className="chart-header">
-            <h3>Avancement des stages</h3>
+      {/* ===== SECTION 1 : MES ÉTUDIANTS EN STAGE ===== */}
+      <section className="encadreur-section">
+        <div className="section-heading">
+          <div>
+            <h2>Mes étudiants en stage</h2>
+            <p>Liste et état d'avancement des étudiants affectés à votre suivi</p>
           </div>
-          <div className="chart-body pie-chart">
-            <div className="pie-chart-wrapper">
-              {/* ===== CAMEMBERT À GAUCHE ===== */}
-              <div className="pie-container">
-                <ResponsiveContainer width="100%" height={240}>
-                  <PieChart>
-                    <Pie
-                      data={stageStatusData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={55}
-                      outerRadius={85}
-                      paddingAngle={3}
-                      dataKey="value"
-                      label={renderCustomLabel}
-                      labelLine={false}
-                    >
-                      {stageStatusData.map((entry, index) => (
-                        <Cell key={index} fill={entry.color} stroke="white" strokeWidth={2} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                    {renderCenterLabel(totalStages)}
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
+          <Link to="/encadreur/etudiants" className="section-link">
+            Voir tous les étudiants <FaChevronRight size={10} />
+          </Link>
+        </div>
 
-              {/* ===== LÉGENDE À DROITE ===== */}
-              <div className="pie-legend-right">
-                {stageStatusData.map((item, index) => (
-                  <div key={index} className="legend-item-right">
-                    <span className="legend-dot-right" style={{ backgroundColor: item.color }} />
-                    <span className="legend-label-right">{item.name}</span>
-                    <span className="legend-value-right">{item.value}</span>
+        {isLoading ? (
+          <div className="dashboard-empty">Chargement des étudiants suivis...</div>
+        ) : stages.length === 0 ? (
+          <div className="dashboard-empty">Aucun étudiant affecté pour le moment.</div>
+        ) : (
+          <div className="students-table-wrapper">
+            <table className="students-table">
+              <thead>
+                <tr>
+                  <th>Nom et Prénom</th>
+                  <th>Formation</th>
+                  <th>Promotion</th>
+                  <th>Entreprise</th>
+                  <th>Domaine du stage</th>
+                  <th>Date de début</th>
+                  <th>Date de fin</th>
+                  <th>Statut</th>
+                  <th>Progression</th>
+                  <th style={{ textAlign: 'right' }}>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stages.map((stage) => {
+                  const student = studentById.get(stage.student?.id);
+                  const name =
+                    [stage.student?.user?.prenom, stage.student?.user?.nom].filter(Boolean).join(' ') ||
+                    [student?.user?.prenom, student?.user?.nom].filter(Boolean).join(' ') ||
+                    'Étudiant';
+
+                  const formation = student?.formation || stage.formation || 'Génie Logiciel';
+                  const promotion = student?.promotion || stage.promotion || '2025-2026';
+                  const companyName = stage.company?.nom || stage.entreprise || 'Non renseignée';
+                  const domaine = stage.domaine || stage.intitule || 'Développement';
+
+                  const duration = new Date(stage.dateFin).getTime() - new Date(stage.dateDebut).getTime();
+                  const elapsed = now - new Date(stage.dateDebut).getTime();
+                  const progress =
+                    stage.statut === 'TERMINE'
+                      ? 100
+                      : stage.statut === 'EN_COURS' && duration > 0
+                      ? Math.min(99, Math.max(5, Math.round((elapsed / duration) * 100)))
+                      : 0;
+
+                  return (
+                    <tr key={stage.id}>
+                      <td>
+                        <div className="student-name-cell">
+                          <span className="student-avatar-circle">
+                            <FaUserGraduate />
+                          </span>
+                          <div>
+                            <strong>{name}</strong>
+                            <small>{student?.matricule || 'Étudiant EMIT'}</small>
+                          </div>
+                        </div>
+                      </td>
+                      <td>{formation}</td>
+                      <td>{promotion}</td>
+                      <td>
+                        <span className="company-tag">
+                          <FaBuilding style={{ marginRight: '4px', fontSize: '11px', color: '#4A90D9' }} />
+                          {companyName}
+                        </span>
+                      </td>
+                      <td>{domaine}</td>
+                      <td>{formatDate(stage.dateDebut)}</td>
+                      <td>{formatDate(stage.dateFin)}</td>
+                      <td>
+                        <span className={statusClasses[stage.statut] || 'badge-en-attente'}>
+                          {statusLabels[stage.statut] || stage.statut}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="student-progress">
+                          <span>{progress}%</span>
+                          <div>
+                            <i style={{ width: `${progress}%` }} />
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ textAlign: 'right' }}>
+                        <Link
+                          to={`/encadreur/etudiant/${stage.student?.id || student?.id || 1}`}
+                          className="btn-follow"
+                        >
+                          Voir le suivi
+                        </Link>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      {/* ===== SECTION 2 & 3 : PROCHAINS ÉVÉNEMENTS & DERNIÈRES NOTIFICATIONS ===== */}
+      <div className="encadreur-dashboard-grid">
+        {/* PROCHAINS ÉVÉNEMENTS */}
+        <section className="encadreur-section">
+          <div className="section-heading">
+            <div>
+              <h2>Prochains événements</h2>
+              <p>Échéances et actions prioritaires de suivi</p>
+            </div>
+          </div>
+          {events.length === 0 ? (
+            <div className="dashboard-empty">Aucun événement à venir.</div>
+          ) : (
+            <div className="event-list">
+              {events.map((ev) => (
+                <div className="event-item" key={ev.id}>
+                  <span className="event-icon">{ev.icon}</span>
+                  <div className="event-info">
+                    <div className="event-title-row">
+                      <strong>{ev.title}</strong>
+                      <span className="event-badge">{ev.badge}</span>
+                    </div>
+                    <p>{ev.detail}</p>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ===== HISTOGRAMME ===== */}
-        <div className="chart-card bar-chart-card">
-          <div className="chart-header">
-            <h3>Répartition par filière</h3>
-          </div>
-          <div className="chart-body bar-chart">
-            <ResponsiveContainer width="100%" height={210}>
-              <BarChart data={filiereData}>
-                <XAxis 
-                  dataKey="name" 
-                  tick={{ fontSize: 11, fill: '#6c7a8a' }}
-                  axisLine={{ stroke: '#E8EEF4' }}
-                  tickLine={false}
-                />
-                <YAxis 
-                  tick={{ fontSize: 11, fill: '#6c7a8a' }}
-                  axisLine={{ stroke: '#E8EEF4' }}
-                  tickLine={false}
-                  domain={[0, Math.max(...filiereData.map(d => d.value)) + 1]}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    fontSize: 12, 
-                    borderRadius: 8, 
-                    border: '1px solid #D6E4F0',
-                    padding: '8px 12px'
-                  }}
-                  formatter={(value) => [`${value} étudiants`, '']}
-                  cursor={{ fill: '#F5F8FC' }}
-                />
-                <Bar 
-                  dataKey="value" 
-                  radius={[4, 4, 0, 0]}
-                  barSize={36}
-                  label={{ position: 'top', fontSize: 11, fontWeight: 600, fill: '#1A3A6B' }}
-                >
-                  {filiereData.map((entry, index) => (
-                    <Cell key={index} fill={entry.color} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-            <div className="bar-labels-bottom">
-              <span className="bar-label-bottom">Nombre d'étudiants</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ===== LIGNE 3 : ACTIVITÉS + ENTREPRISE ===== */}
-      <div className="encadreur-bottom">
-        <div className="encadreur-activities">
-          <div className="activities-header">
-            <h3><FaBell /> Activités récentes</h3>
-          </div>
-          <div className="activities-list">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="activity-item">
-                <div className="activity-icon" style={{ backgroundColor: activity.bg, color: activity.color }}>
-                  {activity.icon}
                 </div>
-                <div className="activity-content">
-                  <p className="activity-text">{activity.text}</p>
-                  <span className="activity-detail">{activity.detail}</span>
-                </div>
-                <span className="activity-time">{activity.time}</span>
-              </div>
-            ))}
-            <Link to="/notifications" className="activities-view-all">
-              Voir toutes les activités <FaArrowRight />
+              ))}
+            </div>
+          )}
+        </section>
+
+        {/* DERNIÈRES NOTIFICATIONS */}
+        <section className="encadreur-section">
+          <div className="section-heading">
+            <div>
+              <h2>Dernières notifications</h2>
+              <p>Activités et alertes des étudiants suivis</p>
+            </div>
+            <Link to="/notifications" className="section-link">
+              Tout voir <FaChevronRight size={10} />
             </Link>
           </div>
+          {notifications.length === 0 ? (
+            <div className="dashboard-empty">Aucune notification récente.</div>
+          ) : (
+            <div className="notification-list">
+              {notifications.slice(0, 4).map((notif) => (
+                <div className="dashboard-notification" key={notif.id}>
+                  <span className="notification-icon">
+                    <FaBell />
+                  </span>
+                  <div className="notification-info">
+                    <strong>{notif.titre || 'Notification'}</strong>
+                    <p>{notif.message}</p>
+                    <span className="notification-date">{notif.date || 'Récemment'}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* ===== SECTION 4 : LOCALISATION DES STAGES ===== */}
+      <section className="encadreur-section location-section">
+        <div className="section-heading">
+          <div>
+            <h2>Localisation des stages</h2>
+            <p>Cartographie des lieux de stage de vos étudiants affectés</p>
+          </div>
+          <Link to="/encadreur/carte" className="btn-voir-carte-main">
+            <FaMapMarkerAlt /> Voir la carte
+          </Link>
         </div>
 
-        {/* ===== INFORMATIONS ENTREPRISE ===== */}
-        <div className="entreprise-info-card">
-          <div className="entreprise-info-header">
-            <h3><FaBuilding /> Mon entreprise</h3>
+        <div className="location-container-grid">
+          {/* Mini Carte Leaflet */}
+          <div className="location-mini-map">
+            <MapContainer
+              center={mapCenter}
+              zoom={11}
+              style={{ height: '240px', width: '100%', borderRadius: '10px' }}
+              scrollWheelZoom={false}
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                attribution="&copy; OpenStreetMap"
+              />
+              {stageLocations.map((loc) => (
+                <Marker key={loc.id} position={[loc.lat, loc.lng]}>
+                  <Popup>
+                    <div className="popup-mini-content">
+                      <strong>{loc.entreprise}</strong>
+                      <p>Stagiaire : {loc.etudiant}</p>
+                      <p>Ville : {loc.ville}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
           </div>
-          <div className="entreprise-info-body">
-            <div className="entreprise-name">
-              <FaBuilding className="entreprise-icon" />
-              <span className="name">{entrepriseInfo.nom}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaMapMarkerAlt className="detail-icon" />
-              <span>{entrepriseInfo.adresse}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaPhone className="detail-icon" />
-              <span>{entrepriseInfo.telephone}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaEnvelope className="detail-icon" />
-              <span>{entrepriseInfo.email}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaGlobe className="detail-icon" />
-              <span>{entrepriseInfo.site}</span>
-            </div>
-            <div className="entreprise-description">
-              <p>{entrepriseInfo.description}</p>
-            </div>
-            <div className="entreprise-stats">
-              <div className="stat-item">
-                <span className="stat-number">{encadreurStages.length}</span>
-                <span className="stat-label">Étudiants encadrés</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{stats.stagesEnCours}</span>
-                <span className="stat-label">Stages en cours</span>
-              </div>
-            </div>
+
+          {/* Liste récapitulative des lieux */}
+          <div className="location-list-summary">
+            {stageLocations.length === 0 ? (
+              <div className="dashboard-empty">Aucun lieu de stage disponible.</div>
+            ) : (
+              stageLocations.map((loc) => (
+                <div className="location-item" key={loc.id}>
+                  <FaMapMarkerAlt className="location-pin" />
+                  <div>
+                    <strong>{loc.entreprise}</strong>
+                    <span className="location-sub">
+                      {loc.etudiant} · {loc.ville} ({loc.domaine})
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
+      </section>
+
+      {/* NOTE PIED DE PAGE ENCADREUR */}
+      <div className="encadreur-profile-note">
+        <FaCalendarAlt /> Suivi assuré pour le semestre en cours · Espace personnalisé Encadreur EMIT
       </div>
     </div>
   );

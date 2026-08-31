@@ -110,7 +110,10 @@ describe('MapService', () => {
     ]);
     companiesRepository.createQueryBuilder.mockReturnValue(builder);
 
-    const result = await service.findCompanyPoints({ limit: 20 });
+    const result = await service.findCompanyPoints(
+      { limit: 20 },
+      { id: 'admin-id', role: Role.ADMINISTRATEUR },
+    );
 
     expect(result[0]).toEqual(
       expect.objectContaining({
