@@ -40,86 +40,107 @@ function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <div className="login-title-wrapper">
-            <img src={logo} alt="EMIT" className="login-logo-img" />
-            <h1>Connexion</h1>
-          </div>
-          <p className="subtitle">Accédez à votre espace de suivi des stages</p>
-        </div>
-
-        {error && <div className="alert alert-danger">{error}</div>}
-
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Adresse e-mail</label>
-            <input
-              type="email"
-              id="email"
-              className="form-control"
-              placeholder="votre.email@emit.mg"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="password">Mot de passe</label>
-            <div className="password-input-wrapper">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                id="password"
-                className="form-control"
-                placeholder="Minimum 8 caractères"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                minLength={8}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label="Afficher le mot de passe"
-              >
-                {showPassword ? <FaEyeSlash /> : <FaEye />}
-              </button>
+    <div className="login-page-container">
+      {/* PANNEAU GAUCHE */}
+      <div className="login-left-panel">
+        <div className="login-left-content">
+          <div className="login-brand">
+            <div className="login-logo-box">
+              <img src={logo} alt="EMIT" className="login-logo-img" />
+            </div>
+            <div>
+              <div className="login-brand-name">EMIT</div>
+              <div className="login-brand-location">Fianarantsoa</div>
             </div>
           </div>
+          {/* Le titre a été déplacé à droite selon la demande */}
+        </div>
+        <div className="login-footer-copyright">
+          © {new Date().getFullYear()} EMIT — Fianarantsoa
+        </div>
+      </div>
 
-          <div className="form-options">
-            <label className="checkbox-label">
-              <input type="checkbox" />
-              <span>Se souvenir de moi</span>
-            </label>
-            <Link to="/forgot-password" className="forgot-link">
-              Mot de passe oublié ?
-            </Link>
+      {/* PANNEAU DROITE */}
+      <div className="login-right-panel">
+        <div className="login-form-card">
+          <div className="login-header-section">
+            <div className="login-title-wrapper">
+              <h2 className="login-page-title">Connexion</h2>
+            </div>
+            <p className="login-page-subtitle">Accédez à votre espace de suivi des stages</p>
           </div>
 
-          <button type="submit" className="btn-login" disabled={isLoading}>
-            {isLoading ? (
-              <span className="btn-loader">
-                <span className="spinner"></span> Connexion...
-              </span>
-            ) : (
-              'Se connecter'
-            )}
-          </button>
-        </form>
+          {error && <div className="alert alert-danger">{error}</div>}
 
-        <div className="login-divider">
-          <span>ou</span>
-        </div>
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="form-group">
+              <label htmlFor="email">Adresse e-mail</label>
+              <input
+                type="email"
+                id="email"
+                className="form-control"
+                placeholder="votre.email@emit.mg"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
 
-        <div className="login-footer">
-          <p>
-            Vous n'avez pas encore de compte ?{' '}
-            <Link to="/register">S'inscrire</Link>
-          </p>
+            <div className="form-group">
+              <label htmlFor="password">Mot de passe</label>
+              <div className="password-input-wrapper">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  id="password"
+                  className="form-control"
+                  placeholder="Minimum 8 caractères"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  minLength={8}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Afficher le mot de passe"
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+            </div>
+
+            <div className="form-options">
+              <label className="checkbox-label">
+                <input type="checkbox" />
+                <span>Se souvenir de moi</span>
+              </label>
+              <Link to="/forgot-password" className="forgot-link">
+                Mot de passe oublié ?
+              </Link>
+            </div>
+
+            <button type="submit" className="btn-login" disabled={isLoading}>
+              {isLoading ? (
+                <span className="btn-loader">
+                  <span className="spinner"></span> Connexion...
+                </span>
+              ) : (
+                'Se connecter'
+              )}
+            </button>
+          </form>
+
+          <div className="login-divider">
+            <span>ou</span>
+          </div>
+
+          <div className="login-footer">
+            <p>
+              Vous n'avez pas encore de compte ?{' '}
+              <Link to="/register">S'inscrire</Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
