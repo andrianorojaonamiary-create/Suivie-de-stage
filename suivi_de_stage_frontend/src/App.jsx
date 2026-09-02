@@ -1,7 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
-import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
+import AuthLayout from './pages/auth/AuthLayout';
 import Layout from './components/Layout/Layout';
 import PrivateRoute from './components/Common/PrivateRoute';
 
@@ -64,8 +63,8 @@ function App() {
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={true}/>
       <Routes>
         {/* Routes publiques */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<AuthLayout initialMode="login" />} />
+        <Route path="/register" element={<AuthLayout initialMode="register" />} />
         <Route path="/" element={<Navigate to="/login" />} />
 
         {/* Routes protégées */}
