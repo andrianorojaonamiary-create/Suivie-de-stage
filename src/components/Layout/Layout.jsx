@@ -1,21 +1,37 @@
-
-import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { Outlet, useLocation } from 'react-router-dom';
 import Header from './Header';
-import Sidebar from './SideBar';
+import Sidebar from './Sidebar';
+import BottomNav from './BottomNav';
+import MobileDrawer from './MobileDrawer';
 
 function Layout() {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const location = useLocation();
+
+  // Fermer le drawer lors de la navigation
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="layout-container">
-        <Sidebar mobileOpen={isMobileMenuOpen} />
-        <div className="layout-right">
-            <Header onMobileMenuToggle={() => setIsMobileMenuOpen((open) => !open)} />
-            <div className="layout-content">
-                <Outlet /> {/* Ici s'affichent les pages (Dashboard, etc.) */}
-            </div>
-        </div>
+      {/* Sidebar Desktop et Tablette */}
+      <Sidebar />
+
+      {/* Menu Drawer Mobile latéral */}
+      <MobileDrawer isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+
+      {/* Contenu principal */}
+      <div className="layout-right">
+        <Header onToggleMobileMenu={() => setDrawerOpen(prev => !prev)} />
+        <main className="layout-content">
+          <Outlet />
+        </main>
+      </div>
+
+      {/* Navigation fixe en bas sur écran mobile */}
+      <BottomNav />
     </div>
   );
 }

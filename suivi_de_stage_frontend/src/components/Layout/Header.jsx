@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaSignOutAlt, FaBell, FaSearch, FaTimes } from 'react-icons/fa';
+import { FaSignOutAlt, FaBell, FaSearch, FaTimes, FaBars } from 'react-icons/fa';
 
-function Header() {
+function Header({ mobileOpen, onToggleMobileMenu, onMobileMenuToggle }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
+  const handleToggle = onToggleMobileMenu || onMobileMenuToggle;
 
   const unreadNotifications = 3;
 
@@ -77,6 +78,16 @@ function Header() {
   return (
     <header className="header-emit">
       <div className="header-left">
+        {/* Bouton Toggle Menu sur écran mobile */}
+        <button 
+          type="button" 
+          className="header-mobile-toggle"
+          onClick={handleToggle}
+          title="Menu principal"
+        >
+          <FaBars />
+        </button>
+
         <div className="header-title-group">
           <h1 className="header-title">{getPageTitle()}</h1>
           <span className="header-breadcrumb">EMIT Stage Manager &gt; {getPageTitle()}</span>

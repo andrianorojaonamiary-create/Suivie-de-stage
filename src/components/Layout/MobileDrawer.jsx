@@ -1,31 +1,25 @@
-import { useState } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { 
   FaHome, FaList, FaUsers, FaBuilding, FaFileAlt,
   FaMapMarkedAlt, FaStar, FaBell, FaUserCog, 
-  FaChevronLeft, FaChevronRight, FaPlus, FaClipboardCheck, 
-  FaChartBar, FaUserTie,  FaCalendarAlt,
-  FaGraduationCap, FaComment, FaSignOutAlt,
-  
+  FaTimes, FaClipboardCheck, FaChartBar, FaUserTie,  
+  FaCalendarAlt, FaGraduationCap, FaComment, FaSignOutAlt
 } from 'react-icons/fa';
 import logo from '../../assets/logo_emit.jpg';
 
-function Sidebar({ mobileOpen = false }) {
+function MobileDrawer({ isOpen, onClose }) {
   const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const location = useLocation();
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  // Fermer le drawer lors d'une navigation
+  useEffect(() => {
+    if (isOpen) {
+      onClose();
+    }
+  }, [location.pathname]);
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
-
-  // ===== DÉTERMINER LE BON DASHBOARD SELON LE RÔLE =====
   const getDashboardPath = () => {
     const role = user?.role;
     if (role === 'ROLE_ADMIN') return '/admin/dashboard';
@@ -39,86 +33,82 @@ function Sidebar({ mobileOpen = false }) {
     const role = user?.role;
     const dashboardPath = getDashboardPath();
 
-    // ===== MENU ADMIN =====
     if (role === 'ROLE_ADMIN') {
       return [
         { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
-        { divider: true },
+        { divider: true, label: 'GESTION' },
         { path: '/admin/stages', icon: <FaList />, label: 'Gestion des stages' },
         { path: '/admin/etudiants', icon: <FaUsers />, label: 'Étudiants' },
         { path: '/admin/entreprises', icon: <FaBuilding />, label: 'Entreprises' },
         { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
         { path: '/admin/evaluations', icon: <FaStar />, label: 'Évaluations' },
-        { divider: true },
+        { divider: true, label: 'ANALYSE' },
         { path: '/admin/carte', icon: <FaMapMarkedAlt />, label: 'Carte des stages' },
         { path: '/admin/statistiques', icon: <FaChartBar />, label: 'Statistiques' },
-        { divider: true },
+        { divider: true, label: 'COMPTE' },
         { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
         { path: '/profil', icon: <FaUserCog />, label: 'Mon profil' },
       ];
     }
 
-    // ===== MENU ÉTUDIANT =====
     if (role === 'ROLE_ETUDIANT') {
       return [
         { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
-        { divider: true },
+        { divider: true, label: 'MON STAGE' },
         { path: '/etudiant/mes-stages', icon: <FaList />, label: 'Mes stages' },
         { path: '/etudiant/entreprise', icon: <FaBuilding />, label: 'Mon entreprise' },
         { path: '/etudiant/encadreur', icon: <FaUserTie />, label: 'Mon encadreur' },
-        { divider: true },
+        { divider: true, label: 'SUIVI & RAPPORTS' },
         { path: '/etudiant/suivi-stage', icon: <FaCalendarAlt />, label: 'Suivi du stage' },
         { path: '/etudiant/rapports', icon: <FaFileAlt />, label: 'Mes rapports' },
         { path: '/etudiant/evaluations', icon: <FaStar />, label: 'Évaluations' },
-        { divider: true },
+        { divider: true, label: 'DÉCOUVRIR' },
         { path: '/etudiant/carte', icon: <FaMapMarkedAlt />, label: 'Voir la carte' },
         { path: '/etudiant/mon-avenir', icon: <FaGraduationCap />, label: 'Mon avenir' },
-        { divider: true },
+        { divider: true, label: 'COMPTE' },
         { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
         { path: '/profil', icon: <FaUserCog />, label: 'Mon profil' },
       ];
     }
 
-    // ===== MENU ENSEIGNANT =====
     if (role === 'ROLE_ENSEIGNANT') {
       return [
         { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
-        { divider: true },
+        { divider: true, label: 'SUIVI PÉDAGOGIQUE' },
         { path: '/enseignant/stages', icon: <FaList />, label: 'Stages à valider' },
         { path: '/enseignant/etudiants', icon: <FaUsers />, label: 'Mes étudiants' },
         { path: '/enseignant/evaluations', icon: <FaStar />, label: 'Évaluations' },
         { path: '/enseignant/observations', icon: <FaComment />, label: 'Observations' },
         { path: '/enseignant/rapports', icon: <FaFileAlt />, label: 'Rapports' },
-        { divider: true },
+        { divider: true, label: 'OUTILS' },
         { path: '/enseignant/carte', icon: <FaMapMarkedAlt />, label: 'Carte des stages' },
-        { divider: true },
+        { divider: true, label: 'COMPTE' },
         { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
         { path: '/profil', icon: <FaUserCog />, label: 'Mon profil' },
       ];
     }
 
-    // ===== MENU ENCADREUR =====
     if (role === 'ROLE_ENCADREUR') {
       return [
-        { path: dashboardPath, icon: <FaHome />, label: 'Tableau de bord' },
-        { divider: true },
+        { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
+        { divider: true, label: 'SUIVI PROFESSIONNEL' },
         { path: '/encadreur/etudiants', icon: <FaUsers />, label: 'Mes étudiants' },
-        { path: '/encadreur/stages', icon: <FaClipboardCheck />, label: 'Mes stages' },
-        { path: '/encadreur/observations', icon: <FaCalendarAlt />, label: 'Suivi des stages' },
+        { path: '/encadreur/stages', icon: <FaClipboardCheck />, label: 'Stages suivis' },
         { path: '/encadreur/evaluations', icon: <FaStar />, label: 'Évaluations' },
-        { divider: true },
-        { path: '/encadreur/carte', icon: <FaMapMarkedAlt />, label: 'Voir la carte' },
-        { divider: true },
+        { path: '/encadreur/observations', icon: <FaComment />, label: 'Observations' },
+        { path: '/encadreur/rapports', icon: <FaFileAlt />, label: 'Rapports' },
+        { path: '/encadreur/entreprise', icon: <FaBuilding />, label: 'Mon entreprise' },
+        { divider: true, label: 'OUTILS' },
+        { path: '/encadreur/carte', icon: <FaMapMarkedAlt />, label: 'Carte des stages' },
+        { divider: true, label: 'COMPTE' },
         { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
-        { path: '/encadreur/profil', icon: <FaUserCog />, label: 'Mon profil' },
-        { action: 'logout', icon: <FaSignOutAlt />, label: 'Déconnexion' },
+        { path: '/profil', icon: <FaUserCog />, label: 'Mon profil' },
       ];
     }
 
-    // ===== MENU PAR DÉFAUT =====
     return [
       { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
-      { divider: true },
+      { divider: true, label: 'COMPTE' },
       { path: '/notifications', icon: <FaBell />, label: 'Notifications' },
       { path: '/profil', icon: <FaUserCog />, label: 'Mon profil' },
     ];
@@ -126,61 +116,75 @@ function Sidebar({ mobileOpen = false }) {
 
   const menuItems = getMenuItems();
 
+  const getInitials = () => {
+    const p = user?.prenom?.[0] || '';
+    const n = user?.nom?.[0] || '';
+    return (p + n).toUpperCase() || 'EM';
+  };
+
+  if (!isOpen) return null;
+
   return (
-    <aside className={`sidebar-emit ${isCollapsed ? 'collapsed' : ''} ${mobileOpen ? 'open' : ''}`}>
-      <div className="sidebar-logo">
-        <img src={logo} alt="EMIT" className="sidebar-logo-img" />
-        {!isCollapsed && (
-          <div className="sidebar-logo-text-group">
-            <span className="sidebar-logo-text">EMIT</span>
-            <span className="sidebar-logo-subtitle">Stage Manager</span>
+    <>
+      {/* Overlay sombre */}
+      <div className="mobile-drawer-overlay open" onClick={onClose} />
+
+      {/* Drawer latéral */}
+      <aside className="mobile-drawer-emit open">
+        <div className="mobile-drawer-header">
+          <div className="mobile-drawer-brand">
+            <img src={logo} alt="EMIT" className="mobile-drawer-logo" />
+            <div className="mobile-drawer-title-group">
+              <span className="mobile-drawer-title">EMIT</span>
+              <span className="mobile-drawer-subtitle">Stage Manager</span>
+            </div>
           </div>
-        )}
-      </div>
+          <button className="mobile-drawer-close" onClick={onClose} aria-label="Fermer">
+            <FaTimes />
+          </button>
+        </div>
 
-      <nav className="sidebar-nav">
-        {menuItems.map((item, index) => {
-          // ===== AFFICHER UN SÉPARATEUR =====
-          if (item.divider) {
-            return <div key={index} className="sidebar-divider"></div>;
-          }
+        <div className="mobile-drawer-user">
+          <div className="mobile-drawer-avatar">{getInitials()}</div>
+          <div className="mobile-drawer-user-info">
+            <span className="mobile-drawer-user-name">{user?.prenom} {user?.nom}</span>
+            <span className="mobile-drawer-user-role">{user?.role?.replace('ROLE_', '')}</span>
+          </div>
+        </div>
 
-          if (item.action === 'logout') {
+        <nav className="mobile-drawer-nav">
+          {menuItems.map((item, index) => {
+            if (item.divider) {
+              return (
+                <div key={index} className="mobile-drawer-section-title">
+                  {item.label}
+                </div>
+              );
+            }
+
             return (
               <NavLink
                 key={index}
-                to="/login"
-                className="sidebar-link"
-                onClick={handleLogout}
+                to={item.path}
+                className={({ isActive }) => (isActive ? 'mobile-drawer-link active' : 'mobile-drawer-link')}
+                onClick={onClose}
               >
-                <span className="sidebar-icon">{item.icon}</span>
-                <span className="sidebar-label">{item.label}</span>
+                <span className="mobile-drawer-icon">{item.icon}</span>
+                <span className="mobile-drawer-label">{item.label}</span>
               </NavLink>
             );
-          }
+          })}
+        </nav>
 
-          // ===== AFFICHER UN LIEN =====
-          return (
-            <NavLink
-              key={index}
-              to={item.path}
-              className={({ isActive }) => (isActive ? 'sidebar-link active' : 'sidebar-link')}
-            >
-              <span className="sidebar-icon">{item.icon}</span>
-              <span className="sidebar-label">{item.label}</span>
-            </NavLink>
-          );
-        })}
-      </nav>
-
-      <button className="sidebar-toggle-bottom" onClick={toggleSidebar}>
-        <span className="sidebar-toggle-icon">
-          {isCollapsed ? <FaChevronRight /> : <FaChevronLeft />}
-        </span>
-        {!isCollapsed && <span className="sidebar-toggle-label">Réduire</span>}
-      </button>
-    </aside>
+        <div className="mobile-drawer-footer">
+          <button className="mobile-drawer-logout-btn" onClick={logout}>
+            <FaSignOutAlt />
+            <span>Déconnexion</span>
+          </button>
+        </div>
+      </aside>
+    </>
   );
 }
 
-export default Sidebar;
+export default MobileDrawer;

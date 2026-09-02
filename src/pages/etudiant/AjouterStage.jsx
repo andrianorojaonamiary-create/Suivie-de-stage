@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FaSave, FaBuilding, FaUserTie, FaCalendarAlt, 
   FaFileAlt, FaMapMarkerAlt, FaSpinner, FaMapPin,
-  FaTimes, FaUpload, FaInfoCircle, FaBriefcase
+  FaTimes, FaUpload, FaInfoCircle, FaBriefcase, FaArrowLeft
 } from 'react-icons/fa';
 import { geocodeAddress } from '../../services/geocoding';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -115,6 +115,14 @@ function AjouterStage() {
 
   return (
     <div className="etudiant-form-page">
+      <button 
+        type="button" 
+        className="btn-back" 
+        onClick={() => navigate('/etudiant/mes-stages')}
+      >
+        <FaArrowLeft /> Retour à mes stages
+      </button>
+
       <div className="form-header">
         <h1>Ajouter un stage</h1>
         <p className="text-muted">Renseignez les informations de votre stage</p>

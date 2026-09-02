@@ -192,8 +192,9 @@ function MesRapports() {
 
   return (
     <div className="etudiant-rapports">
+      {/* ===== PAGE HEADER ===== */}
       <div className="page-header">
-        <div>
+        <div className="page-title-group">
           <h1>Mes rapports</h1>
           <p className="text-muted">
             {existingReports.filter(r => r.status === 'Validé').length} validé(s) · 
@@ -201,9 +202,32 @@ function MesRapports() {
             {pendingReports.length} à déposer
           </p>
         </div>
+      </div>
+
+      {/* ===== BARRE D'ACTIONS ET FILTRE (ALIGNÉS EN HAUT À GAUCHE DU TABLEAU) ===== */}
+      <div className="reports-top-bar">
+        <div className="filter-inline-group">
+          <label htmlFor="stage-filter" className="filter-label">
+            <FaFilter /> Filtrer par stage :
+          </label>
+          <select 
+            id="stage-filter"
+            value={selectedStage} 
+            onChange={(e) => setSelectedStage(e.target.value)}
+            className="filter-select-inline"
+          >
+            {stageOptions.map(option => (
+              <option key={option} value={option}>
+                {option === 'all' ? 'Tous les stages' : option}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <button className="btn-deposer-principal" onClick={handleOpenForm}>
           <FaPlus /> Déposer un rapport
         </button>
+
         <input
           type="file"
           ref={fileInputRef}
@@ -212,34 +236,6 @@ function MesRapports() {
           onChange={handleFileChange}
         />
       </div>
-
-      {/* ===== RAPPORTS À DÉPOSER ===== 
-      {pendingReports.length > 0 && (
-        <div className="pending-reports-section">
-          <div className="pending-reports-header">
-            <h3>📋 Rapports à déposer</h3>
-          </div>
-          <div className="pending-reports-list">
-            {pendingReports.map((report, index) => (
-              <div key={index} className="pending-report-item">
-                <div className="pending-report-info">
-                  <span className="pending-report-title">{report.title}</span>
-                  <span className="pending-report-stage"><FaBuilding /> {report.stageTitre}</span>
-                  <span className="pending-report-date">Échéance : {report.date}</span>
-                </div>
-                <button 
-                  className="btn-deposer" 
-                  onClick={handleOpenForm}
-                >
-                  <FaUpload /> Déposer
-                </button>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      */}
       
       {/* ===== FORMULAIRE DE DÉPÔT ===== */}
       {showForm && (
@@ -296,9 +292,9 @@ function MesRapports() {
                     {formData.file.name.endsWith('.pdf') ? (
                       <FaFilePdf className="file-icon" style={{ color: '#E74C3C' }} />
                     ) : formData.file.name.endsWith('.doc') || formData.file.name.endsWith('.docx') ? (
-                      <FaFileWord className="file-icon" style={{ color: '#4A90D9' }} />
+                      <FaFileWord className="file-icon" style={{ color: '#6BA9E6' }} />
                     ) : (
-                      <FaFileAlt className="file-icon" style={{ color: '#4A90D9' }} />
+                      <FaFileAlt className="file-icon" style={{ color: '#6BA9E6' }} />
                     )}
                     <span className="file-name">{formData.file.name}</span>
                     <button 
@@ -335,24 +331,6 @@ function MesRapports() {
           </div>
         </div>
       )}
-
-      {/* ===== FILTRE PAR STAGE ===== */}
-      <div className="filter-section">
-        <div className="filter-group">
-          <label><FaFilter /> Filtrer par stage</label>
-          <select 
-            value={selectedStage} 
-            onChange={(e) => setSelectedStage(e.target.value)}
-            className="filter-select"
-          >
-            {stageOptions.map(option => (
-              <option key={option} value={option}>
-                {option === 'all' ? 'Tous les stages' : option}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
 
       {/* ===== LISTE DES RAPPORTS DÉPOSÉS ===== */}
       <div className="reports-list">

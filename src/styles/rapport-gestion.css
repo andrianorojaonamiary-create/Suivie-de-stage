@@ -84,21 +84,25 @@
 
 .rapports-admin .filter-select,
 .rapports-enseignant .filter-select {
-  padding: 8px 12px;
-  border: 1.5px solid #D6E4F0;
-  border-radius: 8px;
-  font-size: 13px;
-  color: #1A3A6B;
+  width: 100%;
+  height: 42px;
+  padding: 8px 14px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #162449;
   background: white;
+  appearance: auto;
   cursor: pointer;
+  box-sizing: border-box;
   transition: all 0.2s;
 }
 
 .rapports-admin .filter-select:focus,
 .rapports-enseignant .filter-select:focus {
   outline: none;
-  border-color: #4A90D9;
-  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.15);
 }
 
 /* ===== CARTES RAPPORT ===== */

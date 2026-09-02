@@ -4,12 +4,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignOutAlt, FaBell, FaSearch, FaTimes, FaBars } from 'react-icons/fa';
 import apiClient from '../../api/apiClient';
 
-function Header({ onMobileMenuToggle }) {
+function Header({ mobileOpen, onToggleMobileMenu, onMobileMenuToggle }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const handleToggle = onToggleMobileMenu || onMobileMenuToggle;
 
   useEffect(() => {
     const loadUnreadCount = async () => {
@@ -70,9 +71,10 @@ function Header({ onMobileMenuToggle }) {
       '/enseignant/etudiants': 'Mes étudiants',
       '/enseignant/carte': 'Carte des stages',
       '/enseignant/evaluations': 'Évaluations',
-      '/encadreur/stages': 'Mes stages',
-      '/encadreur/etudiants': 'Mes étudiants',
-      '/encadreur/carte': 'Voir la carte',
+      '/encadreur/stages': 'Stages suivis',
+      '/encadreur/etudiants': 'Étudiants',
+      '/encadreur/carte': 'Carte des stages',
+      '/encadreur/rapports': 'Rapports',
       '/encadreur/observations': 'Suivi des stages',
       '/encadreur/evaluations': 'Évaluations',
       '/encadreur/profil': 'Mon profil',
@@ -92,7 +94,16 @@ function Header({ onMobileMenuToggle }) {
   return (
     <header className="header-emit">
       <div className="header-left">
-        <button type="button" className="mobile-menu-toggle" onClick={onMobileMenuToggle} aria-label="Ouvrir le menu"><FaBars /></button>
+        {/* Bouton Toggle Menu sur écran mobile */}
+        <button 
+          type="button" 
+          className="header-mobile-toggle"
+          onClick={handleToggle}
+          title="Menu principal"
+        >
+          <FaBars />
+        </button>
+
         <div className="header-title-group">
           <h1 className="header-title">{getPageTitle()}</h1>
           <span className="header-breadcrumb">EMIT Stage Manager &gt; {getPageTitle()}</span>
