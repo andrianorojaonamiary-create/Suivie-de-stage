@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaSave, FaBuilding, FaUserTie, FaCalendarAlt, 
+import {
+  FaSave, FaBuilding, FaUserTie, FaCalendarAlt,
   FaFileAlt, FaMapMarkerAlt, FaSpinner, FaMapPin,
-  FaTimes, FaUpload, FaInfoCircle, FaBriefcase
+  FaTimes, FaUpload, FaInfoCircle, FaBriefcase, FaArrowLeft
 } from 'react-icons/fa';
 import { geocodeAddress } from '../../services/geocoding';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -61,7 +61,7 @@ function AjouterStage() {
 
     setGeocoding(true);
     setGeocodeError('');
-    
+
     try {
       const result = await geocodeAddress(fullAddress);
       if (result) {
@@ -99,7 +99,7 @@ function AjouterStage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     if (!formData.titre || !formData.entreprise || !formData.ville || !formData.dateDebut || !formData.dateFin) {
       alert('Veuillez remplir tous les champs obligatoires (*)');
       return;
@@ -115,6 +115,14 @@ function AjouterStage() {
 
   return (
     <div className="etudiant-form-page">
+      <button
+        type="button"
+        className="btn-back"
+        onClick={() => navigate('/etudiant/mes-stages')}
+      >
+        <FaArrowLeft /> Retour
+      </button>
+
       <div className="form-header">
         <h1>Ajouter un stage</h1>
         <p className="text-muted">Renseignez les informations de votre stage</p>

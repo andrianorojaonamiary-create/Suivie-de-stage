@@ -58,7 +58,6 @@ function Sidebar() {
         { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
         { divider: true },
         { path: '/etudiant/mes-stages', icon: <FaList />, label: 'Mes stages' },
-        { path: '/etudiant/ajouter-stage', icon: <FaPlus />, label: 'Ajouter un stage' },
         { path: '/etudiant/entreprise', icon: <FaBuilding />, label: 'Mon entreprise' },
         { path: '/etudiant/encadreur', icon: <FaUserTie />, label: 'Mon encadreur' },
         { divider: true },
