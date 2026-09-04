@@ -24,9 +24,15 @@ export const getApiErrorMessage = (error, fallback) => {
 export const normalizeUser = (user) => {
   if (!user) return user;
 
-  const role = user.role?.startsWith('ROLE_')
-    ? user.role
-    : `ROLE_${user.role}`;
+  let rawRole = user.role || '';
+  if (typeof rawRole === 'string' && rawRole.startsWith('ROLE_')) {
+    rawRole = rawRole.replace('ROLE_', '');
+  }
+
+  let role = `ROLE_${rawRole}`;
+  if (rawRole === 'ADMINISTRATEUR' || rawRole === 'ADMIN') {
+    role = 'ROLE_ADMIN';
+  }
 
   return { ...user, role };
 };

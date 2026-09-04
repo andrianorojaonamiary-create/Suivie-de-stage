@@ -29,7 +29,7 @@ function LoginForm({ onSwitchToRegister }) {
     setIsLoading(true);
     try {
       const user = await login(email, password);
-      if (user.role === 'ROLE_ADMIN') navigate('/admin/dashboard');
+      if (user.role === 'ROLE_ADMIN' || user.role === 'ROLE_ADMINISTRATEUR') navigate('/admin/dashboard');
       else if (user.role === 'ROLE_ETUDIANT') navigate('/etudiant/dashboard');
       else if (user.role === 'ROLE_ENSEIGNANT') navigate('/enseignant/dashboard');
       else if (user.role === 'ROLE_ENCADREUR') navigate('/encadreur/dashboard');

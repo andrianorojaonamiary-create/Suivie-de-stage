@@ -56,14 +56,27 @@ export function AuthProvider({ children }) {
 
   const register = async (userData) => {
     try {
-      const response = await apiClient.post('/auth/register', {
+      const payload = {
         nom: userData.nom,
         prenom: userData.prenom,
         email: userData.email,
-        motDePasse: userData.password
-      });
+        motDePasse: userData.password || userData.motDePasse,
+        role: userData.role,
+        ...(userData.matricule && { matricule: userData.matricule }),
+        ...(userData.niveau && { niveau: userData.niveau }),
+        ...(userData.filiere && { filiere: userData.filiere }),
+        ...(userData.grade && { grade: userData.grade }),
+        ...(userData.departement && { departement: userData.departement }),
+        ...(userData.specialite && { specialite: userData.specialite }),
+        ...(userData.entreprise && { entreprise: userData.entreprise }),
+        ...(userData.poste && { poste: userData.poste }),
+        ...(userData.telephone && { telephone: userData.telephone }),
+        ...(userData.adresse && { adresse: userData.adresse }),
+      };
+
+      const response = await apiClient.post('/auth/register', payload);
       toast.success('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-      return response.data.user;
+      return response.data.user || response.data;
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Erreur lors de l'inscription"));
       throw error;

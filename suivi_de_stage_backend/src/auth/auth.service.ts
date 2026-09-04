@@ -18,8 +18,11 @@ export class AuthService {
 
   async register(registerDto: RegisterDto) {
     const createUserDto: CreateUserDto = {
-      ...registerDto,
-      role: Role.ETUDIANT,
+      nom: registerDto.nom,
+      prenom: registerDto.prenom,
+      email: registerDto.email,
+      motDePasse: registerDto.motDePasse,
+      role: registerDto.role || Role.ETUDIANT,
     };
     const user = await this.usersService.create(createUserDto);
     return this.issueToken(user);

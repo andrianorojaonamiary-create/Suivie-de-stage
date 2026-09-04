@@ -57,6 +57,24 @@ import Profil from './pages/Profil';
 import Notifications from './pages/Notifications';
 import CarteStages from './pages/CarteStages';
 
+import { useAuth } from './hooks/useAuth';
+
+function DynamicDashboardRedirect() {
+  const { user } = useAuth();
+  const role = user?.role;
+
+  if (role === 'ROLE_ADMIN' || role === 'ROLE_ADMINISTRATEUR') {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+  if (role === 'ROLE_ENSEIGNANT') {
+    return <Navigate to="/enseignant/dashboard" replace />;
+  }
+  if (role === 'ROLE_ENCADREUR') {
+    return <Navigate to="/encadreur/dashboard" replace />;
+  }
+  return <Navigate to="/etudiant/dashboard" replace />;
+}
+
 function App() {
   return (
     <>
@@ -137,8 +155,8 @@ function App() {
             <Route path="/notifications" element={<Notifications />} />
             <Route path="/admin/carte" element={<CarteStages />} />
 
-            {/* Redirection par défaut */}
-            <Route path="/dashboard" element={<Navigate to="/etudiant/dashboard" />} />
+            {/* Redirection dynamique par rôle */}
+            <Route path="/dashboard" element={<DynamicDashboardRedirect />} />
           </Route>
         </Route>
 
