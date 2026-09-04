@@ -4,235 +4,239 @@
 
 .etudiant-evaluations {
   padding: 20px 0;
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 /* ============================================================
    HEADER
    ============================================================ */
-.eval-page-header {
+.etudiant-evaluations .eval-page-header {
   margin-bottom: 24px;
 }
 
-.eval-page-title {
+.etudiant-evaluations .eval-page-title {
   font-size: 24px;
   color: #162449;
   margin: 0;
   font-weight: 700;
 }
 
-.eval-page-subtitle {
+.etudiant-evaluations .eval-page-subtitle {
   color: #6c7a8a;
   font-size: 14px;
   margin: 4px 0 0 0;
 }
 
 /* ============================================================
-   SÉLECTEUR DE STAGE
+   FILTRE
    ============================================================ */
-.eval-stage-selector {
-  margin-bottom: 24px;
-  position: relative;
-}
 
-.eval-stage-btn {
-  width: 100%;
+.etudiant-evaluations .eval-filter-section {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 18px;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
   background: white;
-  border: 1px solid #E1ECFE;
   border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  border: 1px solid #E1ECFE;
+  flex-wrap: wrap;
 }
 
-.eval-stage-btn:hover {
-  border-color: #6BA9E6;
-  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.06);
-}
-
-.eval-stage-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-
-.eval-stage-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #162449;
-}
-
-.eval-stage-company {
-  font-size: 13px;
-  color: #6c7a8a;
-}
-
-.eval-stage-status {
+.etudiant-evaluations .eval-filter-group {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 14px;
-  color: #6c7a8a;
+  flex: 1;
+  min-width: 200px;
 }
 
-.eval-stage-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #E1ECFE;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(26, 58, 107, 0.12);
-  z-index: 100;
-  overflow: hidden;
-  animation: slideDown 0.25s ease;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.eval-stage-item {
+.etudiant-evaluations .eval-filter-group label {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 10px 18px;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  white-space: nowrap;
+}
+
+.etudiant-evaluations .eval-filter-group label svg {
+  color: #6BA9E6;
+  font-size: 14px;
+}
+
+.etudiant-evaluations .eval-filter-select {
+  flex: 1;
+  padding: 10px 14px;
+  padding-right: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
   cursor: pointer;
   transition: all 0.2s;
-  border-bottom: 1px solid #FAFBFF;
+  min-width: 150px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  font-family: inherit;
 }
 
-.eval-stage-item:last-child {
-  border-bottom: none;
+.etudiant-evaluations .eval-filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
 }
 
-.eval-stage-item:hover {
-  background: #FAFBFF;
+.etudiant-evaluations .eval-filter-select:hover {
+  border-color: #6BA9E6;
 }
 
-.eval-stage-item-active {
-  background: #E1ECFE;
-}
-
-.eval-stage-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.eval-stage-item-title {
-  font-size: 14px;
+.etudiant-evaluations .eval-filter-count {
+  font-size: 13px;
+  color: #6c7a8a;
+  white-space: nowrap;
+  padding: 6px 16px;
+  background: #F5F8FC;
+  border-radius: 20px;
   font-weight: 500;
+}
+
+.etudiant-evaluations .eval-filter-count strong {
   color: #162449;
 }
 
-.eval-stage-item-company {
-  font-size: 12px;
-  color: #6c7a8a;
+/* ============================================================
+   CARTE COMMUNE
+   ============================================================ */
+.etudiant-evaluations .avenir-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E1ECFE;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(22, 36, 73, 0.04);
+  margin-bottom: 20px;
+}
+
+.etudiant-evaluations .avenir-card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #F5F8FC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.etudiant-evaluations .avenir-card-header h3 {
+  font-size: 16px;
+  color: #162449;
+  margin: 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.etudiant-evaluations .avenir-card-body {
+  padding: 20px 24px;
 }
 
 /* ============================================================
-   3 CARTES D'INFORMATIONS
+   3 CARTES D'INFOS
    ============================================================ */
-.eval-info-cards {
+.etudiant-evaluations .eval-info-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
 }
 
-.eval-info-card {
-  background: white;
-  border-radius: 12px;
+.etudiant-evaluations .eval-info-card {
+  background: #F4F8FC;
+  border-radius: 16px;
   border: 1px solid #E1ECFE;
-  padding: 16px 20px;
+  padding: 20px 24px;
   display: flex;
   align-items: flex-start;
-  gap: 14px;
-  transition: all 0.2s;
+  gap: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
 }
 
-.eval-info-card:hover {
-  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.06);
-}
 
-.eval-info-card-icon {
-  width: 44px;
-  height: 44px;
+.etudiant-evaluations .eval-info-card-icon {
+  width: 48px;
+  height: 48px;
   border-radius: 12px;
-  background: #E1ECFE;
-  color: #6BA9E6;
+  background: #fff;
+  color: #162449;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  font-size: 22px;
   flex-shrink: 0;
 }
 
-.eval-info-card-content {
+.etudiant-evaluations .eval-info-card-content {
   flex: 1;
   min-width: 0;
 }
 
-.eval-info-card-content h4 {
-  font-size: 13px;
+.etudiant-evaluations .eval-info-card-content h4 {
+  font-size: 12px;
   color: #6c7a8a;
-  margin: 0 0 4px 0;
+  margin: 0 0 6px 0;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.5px;
 }
 
-.eval-info-title {
+.etudiant-evaluations .eval-info-title {
   font-size: 15px;
   font-weight: 600;
   color: #162449;
   margin: 0;
 }
 
-.eval-info-company {
+.etudiant-evaluations .eval-info-company {
   font-size: 13px;
   color: #6c7a8a;
   margin: 2px 0;
 }
-
-.eval-info-date {
-  font-size: 13px;
-  color: #A0B8D0;
-  margin: 2px 0 0 0;
+.etudiant-evaluations .eval-info-date{
+  font-size: 12px;
+  color: #6c7a8a;
+  margin: 2px 0;
 }
 
-.eval-info-name {
-  font-size: 14px;
+.etudiant-evaluations .eval-info-name {
+  font-size: 15px;
   font-weight: 600;
   color: #162449;
   margin: 0;
 }
 
-.eval-info-role {
+.etudiant-evaluations .eval-info-role {
   font-size: 13px;
   color: #6c7a8a;
   margin: 2px 0;
 }
 
-.eval-info-email {
+.etudiant-evaluations .eval-info-email {
   font-size: 12px;
   color: #6BA9E6;
   margin: 2px 0 0 0;
 }
 
 /* ============================================================
-   TUTEUR + ENCADREUR (2 colonnes)
+   TUTEUR + ENCADREUR
    ============================================================ */
-.eval-two-columns {
+.etudiant-evaluations .eval-two-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
@@ -240,26 +244,31 @@
 }
 
 /* ============================================================
-   CARTE ÉVALUATION (avec critères)
+   CARTE ÉVALUATION
    ============================================================ */
-.eval-card {
+.etudiant-evaluations .eval-card {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #E1ECFE;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(26, 58, 107, 0.04);
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
   display: flex;
   flex-direction: column;
   height: 100%;
+  transition: all 0.2s;
 }
 
-.eval-card-empty {
+.etudiant-evaluations .eval-card:hover {
+  box-shadow: 0 4px 16px rgba(22, 36, 73, 0.08);
+}
+
+.etudiant-evaluations .eval-card-empty {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #E1ECFE;
-  padding: 30px;
+  padding: 40px;
   text-align: center;
-  color: #A0B8D0;
+  color: #6BA9E6;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,10 +276,9 @@
   height: 100%;
 }
 
-.eval-card-header {
-  padding: 14px 18px;
-  background: #F8FAFC;
-  border-bottom: 1px solid #FAFBFF;
+.etudiant-evaluations .eval-card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid #d6e6fa;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -279,14 +287,14 @@
   flex-shrink: 0;
 }
 
-.eval-card-header h4 {
+.etudiant-evaluations .eval-card-header h4 {
   font-size: 14px;
   color: #162449;
   margin: 0;
   font-weight: 600;
 }
 
-.eval-card-status {
+.etudiant-evaluations .eval-card-status {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -294,171 +302,183 @@
   font-size: 12px;
 }
 
-.eval-card-status .eval-badge-valide,
-.eval-card-status .eval-badge-en-attente,
-.eval-card-status .eval-badge-termine,
-.eval-card-status .eval-badge-en-cours {
+.etudiant-evaluations .eval-card-status .eval-badge-valide,
+.etudiant-evaluations .eval-card-status .eval-badge-en-attente,
+.etudiant-evaluations .eval-card-status .eval-badge-termine,
+.etudiant-evaluations .eval-card-status .eval-badge-en-cours {
   font-size: 11px;
   padding: 2px 12px;
 }
 
-.eval-card-date {
+.etudiant-evaluations .eval-card-date {
   font-size: 12px;
-  color: #A0B8D0;
+  color: #6c7a8a;
 }
 
 /* ============================================================
    TABLEAU DES CRITÈRES
    ============================================================ */
-.eval-criteres {
-  padding: 12px 16px;
+.etudiant-evaluations .eval-criteres {
+  padding: 16px 20px;
   overflow-x: auto;
   flex: 1;
 }
 
-.eval-table {
+.etudiant-evaluations .eval-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
 }
 
-.eval-table thead th {
+.etudiant-evaluations .eval-table thead th {
   text-align: left;
-  padding: 6px 8px;
-  color: #6c7a8a;
-  font-weight: 600;
+  padding: 8px 10px;
+  color: #162449;
+  background: #F8FAFC;
+  font-weight: 900;
   font-size: 11px;
+  border-radius: 5px;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
-  border-bottom: 2px solid #E1ECFE;
+  letter-spacing: 0.5px;
 }
 
-.eval-table thead th.eval-th-center {
+.etudiant-evaluations .eval-table thead th.eval-th-center {
   text-align: center;
 }
 
-.eval-table tbody td {
-  padding: 5px 8px;
-  border-bottom: 1px solid #FAFBFF;
+.etudiant-evaluations .eval-table tbody td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #F5F8FC;
   color: #162449;
   vertical-align: middle;
 }
 
-.eval-table tbody tr:last-child td {
+.etudiant-evaluations .eval-table tbody tr:last-child td {
   border-bottom: none;
 }
 
-.eval-table tbody td.eval-td-center {
+.etudiant-evaluations .eval-table tbody td.eval-td-center {
   text-align: center;
 }
 
-.eval-critere-note {
+.etudiant-evaluations .eval-critere-note {
   font-weight: 600;
   color: #6BA9E6;
-  margin-right: 8px;
+  margin-left: 8px;
 }
 
-.eval-critere-stars {
-  color: #FFD700;
-  font-size: 12px;
-  letter-spacing: 1px;
+.etudiant-evaluations .eval-critere-stars1 {
+  color: #FBBF24;
+  font-size: 16px;
+  letter-spacing: 2px;
+  margin-left: 8px;
 }
 
 /* ============================================================
    FOOTER ÉVALUATION
    ============================================================ */
-.eval-footer-simple {
-  padding: 14px 16px;
+.etudiant-evaluations .eval-footer-simple {
+  margin: 10px;
+  border-radius: 10px;
+  border: 1px solid #cddffd;
+  padding: 16px 20px;
   background: #F8FAFC;
-  border-top: 1px solid #FAFBFF;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   flex-shrink: 0;
 }
 
-.eval-note-moyenne-simple {
+.etudiant-evaluations .eval-note-moyenne-simple {
   display: flex;
   align-items: center;
   gap: 16px;
-  flex-wrap: wrap;
+  justify-content: space-between;
 }
 
-.eval-note-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: #6c7a8a;
+.etudiant-evaluations .eval-note-label {
+  font-size: 16px;
+  font-weight: 900;
+  color: #162449;
   min-width: 100px;
 }
 
-.eval-note-value {
-  font-size: 20px;
+.etudiant-evaluations .eval-note-value {
+  font-size: 22px;
   font-weight: 700;
   color: #6BA9E6;
   min-width: 80px;
+  align-items: flex-end;
 }
 
-.eval-note-stars {
-  color: #FFD700;
-  font-size: 14px;
+.etudiant-evaluations .eval-note-stars {
+  color: #FBBF24;
+  font-size: 18px;
   letter-spacing: 2px;
 }
 
-.eval-appreciation-simple {
+.etudiant-evaluations .eval-appreciation-simple {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding-top: 10px;
   border-top: 1px solid #E1ECFE;
 }
 
-.eval-appreciation-label {
+.etudiant-evaluations .eval-appreciation-label {
   font-size: 12px;
   font-weight: 600;
   color: #6c7a8a;
 }
 
-.eval-appreciation-text {
+.etudiant-evaluations .eval-appreciation-text {
   font-size: 13px;
   color: #475569;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ============================================================
-   CARTE ENTREPRISE (simple)
+   CARTE ENTREPRISE
    ============================================================ */
-.eval-entreprise-section {
+.etudiant-evaluations .eval-entreprise-section {
   margin-top: 4px;
 }
 
-.eval-card-simple {
+.etudiant-evaluations .eval-card-simple {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #E1ECFE;
   overflow: hidden;
-  box-shadow: 0 2px 8px rgba(26, 58, 107, 0.04);
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
   display: flex;
   flex-direction: column;
   min-height: 100%;
+  transition: all 0.2s;
 }
 
-.eval-card-simple-empty {
+.etudiant-evaluations .eval-card-simple:hover {
+  box-shadow: 0 4px 16px rgba(22, 36, 73, 0.08);
+}
+
+.etudiant-evaluations .eval-card-simple-empty {
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 1px solid #E1ECFE;
-  padding: 30px;
+  padding: 40px;
   text-align: center;
-  color: #A0B8D0;
+  color: #6BA9E6;
   display: flex;
   align-items: center;
   justify-content: center;
   min-height: 100px;
 }
 
-.eval-card-simple-header {
-  padding: 14px 18px;
+.etudiant-evaluations .eval-card-simple-header {
+  padding: 16px 20px;
   background: #F8FAFC;
-  border-bottom: 1px solid #FAFBFF;
+  margin: 10px;
+  border-radius: 5px;
+  border-bottom: 1px solid #F5F8FC;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -467,14 +487,14 @@
   flex-shrink: 0;
 }
 
-.eval-card-simple-header h4 {
+.etudiant-evaluations .eval-card-simple-header h4 {
   font-size: 14px;
   color: #162449;
   margin: 0;
   font-weight: 600;
 }
 
-.eval-card-simple-status {
+.etudiant-evaluations .eval-card-simple-status {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -482,21 +502,21 @@
   font-size: 12px;
 }
 
-.eval-card-simple-status .eval-badge-valide,
-.eval-card-simple-status .eval-badge-en-attente,
-.eval-card-simple-status .eval-badge-termine,
-.eval-card-simple-status .eval-badge-en-cours {
+.etudiant-evaluations .eval-card-simple-status .eval-badge-valide,
+.etudiant-evaluations .eval-card-simple-status .eval-badge-en-attente,
+.etudiant-evaluations .eval-card-simple-status .eval-badge-termine,
+.etudiant-evaluations .eval-card-simple-status .eval-badge-en-cours {
   font-size: 11px;
   padding: 2px 12px;
 }
 
-.eval-card-simple-date {
+.etudiant-evaluations .eval-card-simple-date {
   font-size: 12px;
-  color: #A0B8D0;
+  color: #6c7a8a;
 }
 
-.eval-simple-content {
-  padding: 16px 18px;
+.etudiant-evaluations .eval-simple-content {
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -504,56 +524,64 @@
   justify-content: center;
 }
 
-.eval-simple-note {
+.etudiant-evaluations .eval-simple-note {
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
+  justify-content: space-between;
 }
 
-.eval-simple-note-label {
+.etudiant-evaluations .eval-simple-note-label {
   font-size: 13px;
-  font-weight: 600;
-  color: #6c7a8a;
+  font-weight: 800;
+  color: #6BA9E6;
   min-width: 60px;
 }
 
-.eval-simple-note-value {
-  font-size: 22px;
+.etudiant-evaluations .eval-simple-note-right {
+  display: flex;
+  align-items: center;
+}
+
+.etudiant-evaluations .eval-simple-note-value {
+  font-size: 20px;
   font-weight: 700;
+  justify-content: space-between;
   color: #6BA9E6;
 }
 
-.eval-simple-note-stars {
-  color: #FFD700;
+.etudiant-evaluations .eval-simple-note-stars {
+  color: #FBBF24;
   font-size: 16px;
   letter-spacing: 2px;
+  margin-right: 5px;
 }
 
-.eval-simple-appreciation {
+.etudiant-evaluations .eval-simple-appreciation {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   padding-top: 12px;
-  border-top: 1px solid #FAFBFF;
+  border-top: 1px solid #ddeafc;
 }
 
-.eval-simple-appreciation-label {
+.etudiant-evaluations .eval-simple-appreciation-label {
   font-size: 12px;
   font-weight: 600;
   color: #6c7a8a;
 }
 
-.eval-simple-appreciation-text {
+.etudiant-evaluations .eval-simple-appreciation-text {
   font-size: 14px;
   color: #475569;
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* ============================================================
    BADGES
    ============================================================ */
-.eval-badge-valide {
+.etudiant-evaluations .eval-badge-valide {
   background: #D1FAE5;
   color: #065F46;
   padding: 4px 14px;
@@ -563,7 +591,7 @@
   display: inline-block;
 }
 
-.eval-badge-en-attente {
+.etudiant-evaluations .eval-badge-en-attente {
   background: #FEF3C7;
   color: #92400E;
   padding: 4px 14px;
@@ -573,8 +601,8 @@
   display: inline-block;
 }
 
-.eval-badge-termine {
-  background: #DBEAFE;
+.etudiant-evaluations .eval-badge-termine {
+  background: #E1ECFE;
   color: #1E40AF;
   padding: 4px 14px;
   border-radius: 20px;
@@ -583,7 +611,7 @@
   display: inline-block;
 }
 
-.eval-badge-en-cours {
+.etudiant-evaluations .eval-badge-en-cours {
   background: #E1ECFE;
   color: #162449;
   padding: 4px 14px;
@@ -596,44 +624,44 @@
 /* ============================================================
    EN ATTENTE / À VENIR
    ============================================================ */
-.eval-pending {
+.etudiant-evaluations .eval-pending {
   padding: 16px;
   text-align: center;
-  color: #A0B8D0;
+  color: #6BA9E6;
   font-size: 14px;
 }
 
-.eval-pending-text {
+.etudiant-evaluations .eval-pending-text {
   font-style: italic;
 }
 
 /* ============================================================
    EMPTY STATE
    ============================================================ */
-.eval-empty-state {
+.etudiant-evaluations .eval-empty-state {
   text-align: center;
   padding: 60px 20px;
   background: white;
-  border-radius: 14px;
+  border-radius: 16px;
   border: 2px dashed #E1ECFE;
   margin-top: 20px;
 }
 
-.eval-empty-icon {
+.etudiant-evaluations .eval-empty-icon {
   font-size: 48px;
-  color: #A0B8D0;
+  color: #6BA9E6;
   margin-bottom: 12px;
 }
 
-.eval-empty-state p {
+.etudiant-evaluations .eval-empty-state p {
   font-size: 16px;
   color: #6c7a8a;
   margin: 0;
 }
 
-.eval-empty-sub {
+.etudiant-evaluations .eval-empty-sub {
   font-size: 13px;
-  color: #A0B8D0;
+  color: #6BA9E6;
   margin-top: 4px;
 }
 
@@ -641,175 +669,237 @@
    RESPONSIVE
    ============================================================ */
 @media (max-width: 992px) {
-  .eval-info-cards {
+  .etudiant-evaluations .eval-info-cards {
     grid-template-columns: 1fr 1fr;
   }
-  .eval-two-columns {
+  .etudiant-evaluations .eval-two-columns {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 768px) {
-  .eval-info-cards {
-    grid-template-columns: 1fr;
-  }
-  .eval-page-title {
-    font-size: 20px;
-  }
-  .eval-stage-btn {
+  .etudiant-evaluations .eval-filter-section {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 12px;
   }
-  .eval-stage-status {
-    width: 100%;
-    justify-content: space-between;
-  }
-  .eval-stage-item {
+
+  .etudiant-evaluations .eval-filter-group {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 6px;
   }
-  .eval-card-header {
+
+  .etudiant-evaluations .eval-filter-group label {
+    font-size: 12px;
+  }
+
+  .etudiant-evaluations .eval-filter-select {
+    padding: 8px 12px;
+    padding-right: 32px;
+    font-size: 13px;
+    min-width: unset;
+  }
+
+  .etudiant-evaluations .eval-filter-count {
+    text-align: center;
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .etudiant-evaluations .eval-info-cards {
+    grid-template-columns: 1fr;
+  }
+  
+  .etudiant-evaluations .eval-page-title {
+    font-size: 20px;
+  }
+  
+  .etudiant-evaluations .eval-card-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  .eval-card-status {
+  
+  .etudiant-evaluations .eval-card-status {
     align-items: flex-start;
   }
-  .eval-card-simple-header {
+  
+  .etudiant-evaluations .eval-card-simple-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  .eval-card-simple-status {
+  
+  .etudiant-evaluations .eval-card-simple-status {
     align-items: flex-start;
   }
-  .eval-table {
+  
+  .etudiant-evaluations .eval-table {
     font-size: 12px;
   }
-  .eval-table thead th,
-  .eval-table tbody td {
-    padding: 4px 6px;
+  
+  .etudiant-evaluations .eval-table thead th,
+  .etudiant-evaluations .eval-table tbody td {
+    padding: 6px 8px;
   }
-  .eval-note-value {
+  
+  .etudiant-evaluations .eval-note-value {
     font-size: 18px;
   }
-  .eval-simple-note-value {
+  
+  .etudiant-evaluations .eval-simple-note-value {
     font-size: 18px;
   }
-  .eval-appreciation-text {
+  
+  .etudiant-evaluations .eval-appreciation-text {
     font-size: 12px;
   }
-  .eval-simple-appreciation-text {
+  
+  .etudiant-evaluations .eval-simple-appreciation-text {
     font-size: 13px;
   }
-  .eval-info-card {
-    padding: 14px 16px;
+  
+  .etudiant-evaluations .eval-info-card {
+    padding: 16px 18px;
   }
-  .eval-note-moyenne-simple {
+  
+  .etudiant-evaluations .eval-note-moyenne-simple {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  .eval-simple-note {
+  
+  .etudiant-evaluations .eval-simple-note {
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
   }
-  .eval-info-card-icon {
-    width: 38px;
-    height: 38px;
-    font-size: 17px;
+  
+  .etudiant-evaluations .eval-info-card-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 18px;
+  }
+
+  .etudiant-evaluations .avenir-card-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
 @media (max-width: 480px) {
-  .eval-page-title {
+  .etudiant-evaluations .eval-page-title {
     font-size: 18px;
   }
-  .eval-page-subtitle {
+  
+  .etudiant-evaluations .eval-page-subtitle {
     font-size: 13px;
   }
-  .eval-info-card-icon {
-    width: 34px;
-    height: 34px;
-    font-size: 15px;
-  }
-  .eval-info-title {
-    font-size: 14px;
-  }
-  .eval-info-name {
-    font-size: 13px;
-  }
-  .eval-info-company {
-    font-size: 12px;
-  }
-  .eval-info-role {
-    font-size: 12px;
-  }
-  .eval-info-email {
-    font-size: 11px;
-  }
-  .eval-card-header h4 {
-    font-size: 13px;
-  }
-  .eval-card-simple-header h4 {
-    font-size: 13px;
-  }
-  .eval-card-date {
-    font-size: 11px;
-  }
-  .eval-card-simple-date {
-    font-size: 11px;
-  }
-  .eval-note-value {
+  
+  .etudiant-evaluations .eval-info-card-icon {
+    width: 36px;
+    height: 36px;
     font-size: 16px;
   }
-  .eval-simple-note-value {
-    font-size: 16px;
-  }
-  .eval-note-stars {
-    font-size: 12px;
-  }
-  .eval-simple-note-stars {
+  
+  .etudiant-evaluations .eval-info-title {
     font-size: 14px;
   }
-  .eval-critere-stars {
+  
+  .etudiant-evaluations .eval-info-name {
+    font-size: 14px;
+  }
+  
+  .etudiant-evaluations .eval-info-company {
+    font-size: 12px;
+  }
+  
+  .etudiant-evaluations .eval-info-role {
+    font-size: 12px;
+  }
+  
+  .etudiant-evaluations .eval-info-email {
     font-size: 11px;
   }
-  .eval-critere-note {
+  
+  .etudiant-evaluations .eval-card-header h4 {
+    font-size: 13px;
+  }
+  
+  .etudiant-evaluations .eval-card-simple-header h4 {
+    font-size: 13px;
+  }
+  
+  .etudiant-evaluations .eval-card-date {
     font-size: 11px;
   }
-  .eval-table {
+  
+  .etudiant-evaluations .eval-card-simple-date {
     font-size: 11px;
   }
-  .eval-table thead th,
-  .eval-table tbody td {
-    padding: 3px 4px;
+  
+  .etudiant-evaluations .eval-note-value {
+    font-size: 16px;
   }
-  .eval-badge-valide,
-  .eval-badge-en-attente,
-  .eval-badge-termine,
-  .eval-badge-en-cours {
+  
+  .etudiant-evaluations .eval-simple-note-value {
+    font-size: 16px;
+  }
+  
+  .etudiant-evaluations .eval-note-stars {
+    font-size: 14px;
+  }
+  
+  .etudiant-evaluations .eval-simple-note-stars {
+    font-size: 14px;
+  }
+  
+  .etudiant-evaluations .eval-critere-stars {
+    font-size: 12px;
+  }
+  
+  .etudiant-evaluations .eval-critere-note {
+    font-size: 12px;
+  }
+  
+  .etudiant-evaluations .eval-table {
+    font-size: 11px;
+  }
+  
+  .etudiant-evaluations .eval-table thead th,
+  .etudiant-evaluations .eval-table tbody td {
+    padding: 4px 6px;
+  }
+  
+  .etudiant-evaluations .eval-badge-valide,
+  .etudiant-evaluations .eval-badge-en-attente,
+  .etudiant-evaluations .eval-badge-termine,
+  .etudiant-evaluations .eval-badge-en-cours {
     font-size: 10px;
     padding: 2px 10px;
   }
-  .eval-appreciation-text {
+  
+  .etudiant-evaluations .eval-appreciation-text {
     font-size: 12px;
   }
-  .eval-simple-appreciation-text {
+  
+  .etudiant-evaluations .eval-simple-appreciation-text {
     font-size: 12px;
   }
-  .eval-stage-title {
+  
+  .etudiant-evaluations .eval-info-card {
+    padding: 14px 16px;
+  }
+  
+  .etudiant-evaluations .eval-info-card-content h4 {
+    font-size: 11px;
+  }
+
+  .etudiant-evaluations .avenir-card-header h3 {
     font-size: 14px;
   }
-  .eval-stage-company {
-    font-size: 12px;
-  }
-  .eval-stage-item-title {
-    font-size: 13px;
-  }
-  .eval-stage-item-company {
-    font-size: 11px;
+
+  .etudiant-evaluations .avenir-card-body {
+    padding: 14px 16px;
   }
 }

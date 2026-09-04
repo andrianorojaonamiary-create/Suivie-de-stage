@@ -148,13 +148,13 @@
 
 .sidebar-link:hover .sidebar-icon {
   transform: scale(1.15);
-  color: #6BA9E6;
+  color: rgba(219, 235, 249, 0.7);
 }
 
 .sidebar-link.active {
   background: rgba(107, 169, 230, 0.68);
   color: #FFFFFF;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+ 
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 16px rgba(107, 169, 230, 0.25);
 }
@@ -171,7 +171,7 @@
 
 .sidebar-icon {
   font-size: 18px;
-  color: #6BA9E6;
+  color: rgba(219, 235, 249, 0.7);
   flex-shrink: 0;
   min-width: 20px;
   transition: all 0.25s ease;

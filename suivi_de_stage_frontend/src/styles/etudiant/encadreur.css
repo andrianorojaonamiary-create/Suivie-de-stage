@@ -107,6 +107,7 @@
 
 .encadreur-card-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 6px;
   padding-top: 12px;
   border-top: 1px solid #FAFBFF;
@@ -149,10 +150,7 @@
    ============================================================ */
 
 @media (max-width: 768px) {
-  .etudiant-encadreur-page .page-header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+  
 
   .etudiant-encadreur-page .page-header h1 {
     font-size: 20px;
@@ -169,19 +167,6 @@
 
   .encadreur-card-top {
     flex-direction: column;
-    text-align: center;
-  }
-
-  .encadreur-card-middle {
-    text-align: center;
-  }
-
-  .encadreur-card-middle p {
-    justify-content: center;
-  }
-
-  .encadreur-card-actions {
-    justify-content: center;
   }
 }
 

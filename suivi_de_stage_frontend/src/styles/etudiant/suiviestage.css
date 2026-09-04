@@ -4,240 +4,230 @@
 
 .etudiant-suivi {
   padding: 20px 0;
-  max-width: 1100px;
+  max-width: 1000px;
   margin: 0 auto;
 }
 
 /* ============================================================
-   HEADER
+   HEADER (avec les classes eval-page-title et eval-page-subtitle)
    ============================================================ */
 
-.etudiant-suivi .page-header {
+.etudiant-suivi .eval-page-header {
   margin-bottom: 24px;
 }
 
-.etudiant-suivi .page-header h1 {
+.etudiant-suivi .eval-page-title {
   font-size: 24px;
   color: #162449;
   margin: 0;
   font-weight: 700;
 }
 
-.etudiant-suivi .page-header .text-muted {
+.etudiant-suivi .eval-page-subtitle {
   color: #6c7a8a;
   font-size: 14px;
   margin: 4px 0 0 0;
 }
 
 /* ============================================================
-   SÉLECTEUR DE STAGE
+   FILTRE
    ============================================================ */
 
-.suivi-stage-selector {
-  margin-bottom: 20px;
-  position: relative;
-}
-
-.stage-selector-btn {
-  width: 100%;
+.etudiant-suivi .suivi-filter-section {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 12px 18px;
+  gap: 16px;
+  margin-bottom: 24px;
+  padding: 16px 20px;
   background: white;
-  border: 1px solid #E1ECFE;
   border-radius: 12px;
-  cursor: pointer;
-  transition: all 0.2s;
-  font-family: inherit;
+  border: 1px solid #E1ECFE;
+  flex-wrap: wrap;
 }
 
-.stage-selector-btn:hover {
-  border-color: #6BA9E6;
-  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.06);
-}
-
-.stage-selector-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
-
-.stage-selector-title {
-  font-size: 15px;
-  font-weight: 600;
-  color: #162449;
-}
-
-.stage-selector-company {
-  font-size: 13px;
-  color: #6c7a8a;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.stage-selector-status {
+.etudiant-suivi .suivi-filter-group {
   display: flex;
   align-items: center;
   gap: 12px;
-  font-size: 14px;
-  color: #6c7a8a;
-}
-
-.stage-selector-status svg {
-  color: #A0B8D0;
-}
-
-/* ===== DROPDOWN ===== */
-.stage-selector-dropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  background: white;
-  border: 1px solid #E1ECFE;
-  border-radius: 12px;
-  box-shadow: 0 8px 30px rgba(26, 58, 107, 0.12);
-  z-index: 100;
-  overflow: hidden;
-  animation: slideDown 0.25s ease;
-}
-
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.stage-selector-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 10px 18px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border-bottom: 1px solid #FAFBFF;
-}
-
-.stage-selector-item:last-child {
-  border-bottom: none;
-}
-
-.stage-selector-item:hover {
-  background: #FAFBFF;
-}
-
-.stage-selector-item.active {
-  background: #E1ECFE;
-}
-
-.stage-selector-item-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.stage-selector-item-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #162449;
-}
-
-.stage-selector-item-company {
-  font-size: 12px;
-  color: #6c7a8a;
-}
-
-.stage-selector-item .badge-en-cours,
-.stage-selector-item .badge-termine {
-  font-size: 11px;
-  padding: 2px 10px;
-}
-
-/* ============================================================
-   INFORMATION DU STAGE (avec ligne et description à l'intérieur)
-   ============================================================ */
-
-.suivi-stage-info {
-  background: white;
-  border-radius: 16px;
-  border: 1px solid #E1ECFE;
-  padding: 24px 30px;
-  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.04);
-  display: flex;
-  flex-wrap: wrap;
-  position: relative;
-}
-
-.stage-info-left {
   flex: 1;
   min-width: 200px;
 }
 
-.stage-info-left h2 {
+.etudiant-suivi .suivi-filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  white-space: nowrap;
+}
+
+.etudiant-suivi .suivi-filter-group label svg {
+  color: #6BA9E6;
+  font-size: 14px;
+}
+
+.etudiant-suivi .suivi-filter-select {
+  flex: 1;
+  padding: 10px 14px;
+  padding-right: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 150px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  font-family: inherit;
+}
+
+.etudiant-suivi .suivi-filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
+}
+
+.etudiant-suivi .suivi-filter-select:hover {
+  border-color: #6BA9E6;
+}
+
+.etudiant-suivi .suivi-filter-count {
+  font-size: 13px;
+  color: #6c7a8a;
+  white-space: nowrap;
+  padding: 6px 16px;
+  background: #F5F8FC;
+  border-radius: 20px;
+  font-weight: 500;
+}
+
+.etudiant-suivi .suivi-filter-count strong {
+  color: #162449;
+}
+
+/* ============================================================
+   INFORMATION DU STAGE
+   ============================================================ */
+
+.etudiant-suivi .suivi-stage-info {
+  background: #fff;
+  border-radius: 16px;
+  border: 1px solid #E1ECFE;
+  padding: 24px 30px 10px 30px;
+  box-shadow: 0 2px 12px rgba(22, 36, 73, 0.04);
+  display: flex;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+/* ===== GAUCHE ===== */
+.etudiant-suivi .suivi-stage-info .stage-info-left {
+  flex: 1;
+  min-width: 200px;
+}
+
+.etudiant-suivi .suivi-stage-info .stage-info-left h2 {
   font-size: 22px;
   color: #162449;
-  margin: 0 0 4px 0;
+  margin: 0 0 2px 0;
   font-weight: 700;
 }
 
-.stage-info-left .stage-company {
+.etudiant-suivi .suivi-stage-info .stage-info-left .stage-company {
   font-size: 14px;
-  color: #6c7a8a;
+  color: #162449;
+  font-weight: 800;
+  margin: 0 0 16px 0;
   display: flex;
   align-items: center;
   gap: 6px;
-  margin: 0 0 12px 0;
 }
 
-.stage-dates {
+/* ===== 3 COLONNES ===== */
+.etudiant-suivi .suivi-stage-info .stage-info-columns {
   display: flex;
-  gap: 24px;
+  gap: 40px;
   flex-wrap: wrap;
-  font-size: 14px;
-  color: #6c7a8a;
 }
 
-.stage-dates span {
+.etudiant-suivi .suivi-stage-info .stage-info-col {
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 120px;
 }
 
-.stage-days-remaining {
-  margin-top: 8px;
-  font-size: 14px;
-  color: #6BA9E6;
+.etudiant-suivi .suivi-stage-info .stage-info-label {
+  font-size: 13px;
+  color: #6c7a8a;
   font-weight: 500;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-/* ===== PROGRESSION CERCLE ===== */
-.stage-info-right {
-  flex-shrink: 0;
+.etudiant-suivi .suivi-stage-info .stage-info-label svg {
+  color: #6c7a8a;
+  font-size: 14px;
+}
+
+.etudiant-suivi .suivi-stage-info .stage-info-value {
+  font-size: 12px;
+  color: #162449;
+  font-weight: 600;
   margin-left: 20px;
 }
 
-.progress-circle {
+/* ===== STATUT + JOURS ===== */
+.etudiant-suivi .suivi-stage-info .stage-status-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.etudiant-suivi .suivi-stage-info .stage-status-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #27AE60;
+  padding: 5px 20px;
+  background: #D1FAE5;
+  border-radius: 5px;
+}
+
+.etudiant-suivi .suivi-stage-info .stage-days-text {
+  font-size: 13px;
+  color: #162449;
+  font-weight: 700;
+}
+
+/* ===== DROITE : CERCLE ===== */
+.etudiant-suivi .suivi-stage-info .stage-info-right {
+  flex-shrink: 0;
+  margin-left: 0px;
+  display: flex;
+  align-items: center;
+}
+
+.etudiant-suivi .suivi-stage-info .progress-circle {
   position: relative;
-  width: 120px;
-  height: 120px;
+  width: 150px;
+  height: 150px;
 }
 
-.progress-circle svg {
-  transform: rotate(-90deg);
+.etudiant-suivi .suivi-stage-info .progress-circle svg {
+  transform: rotate(0deg);
 }
 
-.progress-circle .progress-text {
+.etudiant-suivi .suivi-stage-info .progress-circle .progress-text {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -248,33 +238,31 @@
   align-items: center;
 }
 
-.progress-circle .progress-percent {
-  font-size: 22px;
+.etudiant-suivi .suivi-stage-info .progress-circle .progress-percent {
+  font-size: 20px;
   font-weight: 700;
   color: #162449;
 }
 
-.progress-circle .progress-label {
+.etudiant-suivi .suivi-stage-info .progress-circle .progress-label {
   font-size: 10px;
   color: #6c7a8a;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
-/* ===== LIGNE SÉPARATRICE À L'INTÉRIEUR ===== */
-.stage-divider {
+/* ===== BAS : DESCRIPTION AVEC BORDER TOP ===== */
+.etudiant-suivi .suivi-stage-info .stage-bottom-wrapper {
   width: 100%;
-  height: 1px;
-  background: #E8EEF4;
-  margin: 16px 0 12px 0;
+  margin-top: 12px;
+  padding-top: 12px;
+  background: #F5F8FC;
+  padding: 10px;
+  border-radius: 10px;
+  border-top: 1px solid #E1ECFE;
 }
 
-/* ===== DESCRIPTION À L'INTÉRIEUR ===== */
-.stage-description {
-  width: 100%;
-}
-
-.stage-description p {
+.etudiant-suivi .suivi-stage-info .stage-description p {
   font-size: 14px;
   color: #475569;
   line-height: 1.6;
@@ -285,15 +273,15 @@
    CARTE SUIVI
    ============================================================ */
 
-.suivi-card {
+.etudiant-suivi .suivi-card {
   background: white;
   border-radius: 16px;
   border: 1px solid #E1ECFE;
   padding: 20px 24px;
-  box-shadow: 0 2px 12px rgba(26, 58, 107, 0.04);
+  box-shadow: 0 2px 12px rgba(22, 36, 73, 0.04);
 }
 
-.suivi-card h3 {
+.etudiant-suivi .suivi-card h3 {
   font-size: 16px;
   color: #162449;
   margin: 0 0 16px 0;
@@ -307,7 +295,7 @@
    GRID 2 - ÉTAPES + DOCUMENTS
    ============================================================ */
 
-.suivi-grid-2 {
+.etudiant-suivi .suivi-grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 20px;
@@ -319,34 +307,34 @@
    ÉTAPES
    ============================================================ */
 
-.steps-card {
+.etudiant-suivi .steps-card {
   min-height: 300px;
 }
 
-.steps-list {
+.etudiant-suivi .steps-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.step-item {
+.etudiant-suivi .step-item {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px solid #FAFBFF;
+  border-bottom: 1px solid #F5F8FC;
 }
 
-.step-item:last-child {
+.etudiant-suivi .step-item:last-child {
   border-bottom: none;
 }
 
-.step-number {
+.etudiant-suivi .step-number {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #FAFBFF;
-  color: #A0B8D0;
+  background: #F5F8FC;
+  color: #162449;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -355,43 +343,43 @@
   flex-shrink: 0;
 }
 
-.step-item.done .step-number {
-  background: #D1FAE5;
-  color: #27AE60;
+.etudiant-suivi .step-item.done .step-number {
+  background: #27AE60;
+  color: white;
 }
 
-.step-content {
+.etudiant-suivi .step-content {
   flex: 1;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
-.step-label {
+.etudiant-suivi .step-label {
   font-size: 13px;
   color: #162449;
 }
 
-.step-item.done .step-label {
-  color: #A0B8D0;
+.etudiant-suivi .step-item.done .step-label {
+  color: #27AE60;
   text-decoration: line-through;
 }
 
-.step-date {
+.etudiant-suivi .step-date {
   font-size: 12px;
-  color: #A0B8D0;
+  color: #162449;
 }
 
-.step-item.done .step-date {
+.etudiant-suivi .step-item.done .step-date {
   color: #27AE60;
 }
 
-.step-status {
+.etudiant-suivi .step-status {
   font-size: 14px;
   color: #E1ECFE;
 }
 
-.step-status.done {
+.etudiant-suivi .step-status.done {
   color: #27AE60;
 }
 
@@ -399,109 +387,107 @@
    DOCUMENTS
    ============================================================ */
 
-.documents-card {
+.etudiant-suivi .documents-card {
   min-height: 300px;
 }
 
-.documents-list {
+.etudiant-suivi .documents-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.document-item {
+.etudiant-suivi .document-item {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
-  padding: 8px 12px;
+  padding: 15px 14px;
   background: #F8FAFC;
   border-radius: 8px;
   transition: all 0.2s;
 }
 
-.document-item:hover {
-  background: #FAFBFF;
+.etudiant-suivi .document-item:hover {
+  background: #F5F8FC;
 }
 
-.document-icon {
-  font-size: 22px;
+.etudiant-suivi .document-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.etudiant-suivi .document-icon {
+  font-size: 20px;
   flex-shrink: 0;
 }
 
-.document-icon .pdf {
+.etudiant-suivi .document-icon .pdf {
   color: #E74C3C;
 }
 
-.document-icon .word {
+.etudiant-suivi .document-icon .word {
   color: #6BA9E6;
 }
 
-.document-info {
-  flex: 1;
+.etudiant-suivi .document-info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
 }
 
-.document-name {
+.etudiant-suivi .document-name {
   font-size: 13px;
   font-weight: 500;
   color: #162449;
 }
 
-.document-date {
+.etudiant-suivi .document-date {
   font-size: 11px;
-  color: #A0B8D0;
+  color: #6c7a8a;
 }
 
-.document-status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.etudiant-suivi .document-status {
   flex-shrink: 0;
 }
 
-.status-icon {
-  font-size: 14px;
-}
-
-.status-icon.valid {
-  color: #27AE60;
-}
-
-.status-icon.progress {
-  color: #F39C12;
-}
-
-.status-icon.pending {
-  color: #E74C3C;
+.etudiant-suivi .document-status .badge-valide,
+.etudiant-suivi .document-status .badge-en-attente,
+.etudiant-suivi .document-status .badge-en-cours,
+.etudiant-suivi .document-status .badge-termine {
+  font-size: 11px;
+  padding: 2px 12px;
 }
 
 /* ============================================================
    ÉVALUATIONS
    ============================================================ */
 
-.evaluations-card {
+.etudiant-suivi .evaluations-card {
   margin-bottom: 20px;
 }
 
-.evaluations-card .card-header {
+.etudiant-suivi .evaluations-card .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
 }
 
-.evaluations-card .card-header h3 {
+.etudiant-suivi .evaluations-card .card-header h3 {
   margin-bottom: 0;
 }
 
-.evaluations-list {
+.etudiant-suivi .evaluations-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.evaluation-item {
+.etudiant-suivi .evaluation-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -512,11 +498,11 @@
   gap: 12px;
 }
 
-.evaluation-item:hover {
-  background: #FAFBFF;
+.etudiant-suivi .evaluation-item:hover {
+  background: #F5F8FC;
 }
 
-.evaluation-info {
+.etudiant-suivi .evaluation-info {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -524,18 +510,18 @@
   flex-wrap: wrap;
 }
 
-.evaluation-title {
+.etudiant-suivi .evaluation-title {
   font-size: 13px;
   font-weight: 500;
   color: #162449;
 }
 
-.evaluation-date {
+.etudiant-suivi .evaluation-date {
   font-size: 12px;
-  color: #A0B8D0;
+  color: #6BA9E6;
 }
 
-.evaluation-evaluateur {
+.etudiant-suivi .evaluation-evaluateur {
   font-size: 12px;
   color: #6c7a8a;
   display: flex;
@@ -543,7 +529,7 @@
   gap: 4px;
 }
 
-.evaluation-role {
+.etudiant-suivi .evaluation-role {
   font-size: 10px;
   color: white;
   background: #6BA9E6;
@@ -556,24 +542,24 @@
    OBSERVATIONS
    ============================================================ */
 
-.observations-card {
+.etudiant-suivi .observations-card {
   margin-top: 0;
 }
 
-.observations-list {
+.etudiant-suivi .observations-list {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.observation-item {
+.etudiant-suivi .observation-item {
   padding: 14px 18px;
   background: #F8FAFC;
   border-radius: 8px;
-  border: 1px solid #FAFBFF;
+  border: 1px solid #F5F8FC;
 }
 
-.observation-header {
+.etudiant-suivi .observation-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -582,7 +568,7 @@
   gap: 4px;
 }
 
-.observation-auteur {
+.etudiant-suivi .observation-auteur {
   font-size: 12px;
   font-weight: 600;
   color: #6BA9E6;
@@ -591,7 +577,7 @@
   gap: 4px;
 }
 
-.observation-role {
+.etudiant-suivi .observation-role {
   font-size: 10px;
   color: white;
   background: #7C3AED;
@@ -601,12 +587,12 @@
   margin-left: 4px;
 }
 
-.observation-date {
+.etudiant-suivi .observation-date {
   font-size: 11px;
-  color: #A0B8D0;
+  color: #6BA9E6;
 }
 
-.observation-contenu {
+.etudiant-suivi .observation-contenu {
   font-size: 14px;
   color: #162449;
   margin: 0;
@@ -617,7 +603,7 @@
    BADGES
    ============================================================ */
 
-.badge-en-cours {
+.etudiant-suivi .badge-en-cours {
   background: #E1ECFE;
   color: #162449;
   padding: 2px 12px;
@@ -626,7 +612,7 @@
   font-weight: 500;
 }
 
-.badge-en-attente {
+.etudiant-suivi .badge-en-attente {
   background: #FEF3C7;
   color: #92400E;
   padding: 2px 12px;
@@ -635,8 +621,8 @@
   font-weight: 500;
 }
 
-.badge-termine {
-  background: #DBEAFE;
+.etudiant-suivi .badge-termine {
+  background: #E1ECFE;
   color: #1E40AF;
   padding: 2px 12px;
   border-radius: 12px;
@@ -644,7 +630,7 @@
   font-weight: 500;
 }
 
-.badge-valide {
+.etudiant-suivi .badge-valide {
   background: #D1FAE5;
   color: #065F46;
   padding: 2px 12px;
@@ -657,7 +643,7 @@
    LINK VIEW
    ============================================================ */
 
-.link-view {
+.etudiant-suivi .link-view {
   font-size: 12px;
   color: #6BA9E6;
   text-decoration: none;
@@ -666,7 +652,7 @@
   gap: 4px;
 }
 
-.link-view:hover {
+.etudiant-suivi .link-view:hover {
   color: #162449;
 }
 
@@ -675,305 +661,312 @@
    ============================================================ */
 
 @media (max-width: 992px) {
-  .suivi-grid-2 {
+  .etudiant-suivi .suivi-grid-2 {
     grid-template-columns: 1fr;
+  }
+  
+  .etudiant-suivi .suivi-stage-info .stage-info-columns {
+    gap: 20px;
+  }
+
+  .etudiant-suivi .suivi-stage-info .progress-circle {
+    width: 120px;
+    height: 120px;
   }
 }
 
 @media (max-width: 768px) {
-  .etudiant-suivi .page-header h1 {
+  .etudiant-suivi .eval-page-title {
     font-size: 20px;
   }
 
-  .etudiant-suivi .page-header .text-muted {
+  .etudiant-suivi .eval-page-subtitle {
     font-size: 13px;
   }
 
-  .stage-selector-btn {
+  .etudiant-suivi .suivi-filter-section {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 12px;
   }
 
-  .stage-selector-status {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  .stage-selector-item {
+  .etudiant-suivi .suivi-filter-group {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 6px;
   }
 
-  .suivi-stage-info {
+  .etudiant-suivi .suivi-filter-group label {
+    font-size: 12px;
+  }
+
+  .etudiant-suivi .suivi-filter-select {
+    padding: 8px 12px;
+    padding-right: 32px;
+    font-size: 13px;
+    min-width: unset;
+  }
+
+  .etudiant-suivi .suivi-filter-count {
+    text-align: center;
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+
+  .etudiant-suivi .suivi-stage-info {
     flex-direction: column;
     align-items: stretch;
     padding: 20px;
   }
 
-  .stage-info-left h2 {
-    font-size: 18px;
+  .etudiant-suivi .suivi-stage-info .stage-info-columns {
+    flex-direction: column;
+    gap: 12px;
   }
 
-  .stage-info-right {
+  .etudiant-suivi .suivi-stage-info .stage-info-right {
     margin-left: 0;
     margin-top: 16px;
-    display: flex;
     justify-content: center;
   }
 
-  .stage-dates {
-    flex-direction: column;
-    gap: 6px;
+  .etudiant-suivi .suivi-stage-info .stage-info-left h2 {
+    font-size: 18px;
   }
 
-  .progress-circle {
+  .etudiant-suivi .suivi-stage-info .progress-circle {
     width: 100px;
     height: 100px;
   }
 
-  .progress-circle .progress-percent {
+  .etudiant-suivi .suivi-stage-info .progress-circle .progress-percent {
     font-size: 18px;
   }
 
-  .progress-circle .progress-label {
+  .etudiant-suivi .suivi-stage-info .progress-circle .progress-label {
     font-size: 9px;
   }
 
-  .suivi-card {
+  .etudiant-suivi .suivi-stage-info .stage-status-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .etudiant-suivi .suivi-card {
     padding: 16px 18px;
   }
 
-  .suivi-card h3 {
+  .etudiant-suivi .suivi-card h3 {
     font-size: 14px;
   }
 
-  .step-item {
+  .etudiant-suivi .step-item {
     flex-wrap: wrap;
   }
 
-  .step-content {
+  .etudiant-suivi .step-content {
     flex: 1 1 100%;
     justify-content: space-between;
   }
 
-  .step-number {
+  .etudiant-suivi .step-number {
     width: 24px;
     height: 24px;
     font-size: 10px;
   }
 
-  .step-label {
+  .etudiant-suivi .step-label {
     font-size: 12px;
   }
 
-  .step-date {
+  .etudiant-suivi .step-date {
     font-size: 10px;
   }
 
-  .document-item {
+  .etudiant-suivi .document-item {
     flex-wrap: wrap;
   }
 
-  .document-status {
-    margin-left: 34px;
+  .etudiant-suivi .document-left {
+    flex: 1 1 100%;
   }
 
-  .document-name {
+  .etudiant-suivi .document-status {
+    margin-left: 32px;
+  }
+
+  .etudiant-suivi .document-name {
     font-size: 12px;
   }
 
-  .document-date {
+  .etudiant-suivi .document-date {
     font-size: 10px;
   }
 
-  .evaluation-item {
+  .etudiant-suivi .evaluation-item {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .evaluation-info {
+  .etudiant-suivi .evaluation-info {
     gap: 8px;
   }
 
-  .evaluation-title {
+  .etudiant-suivi .evaluation-title {
     font-size: 12px;
   }
 
-  .evaluation-date {
+  .etudiant-suivi .evaluation-date {
     font-size: 11px;
   }
 
-  .evaluation-role {
+  .etudiant-suivi .evaluation-role {
     font-size: 9px;
     padding: 1px 8px;
   }
 
-  .observation-header {
+  .etudiant-suivi .observation-header {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .observation-role {
+  .etudiant-suivi .observation-role {
     font-size: 9px;
     padding: 1px 8px;
   }
 
-  .observation-contenu {
+  .etudiant-suivi .observation-contenu {
     font-size: 13px;
   }
 
-  .stage-description p {
-    font-size: 13px;
-  }
-
-  .stage-selector-title {
-    font-size: 14px;
-  }
-
-  .stage-selector-item-title {
-    font-size: 13px;
-  }
-
-  .stage-selector-item-company {
-    font-size: 11px;
-  }
-
-  .stage-days-remaining {
+  .etudiant-suivi .suivi-stage-info .stage-description p {
     font-size: 13px;
   }
 }
 
 @media (max-width: 480px) {
-  .etudiant-suivi .page-header h1 {
+  .etudiant-suivi .eval-page-title {
     font-size: 18px;
   }
 
-  .etudiant-suivi .page-header .text-muted {
+  .etudiant-suivi .eval-page-subtitle {
     font-size: 12px;
   }
 
-  .stage-info-left h2 {
+  .etudiant-suivi .suivi-stage-info .stage-info-left h2 {
     font-size: 16px;
   }
 
-  .stage-info-left .stage-company {
+  .etudiant-suivi .suivi-stage-info .stage-info-left .stage-company {
     font-size: 13px;
   }
 
-  .stage-dates {
-    font-size: 13px;
-    gap: 4px;
-  }
-
-  .stage-days-remaining {
+  .etudiant-suivi .suivi-stage-info .stage-info-label {
     font-size: 12px;
   }
 
-  .progress-circle {
+  .etudiant-suivi .suivi-stage-info .stage-info-value {
+    font-size: 14px;
+  }
+
+  .etudiant-suivi .suivi-stage-info .stage-info-columns {
+    gap: 10px;
+  }
+
+  .etudiant-suivi .suivi-stage-info .progress-circle {
     width: 80px;
     height: 80px;
   }
 
-  .progress-circle .progress-percent {
+  .etudiant-suivi .suivi-stage-info .progress-circle .progress-percent {
     font-size: 16px;
   }
 
-  .progress-circle .progress-label {
+  .etudiant-suivi .suivi-stage-info .progress-circle .progress-label {
     font-size: 8px;
   }
 
-  .suivi-card {
+  .etudiant-suivi .suivi-card {
     padding: 14px 16px;
   }
 
-  .suivi-card h3 {
+  .etudiant-suivi .suivi-card h3 {
     font-size: 13px;
   }
 
-  .step-number {
+  .etudiant-suivi .step-number {
     width: 20px;
     height: 20px;
     font-size: 9px;
   }
 
-  .step-label {
+  .etudiant-suivi .step-label {
     font-size: 11px;
   }
 
-  .step-date {
+  .etudiant-suivi .step-date {
     font-size: 9px;
   }
 
-  .document-icon {
-    font-size: 18px;
+  .etudiant-suivi .document-icon {
+    font-size: 16px;
   }
 
-  .document-name {
+  .etudiant-suivi .document-name {
     font-size: 11px;
   }
 
-  .document-date {
+  .etudiant-suivi .document-date {
     font-size: 9px;
   }
 
-  .document-status .badge-valide,
-  .document-status .badge-en-attente,
-  .document-status .badge-en-cours {
+  .etudiant-suivi .document-status .badge-valide,
+  .etudiant-suivi .document-status .badge-en-attente,
+  .etudiant-suivi .document-status .badge-en-cours {
     font-size: 9px;
     padding: 1px 8px;
   }
 
-  .evaluation-title {
+  .etudiant-suivi .evaluation-title {
     font-size: 11px;
   }
 
-  .evaluation-date {
+  .etudiant-suivi .evaluation-date {
     font-size: 10px;
   }
 
-  .evaluation-evaluateur {
+  .etudiant-suivi .evaluation-evaluateur {
     font-size: 11px;
   }
 
-  .observation-auteur {
+  .etudiant-suivi .observation-auteur {
     font-size: 11px;
   }
 
-  .observation-date {
+  .etudiant-suivi .observation-date {
     font-size: 10px;
   }
 
-  .observation-contenu {
+  .etudiant-suivi .observation-contenu {
     font-size: 12px;
   }
 
-  .stage-selector-title {
-    font-size: 13px;
-  }
-
-  .stage-selector-company {
-    font-size: 12px;
-  }
-
-  .stage-selector-item-title {
-    font-size: 12px;
-  }
-
-  .stage-selector-item-company {
-    font-size: 10px;
-  }
-
-  .stage-divider {
-    margin: 12px 0 8px 0;
-  }
-
-  .suivi-stage-info {
+  .etudiant-suivi .suivi-stage-info {
     padding: 16px;
   }
 
-  .stage-info-right {
-    margin-top: 12px;
+  .etudiant-suivi .suivi-stage-info .stage-status-text {
+    font-size: 13px;
+  }
+
+  .etudiant-suivi .suivi-stage-info .stage-days-text {
+    font-size: 12px;
+  }
+
+  .etudiant-suivi .suivi-stage-info .stage-bottom-wrapper {
+    margin-top: 8px;
+    padding-top: 8px;
   }
 }

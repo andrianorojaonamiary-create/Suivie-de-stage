@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { 
-  FaChevronDown, FaChevronUp,
-  FaUserGraduate, FaBriefcase,  FaInfoCircle,
-
+  FaUserGraduate, FaBriefcase, FaInfoCircle,
+  FaFilter
 } from 'react-icons/fa';
 
 // ============================================================
@@ -19,14 +18,16 @@ const getStatusBadge = (status) => {
   return classes[status] || 'eval-badge-en-attente';
 };
 
+// ===== AFFICHAGE DES ÉTOILES =====
 const getStars = (note) => {
   if (!note) return null;
   const value = parseInt(note);
   const fullStars = Math.floor(value / 4);
   const emptyStars = 5 - fullStars;
   return (
-    <span className="eval-stars">
-      {'★'.repeat(fullStars)}{'☆'.repeat(emptyStars)}
+    <span className="eval-critere-stars1">
+      {'★'.repeat(fullStars)}
+      {'☆'.repeat(emptyStars)}
     </span>
   );
 };
@@ -49,7 +50,7 @@ const EvaluationDetailCard = ({ evaluation, title }) => {
         <h4>{title}</h4>
         <div className="eval-card-status">
           <span className={getStatusBadge(evaluation.status)}>{evaluation.status}</span>
-          <span className="eval-card-date">{evaluation.date}</span>
+          <span className="eval-card-date">Évaluée le {evaluation.date}</span>
         </div>
       </div>
 
@@ -68,8 +69,8 @@ const EvaluationDetailCard = ({ evaluation, title }) => {
                 <tr key={index}>
                   <td>{critere.nom}</td>
                   <td className="eval-td-center">
+                     <span className="eval-critere-stars1">{getStars(critere.note)}</span>
                     <span className="eval-critere-note">{critere.note} / 20</span>
-                    <span className="eval-critere-stars">{getStars(critere.note)}</span>
                   </td>
                 </tr>
               ))}
@@ -82,9 +83,8 @@ const EvaluationDetailCard = ({ evaluation, title }) => {
       {evaluation.note && (
         <div className="eval-footer-simple">
           <div className="eval-note-moyenne-simple">
-            <span className="eval-note-label">Note moyenne</span>
+            <span className="eval-note-label">Moyenne générale</span>
             <span className="eval-note-value">{evaluation.note} / 20</span>
-            <span className="eval-note-stars">{getStars(parseInt(evaluation.note))}</span>
           </div>
           {evaluation.commentaire && (
             <div className="eval-appreciation-simple">
@@ -116,16 +116,18 @@ const EvaluationSimpleCard = ({ evaluation, title }) => {
         <h4>{title}</h4>
         <div className="eval-card-simple-status">
           <span className={getStatusBadge(evaluation.status)}>{evaluation.status}</span>
-          <span className="eval-card-simple-date">{evaluation.date}</span>
+          <span className="eval-card-simple-date">Évaluée le {evaluation.date}</span>
         </div>
       </div>
 
       {evaluation.note && (
         <div className="eval-simple-content">
           <div className="eval-simple-note">
-            <span className="eval-simple-note-label">Note</span>
-            <span className="eval-simple-note-value">{evaluation.note} / 20</span>
-            <span className="eval-simple-note-stars">{getStars(parseInt(evaluation.note))}</span>
+            <span className="eval-simple-note-label">Moyenne générale</span>
+            <div className='eval-simple-note-right'>
+              <span className="eval-simple-note-stars">{getStars(parseInt(evaluation.note))}</span>
+              <span className="eval-simple-note-value">{evaluation.note} / 20</span>
+            </div>            
           </div>
           {evaluation.commentaire && (
             <div className="eval-simple-appreciation">
@@ -143,8 +145,7 @@ const EvaluationSimpleCard = ({ evaluation, title }) => {
 // COMPOSANT PRINCIPAL
 // ============================================================
 function Evaluations() {
-  const [selectedStageId, setSelectedStageId] = useState(1);
-  const [isStageSelectorOpen, setIsStageSelectorOpen] = useState(false);
+  const [selectedStageId, setSelectedStageId] = useState('all');
 
   const [stages] = useState([
     {
@@ -164,6 +165,16 @@ function Evaluations() {
       statut: 'Terminé'
     }
   ]);
+
+  const getFilteredStages = () => {
+    if (selectedStageId === 'all') {
+      return stages;
+    }
+    return stages.filter(s => s.id === parseInt(selectedStageId));
+  };
+
+  const filteredStages = getFilteredStages();
+  const selectedStage = filteredStages.length > 0 ? filteredStages[0] : stages[0];
 
   const getStageInfo = (stageId) => {
     const infos = {
@@ -203,7 +214,7 @@ function Evaluations() {
           date: '28/09/2026',
           status: 'Complétée',
           note: '16.4',
-          commentaire: 'Miary a montré une bonne capacité d\'adaptation et un réel investissement dans les tâches qui lui ont été confiées.',
+          commentaire: 'Miary a montré une bonne capacité d\'adaptation et un réel investissement dans les tâches qui lui ont été confiées. Travail sérieux et satisfaisant.',
           criteres: [
             { nom: 'Compétences techniques', note: 16 },
             { nom: 'Qualité du travail', note: 17 },
@@ -235,7 +246,7 @@ function Evaluations() {
           date: '30/09/2026',
           status: 'Complétée',
           note: '15.8',
-          commentaire: 'Stagiaire sérieux, bonne intégration dans l\'équipe.'
+          commentaire: 'Bon travail dans l\'ensemble. Quelques améliorations à apporter dans l\'analyse et la formalisation des solutions.'
         }
       },
       2: {
@@ -283,17 +294,12 @@ function Evaluations() {
     return evals[stageId] || evals[1];
   };
 
-  const selectedStage = stages.find(s => s.id === selectedStageId);
-  const stageInfo = getStageInfo(selectedStageId);
-  const evaluations = getEvaluations(selectedStageId);
-
-  const handleStageSelect = (stageId) => {
-    setSelectedStageId(stageId);
-    setIsStageSelectorOpen(false);
-  };
+  const stageInfo = getStageInfo(selectedStage?.id || 1);
+  const evaluations = getEvaluations(selectedStage?.id || 1);
 
   return (
     <div className="etudiant-evaluations">
+      {/* ===== HEADER EN COLONNE ===== */}
       <div className="eval-page-header">
         <h1 className="eval-page-title">Évaluation de stage</h1>
         <p className="eval-page-subtitle">
@@ -301,70 +307,71 @@ function Evaluations() {
         </p>
       </div>
 
-      {/* SÉLECTEUR DE STAGE */}
-      <div className="eval-stage-selector">
-        <button 
-          className="eval-stage-btn"
-          onClick={() => setIsStageSelectorOpen(!isStageSelectorOpen)}
-        >
-          <div className="eval-stage-info">
-            <span className="eval-stage-title">{selectedStage?.titre}</span>
-            <span className="eval-stage-company">{selectedStage?.entreprise}</span>
-          </div>
-          <span className="eval-stage-status">
-            <span className={getStatusBadge(selectedStage?.statut)}>{selectedStage?.statut}</span>
-            {isStageSelectorOpen ? <FaChevronUp /> : <FaChevronDown />}
-          </span>
-        </button>
-
-        {isStageSelectorOpen && (
-          <div className="eval-stage-dropdown">
+      {/* ===== FILTRE ===== */}
+      <div className="eval-filter-section">
+        <div className="eval-filter-group">
+          <label>
+            <FaFilter /> Filtrer par stage
+          </label>
+          <select 
+            value={selectedStageId} 
+            onChange={(e) => setSelectedStageId(e.target.value)}
+            className="eval-filter-select"
+          >
+            <option value="all">Tous les stages</option>
             {stages.map(stage => (
-              <div 
-                key={stage.id}
-                className={`eval-stage-item ${stage.id === selectedStageId ? 'eval-stage-item-active' : ''}`}
-                onClick={() => handleStageSelect(stage.id)}
-              >
-                <div className="eval-stage-item-info">
-                  <span className="eval-stage-item-title">{stage.titre}</span>
-                  <span className="eval-stage-item-company">{stage.entreprise}</span>
-                </div>
-                <span className={getStatusBadge(stage.statut)}>{stage.statut}</span>
-              </div>
+              <option key={stage.id} value={stage.id}>
+                {stage.titre}
+              </option>
             ))}
-          </div>
-        )}
+          </select>
+        </div>
+        <div className="eval-filter-count">
+          <strong>{stages.length}</strong> stage{stages.length > 1 ? 's' : ''} enregistré{stages.length > 1 ? 's' : ''}
+        </div>
       </div>
 
-      {/* 3 CARTES D'INFOS */}
-      <div className="eval-info-cards">
-        <div className="eval-info-card">
-          <div className="eval-info-card-icon"><FaInfoCircle /></div>
-          <div className="eval-info-card-content">
-            <h4>Mon stage</h4>
-            <p className="eval-info-title">{selectedStage?.titre}</p>
-            <p className="eval-info-company">{selectedStage?.entreprise}</p>
-            <p className="eval-info-date">{selectedStage?.dateDebut} → {selectedStage?.dateFin}</p>
-          </div>
+      {/* ===== 3 CARTES DANS UNE CARTE COMMUNE ===== */}
+      <div className="avenir-card">
+        <div className="avenir-card-header">
+          <h3>
+            <FaInfoCircle /> {selectedStage?.titre}
+          </h3>
+          <span className={getStatusBadge(selectedStage?.statut)}>
+            {selectedStage?.statut}
+          </span>
         </div>
+        <div className="avenir-card-body">
+          <div className="eval-info-cards">
+            <div className="eval-info-card">
+              <div className="eval-info-card-icon"><FaInfoCircle /></div>
+              <div className="eval-info-card-content">
+                <h4>Votre stage</h4>
+                <p className="eval-info-title">{selectedStage?.titre}</p>
+                <p className="eval-info-company">{selectedStage?.entreprise}</p>
+                <p className="eval-info-date">{selectedStage?.dateDebut} → {selectedStage?.dateFin}</p>
+              </div>
+            </div>
 
-        <div className="eval-info-card">
-          <div className="eval-info-card-icon"><FaUserGraduate /></div>
-          <div className="eval-info-card-content">
-            <h4>Encadreur pédagogique</h4>
-            <p className="eval-info-name">{stageInfo.tuteur.nom}</p>
-            <p className="eval-info-role">{stageInfo.tuteur.role}</p>
-            <p className="eval-info-email">{stageInfo.tuteur.email}</p>
-          </div>
-        </div>
+            <div className="eval-info-card">
+              <div className="eval-info-card-icon"><FaUserGraduate /></div>
+              <div className="eval-info-card-content">
+                <h4>Encadreur pédagogique</h4>
+                <p className="eval-info-name">{stageInfo.tuteur.nom}</p>
+                <p className="eval-info-role">{stageInfo.tuteur.role}</p>
+                <p className="eval-info-email">{stageInfo.tuteur.email}</p>
+              </div>
+            </div>
 
-        <div className="eval-info-card">
-          <div className="eval-info-card-icon"><FaBriefcase /></div>
-          <div className="eval-info-card-content">
-            <h4>Maître de stage</h4>
-            <p className="eval-info-name">{stageInfo.encadreur.nom}</p>
-            <p className="eval-info-role">{stageInfo.encadreur.role}</p>
-            <p className="eval-info-company">{stageInfo.encadreur.entreprise}</p>
+            <div className="eval-info-card">
+              <div className="eval-info-card-icon"><FaBriefcase /></div>
+              <div className="eval-info-card-content">
+                <h4>Maître de stage</h4>
+                <p className="eval-info-name">{stageInfo.encadreur.nom}</p>
+                <p className="eval-info-role">{stageInfo.encadreur.role}</p>
+                <p className="eval-info-company">{stageInfo.encadreur.entreprise}</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -372,12 +379,12 @@ function Evaluations() {
       {/* TUTEUR + ENCADREUR */}
       <div className="eval-two-columns">
         <EvaluationDetailCard 
-          evaluation={evaluations.tuteur} 
-          title="Évaluation par l'encadreur pédagogique"
-        />
-        <EvaluationDetailCard 
           evaluation={evaluations.encadreur} 
           title="Évaluation par le maître de stage"
+        />
+        <EvaluationDetailCard 
+          evaluation={evaluations.tuteur} 
+          title="Évaluation par l'encadreur pédagogique"
         />
       </div>
 

@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { 
   FaCheckCircle, FaCircle, FaCalendarAlt, FaClock, 
   FaStar, FaComment, FaUserTie, FaArrowRight,
-  FaBuilding, FaCalendarCheck, 
+  FaBuilding,
   FaFilePdf, FaFileWord, FaFile, FaCheck,
-  FaTimes, FaHourglassHalf, FaChevronDown, FaChevronUp
+  FaFilter
 } from 'react-icons/fa';
 
 function SuiviStage() {
@@ -21,6 +21,7 @@ function SuiviStage() {
       duree: '2 mois',
       joursRestants: 22,
       joursTotal: 62,
+      joursEcoules: 20,
       description: "Développement d'une application web de gestion des ressources humaines avec React et Node.js.",
       progression: 32
     },
@@ -34,16 +35,24 @@ function SuiviStage() {
       duree: '6 mois',
       joursRestants: 0,
       joursTotal: 180,
+      joursEcoules: 180,
       description: "Développement d'une application mobile de gestion des stocks.",
       progression: 100
     }
   ]);
 
   // ===== STAGE SÉLECTIONNÉ =====
-  const [selectedStageId, setSelectedStageId] = useState(stages[0]?.id || null);
-  const [isStageSelectorOpen, setIsStageSelectorOpen] = useState(false);
+  const [selectedStageId, setSelectedStageId] = useState('all');
 
-  const selectedStage = stages.find(s => s.id === selectedStageId) || stages[0];
+  const getFilteredStages = () => {
+    if (selectedStageId === 'all') {
+      return stages;
+    }
+    return stages.filter(s => s.id === parseInt(selectedStageId));
+  };
+
+  const filteredStages = getFilteredStages();
+  const selectedStage = filteredStages.length > 0 ? filteredStages[0] : stages[0];
 
   // ===== ÉTAPES =====
   const milestones = [
@@ -115,102 +124,92 @@ function SuiviStage() {
     return classes[status] || 'badge-en-attente';
   };
 
-  const getStatusIcon = (status) => {
-    switch(status) {
-      case 'Validé': return <FaCheck className="status-icon valid" />;
-      case 'En cours': return <FaHourglassHalf className="status-icon progress" />;
-      case 'À déposer': return <FaTimes className="status-icon pending" />;
-      default: return null;
-    }
-  };
-
   const getFileIcon = (type) => {
     switch(type) {
-      case 'pdf': return <FaFilePdf className="file-icon pdf" />;
-      case 'word': return <FaFileWord className="file-icon word" />;
-      default: return <FaFile className="file-icon" />;
+      case 'pdf': return <FaFilePdf className="pdf" />;
+      case 'word': return <FaFileWord className="word" />;
+      default: return <FaFile />;
     }
-  };
-
-  const handleStageSelect = (stageId) => {
-    setSelectedStageId(stageId);
-    setIsStageSelectorOpen(false);
   };
 
   return (
     <div className="etudiant-suivi">
-      {/* ===== HEADER ===== */}
-      <div className="page-header">
-        <h1>Suivi de stage</h1>
-        <p className="text-muted">Suivez l'avancement et les activités de votre stage.</p>
+      {/* ===== HEADER EN COLONNE ===== */}
+      <div className="eval-page-header">
+        <h1 className="eval-page-title">Suivi de stage</h1>
+        <p className="eval-page-subtitle">Suivez l'avancement et les activités de votre stage.</p>
       </div>
 
-      {/* ===== SÉLECTEUR DE STAGE ===== */}
-      <div className="suivi-stage-selector">
-        <button 
-          className="stage-selector-btn"
-          onClick={() => setIsStageSelectorOpen(!isStageSelectorOpen)}
-        >
-          <div className="stage-selector-info">
-            <span className="stage-selector-title">{selectedStage?.titre}</span>
-            <span className="stage-selector-company">
-              <FaBuilding /> {selectedStage?.entreprise}
-            </span>
-          </div>
-          <span className="stage-selector-status">
-            <span className={getStatusBadge(selectedStage?.statut)}>{selectedStage?.statut}</span>
-            {isStageSelectorOpen ? <FaChevronUp /> : <FaChevronDown />}
-          </span>
-        </button>
-
-        {isStageSelectorOpen && (
-          <div className="stage-selector-dropdown">
+      {/* ===== FILTRE ===== */}
+      <div className="suivi-filter-section">
+        <div className="suivi-filter-group">
+          <label>
+            <FaFilter /> Filtrer par stage
+          </label>
+          <select 
+            value={selectedStageId} 
+            onChange={(e) => setSelectedStageId(e.target.value)}
+            className="suivi-filter-select"
+          >
+            <option value="all">Tous les stages</option>
             {stages.map(stage => (
-              <div 
-                key={stage.id}
-                className={`stage-selector-item ${stage.id === selectedStageId ? 'active' : ''}`}
-                onClick={() => handleStageSelect(stage.id)}
-              >
-                <div className="stage-selector-item-info">
-                  <span className="stage-selector-item-title">{stage.titre}</span>
-                  <span className="stage-selector-item-company">{stage.entreprise}</span>
-                </div>
-                <span className={getStatusBadge(stage.statut)}>{stage.statut}</span>
-              </div>
+              <option key={stage.id} value={stage.id}>
+                {stage.titre}
+              </option>
             ))}
-          </div>
-        )}
+          </select>
+        </div>
+        <div className="suivi-filter-count">
+          <strong>{stages.length}</strong> stage{stages.length > 1 ? 's' : ''} enregistré{stages.length > 1 ? 's' : ''}
+        </div>
       </div>
 
       {/* ===== INFORMATION DU STAGE ===== */}
       <div className="suivi-stage-info">
+        {/* GAUCHE */}
         <div className="stage-info-left">
           <h2>{selectedStage.titre}</h2>
           <p className="stage-company"><FaBuilding /> {selectedStage.entreprise}</p>
-          <div className="stage-dates">
-            <span><FaCalendarAlt /> Début : {selectedStage.dateDebut}</span>
-            <span><FaCalendarAlt /> Fin : {selectedStage.dateFin}</span>
-            <span><FaClock /> Durée : {selectedStage.duree}</span>
+          
+          {/* 3 COLONNES : Début | Fin | Durée */}
+          <div className="stage-info-columns">
+            <div className="stage-info-col">
+              <span className="stage-info-label"><FaCalendarAlt /> Début de stage</span>
+              <span className="stage-info-value">{selectedStage.dateDebut}</span>
+            </div>
+            <div className="stage-info-col">
+              <span className="stage-info-label"><FaCalendarAlt /> Fin de stage</span>
+              <span className="stage-info-value">{selectedStage.dateFin}</span>
+            </div>
+            <div className="stage-info-col">
+              <span className="stage-info-label"><FaClock /> Durée</span>
+              <span className="stage-info-value">{selectedStage.duree}</span>
+            </div>
           </div>
-          <div className="stage-days-remaining">
-            <FaCalendarCheck /> {selectedStage.joursRestants} jours restants sur {selectedStage.joursTotal} jours
+          <div className="stage-status-row">
+            <span className="stage-status-text">{selectedStage.statut}</span>
+            <span className="stage-days-text">
+              {selectedStage.joursEcoules} jours écoulés sur {selectedStage.joursTotal} jours
+            </span>
           </div>
         </div>
+
+        {/* DROITE : CERCLE DE PROGRESSION */}
         <div className="stage-info-right">
           <div className="progress-circle">
-            <svg viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="50" fill="none" stroke="#FAFBFF" strokeWidth="8" />
+            <svg viewBox="0 0 140 140">
+              <circle cx="70" cy="70" r="58" fill="none" stroke="#E8ECF0" strokeWidth="8" />
               <circle 
-                cx="60" 
-                cy="60" 
-                r="50" 
+                cx="70" 
+                cy="70" 
+                r="58" 
                 fill="none" 
                 stroke="#6BA9E6" 
                 strokeWidth="8"
-                strokeDasharray="314.16"
-                strokeDashoffset={314.16 - (314.16 * selectedStage.progression / 100)}
+                strokeDasharray="364.42"
+                strokeDashoffset={364.42 - (364.42 * selectedStage.progression / 100)}
                 strokeLinecap="round"
-                transform="rotate(-90 60 60)"
+                transform="rotate(-90 70 70)"
               />
             </svg>
             <div className="progress-text">
@@ -220,12 +219,11 @@ function SuiviStage() {
           </div>
         </div>
 
-        {/* ===== LIGNE SÉPARATRICE ===== */}
-        <div className="stage-divider"></div>
-
-        {/* ===== DESCRIPTION ===== */}
-        <div className="stage-description">
-          <p>{selectedStage.description}</p>
+        {/* BAS : STATUT + JOURS + DESCRIPTION AVEC BORDER TOP */}
+        <div className="stage-bottom-wrapper">
+          <div className="stage-description">
+            <p>{selectedStage.description}</p>
+          </div>
         </div>
       </div>
 
@@ -256,15 +254,16 @@ function SuiviStage() {
           <div className="documents-list">
             {documents.map((doc, index) => (
               <div key={index} className="document-item">
-                <div className="document-icon">
-                  {getFileIcon(doc.type)}
-                </div>
-                <div className="document-info">
-                  <span className="document-name">{doc.name}</span>
-                  <span className="document-date">Déposé le {doc.date}</span>
+                <div className="document-left">
+                  <div className="document-icon">
+                    {getFileIcon(doc.type)}
+                  </div>
+                  <div className="document-info">
+                    <span className="document-name">{doc.name}</span>
+                    <span className="document-date">Déposé le {doc.date}</span>
+                  </div>
                 </div>
                 <div className="document-status">
-                  {getStatusIcon(doc.status)}
                   <span className={getStatusBadge(doc.status)}>{doc.status}</span>
                 </div>
               </div>
