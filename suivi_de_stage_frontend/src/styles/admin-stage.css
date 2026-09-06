@@ -1,0 +1,827 @@
+/* ============================================================
+   ADMIN - STAGES (VERSION COMPLÈTE AMÉLIORÉE)
+   ============================================================ */
+
+.admin-stages-page {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.admin-stages-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.admin-stages-header h1 {
+  font-size: 24px;
+  color: #162449;
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-stages-header h1 svg {
+  color: #6BA9E6;
+}
+.admin-stages-subtitle {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+.admin-stages-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #6BA9E6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-stages-btn-primary:hover {
+  background: #162449;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 169, 230, 0.3);
+}
+
+/* ============================================================
+   CARTES STATISTIQUES (comme Évaluations et Diplômes)
+   ============================================================ */
+.admin-stages-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.admin-stages-stat-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+  transition: all 0.3s ease;
+}
+.admin-stages-stat-card:hover {
+  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
+  transform: translateY(-2px);
+}
+.admin-stages-stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+.admin-stages-stat-card:hover .admin-stages-stat-icon-wrapper {
+  transform: scale(1.08);
+}
+.admin-stages-stat-card-featured {
+  border: 2px solid #6BA9E6;
+  background: linear-gradient(160deg, #FFFFFF 60%, rgba(107, 169, 230, 0.06) 100%);
+}
+.admin-stages-stat-card-featured .admin-stages-stat-icon-wrapper {
+  background: #162449 !important;
+}
+.admin-stages-stat-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.admin-stages-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.2;
+}
+.admin-stages-stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+/* ============================================================
+   FILTRES
+   ============================================================ */
+.admin-stages-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  flex-wrap: wrap;
+}
+.admin-stages-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 180px;
+}
+.admin-stages-filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.admin-stages-filter-group label svg {
+  color: #6BA9E6;
+}
+.admin-stages-search-group {
+  flex: 2;
+  min-width: 280px;
+}
+.admin-stages-search-input {
+  flex: 1;
+  padding: 10px 16px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+  min-width: 200px;
+}
+.admin-stages-search-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+.admin-stages-search-input::placeholder {
+  color: #A0B8D0;
+}
+.admin-stages-search-icon {
+  color: #6c7a8a;
+  font-size: 16px;
+}
+.admin-stages-filter-select {
+  flex: 1;
+  padding: 8px 14px;
+  padding-right: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 130px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  font-family: inherit;
+}
+.admin-stages-filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
+}
+
+/* ============================================================
+   TABLEAU
+   ============================================================ */
+.admin-stages-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+}
+.admin-stages-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.admin-stages-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #F5F8FC;
+  background: #FAFCFE;
+}
+.admin-stages-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #162449;
+  border-bottom: 1px solid #F5F8FC;
+  vertical-align: middle;
+}
+.admin-stages-table tbody tr:hover {
+  background: #F8FAFC;
+}
+.admin-stages-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: #6c7a8a;
+}
+.admin-stages-titre {
+  font-weight: 500;
+  color: #162449;
+}
+.admin-stages-etudiant {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-stages-etudiant-icon {
+  color: #6c7a8a;
+  font-size: 13px;
+}
+.admin-stages-entreprise {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.admin-stages-entreprise-icon {
+  color: #6c7a8a;
+  font-size: 13px;
+}
+.admin-stages-domaine-badge {
+  background: #E1ECFE;
+  color: #162449;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+.admin-stages-period {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.admin-stages-period-icon {
+  color: #6c7a8a;
+  font-size: 12px;
+}
+.admin-stages-progression {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-stages-progress-track {
+  width: 80px;
+  height: 6px;
+  background: #F5F8FC;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.admin-stages-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6BA9E6, #162449);
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+.admin-stages-progress-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #6BA9E6;
+  min-width: 36px;
+}
+.badge-a-venir {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+.badge-en-cours {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+.badge-termine {
+  background: #E1ECFE;
+  color: #1E40AF;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+.admin-stages-actions {
+  display: flex;
+  gap: 4px;
+}
+.admin-stages-btn-icon {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #6c7a8a;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+.admin-stages-btn-icon:hover {
+  background: #E1ECFE;
+  color: #6BA9E6;
+}
+.admin-stages-btn-icon.danger:hover {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.admin-stages-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px;
+  border-top: 1px solid #F5F8FC;
+  background: #FAFCFE;
+}
+.admin-stages-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #162449;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+.admin-stages-pagination-btn:hover:not(:disabled) {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+.admin-stages-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.admin-stages-pagination-info {
+  font-size: 14px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+/* ============================================================
+   MODALES - STYLES COMMUNS
+   ============================================================ */
+/* Les styles de modales sont identiques à ceux de etudiants.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: fadeIn 0.25s ease;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes slideUp {
+  from { transform: translateY(30px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 32px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+  animation: slideUp 0.3s ease;
+}
+.modal-content::-webkit-scrollbar {
+  width: 6px;
+}
+.modal-content::-webkit-scrollbar-track {
+  background: #F5F8FC;
+  border-radius: 4px;
+}
+.modal-content::-webkit-scrollbar-thumb {
+  background: #E1ECFE;
+  border-radius: 4px;
+}
+.modal-content.modal-delete {
+  max-width: 500px;
+}
+.modal-content.modal-detail {
+  max-width: 750px;
+}
+
+/* ===== MODAL HEADER ===== */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #F5F8FC;
+}
+.modal-header h3 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #162449;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.modal-header h3 svg {
+  color: #6BA9E6;
+}
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6c7a8a;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+.modal-close:hover {
+  background: #FEE2E2;
+  color: #EF4444;
+}
+
+/* ===== MODAL BODY ===== */
+.modal-body {
+  margin-bottom: 24px;
+}
+
+/* ===== MODAL FOOTER ===== */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 2px solid #F5F8FC;
+}
+
+/* ============================================================
+   FORMULAIRE
+   ============================================================ */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.form-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+}
+.form-group input,
+.form-group select {
+  padding: 10px 14px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  transition: all 0.2s;
+  font-family: inherit;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+.form-group input::placeholder {
+  color: #A0B8D0;
+}
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+/* ============================================================
+   DÉTAIL AMÉLIORÉ
+   ============================================================ */
+.detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border: 1px solid #E1ECFE;
+  transition: all 0.2s;
+}
+.detail-item:hover {
+  background: #F5F8FC;
+  border-color: #6BA9E6;
+}
+.detail-item label {
+  font-size: 10px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.detail-item span {
+  font-size: 14px;
+  font-weight: 600;
+  color: #162449;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.detail-item span svg {
+  color: #6c7a8a;
+  font-size: 14px;
+}
+.detail-item.detail-full {
+  grid-column: span 2;
+}
+.detail-item .badge-a-venir,
+.detail-item .badge-en-cours,
+.detail-item .badge-termine {
+  font-size: 11px;
+  padding: 2px 12px;
+}
+
+/* ============================================================
+   MODAL DELETE - BOUTON SUPPRIMER STYLISÉ
+   ============================================================ */
+.text-warning {
+  color: #EF4444;
+  font-weight: 600;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #FEF2F2;
+  border-radius: 8px;
+  border: 1px solid #FEE2E2;
+}
+.text-warning svg {
+  font-size: 18px;
+}
+
+.btn-danger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #EF4444;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-danger:hover {
+  background: #DC2626;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+.btn-danger:active {
+  transform: scale(0.97);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #F5F8FC;
+  color: #6c7a8a;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover {
+  background: #E1ECFE;
+  color: #162449;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: #6BA9E6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary:hover {
+  background: #162449;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 169, 230, 0.3);
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+  .admin-stages-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .admin-stages-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-stages-btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  .admin-stages-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .admin-stages-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-width: unset;
+  }
+  .admin-stages-search-group {
+    min-width: unset;
+  }
+  .admin-stages-search-input {
+    min-width: unset;
+  }
+  .admin-stages-table thead th,
+  .admin-stages-table tbody td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .admin-stages-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+  .admin-stages-progress-track {
+    width: 50px;
+  }
+  .modal-content {
+    padding: 20px;
+    margin: 16px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .admin-stages-header h1 {
+    font-size: 20px;
+  }
+  .admin-stages-subtitle {
+    font-size: 13px;
+  }
+  .admin-stages-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .admin-stages-stat-card {
+    padding: 12px 14px;
+  }
+  .admin-stages-stat-value {
+    font-size: 18px;
+  }
+  .admin-stages-stat-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+  .admin-stages-table thead th,
+  .admin-stages-table tbody td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  .admin-stages-btn-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+  .admin-stages-pagination {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .admin-stages-pagination-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .admin-stages-pagination-info {
+    font-size: 12px;
+  }
+  .admin-stages-progress-track {
+    width: 40px;
+    height: 4px;
+  }
+  .admin-stages-progress-value {
+    font-size: 10px;
+    min-width: 28px;
+  }
+  .badge-a-venir,
+  .badge-en-cours,
+  .badge-termine {
+    font-size: 9px;
+    padding: 1px 8px;
+  }
+  .modal-content {
+    padding: 16px;
+    margin: 10px;
+  }
+  .modal-header h3 {
+    font-size: 17px;
+  }
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger {
+    padding: 8px 16px;
+    font-size: 13px;
+    width: 100%;
+    justify-content: center;
+  }
+  .modal-footer {
+    flex-direction: column;
+  }
+}

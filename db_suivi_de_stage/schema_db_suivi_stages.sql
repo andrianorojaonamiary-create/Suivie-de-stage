@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict YNfuhVEwHiMFuJMLdhAS8gsGoat54ulbqH5i60WEktMu4gScqDj20ZvpmlX1XsZ
+
 
 -- Dumped from database version 17.11
 -- Dumped by pg_dump version 17.11
@@ -44,7 +44,7 @@ CREATE TYPE public.notifications_type_enum AS ENUM (
 );
 
 
-ALTER TYPE public.notifications_type_enum OWNER TO emit_stage_user;
+ALTER TYPE public.notifications_type_enum OWNER TO postgres;
 
 --
 -- Name: situations_professionnelles_situation_enum; Type: TYPE; Schema: public; Owner: emit_stage_user
@@ -58,7 +58,7 @@ CREATE TYPE public.situations_professionnelles_situation_enum AS ENUM (
 );
 
 
-ALTER TYPE public.situations_professionnelles_situation_enum OWNER TO emit_stage_user;
+ALTER TYPE public.situations_professionnelles_situation_enum OWNER TO postgres;
 
 --
 -- Name: stages_statut_enum; Type: TYPE; Schema: public; Owner: emit_stage_user
@@ -71,7 +71,7 @@ CREATE TYPE public.stages_statut_enum AS ENUM (
 );
 
 
-ALTER TYPE public.stages_statut_enum OWNER TO emit_stage_user;
+ALTER TYPE public.stages_statut_enum OWNER TO postgres;
 
 --
 -- Name: utilisateurs_role_enum; Type: TYPE; Schema: public; Owner: emit_stage_user
@@ -85,7 +85,7 @@ CREATE TYPE public.utilisateurs_role_enum AS ENUM (
 );
 
 
-ALTER TYPE public.utilisateurs_role_enum OWNER TO emit_stage_user;
+ALTER TYPE public.utilisateurs_role_enum OWNER TO postgres;
 
 SET default_tablespace = '';
 
@@ -107,7 +107,7 @@ CREATE TABLE public.emplois (
 );
 
 
-ALTER TABLE public.emplois OWNER TO emit_stage_user;
+ALTER TABLE public.emplois OWNER TO postgres;
 
 --
 -- Name: encadreurs; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -122,7 +122,7 @@ CREATE TABLE public.encadreurs (
 );
 
 
-ALTER TABLE public.encadreurs OWNER TO emit_stage_user;
+ALTER TABLE public.encadreurs OWNER TO postgres;
 
 --
 -- Name: entreprises; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -142,7 +142,7 @@ CREATE TABLE public.entreprises (
 );
 
 
-ALTER TABLE public.entreprises OWNER TO emit_stage_user;
+ALTER TABLE public.entreprises OWNER TO postgres;
 
 --
 -- Name: etudiants; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -161,7 +161,7 @@ CREATE TABLE public.etudiants (
 );
 
 
-ALTER TABLE public.etudiants OWNER TO emit_stage_user;
+ALTER TABLE public.etudiants OWNER TO postgres;
 
 --
 -- Name: evaluations; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -179,7 +179,7 @@ CREATE TABLE public.evaluations (
 );
 
 
-ALTER TABLE public.evaluations OWNER TO emit_stage_user;
+ALTER TABLE public.evaluations OWNER TO postgres;
 
 --
 -- Name: filieres; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -191,7 +191,7 @@ CREATE TABLE public.filieres (
 );
 
 
-ALTER TABLE public.filieres OWNER TO emit_stage_user;
+ALTER TABLE public.filieres OWNER TO postgres;
 
 --
 -- Name: notifications; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -207,7 +207,7 @@ CREATE TABLE public.notifications (
 );
 
 
-ALTER TABLE public.notifications OWNER TO emit_stage_user;
+ALTER TABLE public.notifications OWNER TO postgres;
 
 --
 -- Name: promotions; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -220,7 +220,7 @@ CREATE TABLE public.promotions (
 );
 
 
-ALTER TABLE public.promotions OWNER TO emit_stage_user;
+ALTER TABLE public.promotions OWNER TO postgres;
 
 --
 -- Name: situations_professionnelles; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -234,7 +234,7 @@ CREATE TABLE public.situations_professionnelles (
 );
 
 
-ALTER TABLE public.situations_professionnelles OWNER TO emit_stage_user;
+ALTER TABLE public.situations_professionnelles OWNER TO postgres;
 
 --
 -- Name: stages; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -253,7 +253,7 @@ CREATE TABLE public.stages (
 );
 
 
-ALTER TABLE public.stages OWNER TO emit_stage_user;
+ALTER TABLE public.stages OWNER TO postgres;
 
 --
 -- Name: utilisateurs; Type: TABLE; Schema: public; Owner: emit_stage_user
@@ -269,7 +269,7 @@ CREATE TABLE public.utilisateurs (
 );
 
 
-ALTER TABLE public.utilisateurs OWNER TO emit_stage_user;
+ALTER TABLE public.utilisateurs OWNER TO postgres;
 
 --
 -- Name: stages PK_16efa0f8f5386328944769b9e6d; Type: CONSTRAINT; Schema: public; Owner: emit_stage_user
@@ -507,5 +507,5 @@ ALTER TABLE ONLY public.situations_professionnelles
 -- PostgreSQL database dump complete
 --
 
-\unrestrict YNfuhVEwHiMFuJMLdhAS8gsGoat54ulbqH5i60WEktMu4gScqDj20ZvpmlX1XsZ
+
 

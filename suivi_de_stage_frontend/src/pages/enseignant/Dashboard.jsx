@@ -5,6 +5,7 @@ import {
   FaArrowRight, FaMapMarkerAlt, FaBell
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import map from '../../assets/map.jpg';
 
 // ============================================================
 // CUSTOM TOOLTIP
@@ -81,7 +82,7 @@ function EnseignantDashboard() {
   };
 
   const stageStatusData = [
-    { name: 'En cours', value: 14, color: '#6BA9E6' },
+    { name: 'En cours', value: 14, color: '#162449' },
     { name: 'Visite à venir', value: 2, color: '#F39C12' },
     { name: 'Rapport en attente', value: 1, color: '#E74C3C' },
     { name: 'Terminés', value: 1, color: '#27AE60' },
@@ -329,7 +330,7 @@ function EnseignantDashboard() {
           <div className="localisation-body">
             <div className="localisation-map-wrapper">
               <img 
-                src="https://via.placeholder.com/400x200/4A90D9/FFFFFF?text=MAP" 
+                src={map}
                 alt="Carte des stages"
                 className="map-image"
               />

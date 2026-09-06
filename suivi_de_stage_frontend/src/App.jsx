@@ -59,6 +59,16 @@ import CarteStages from './pages/CarteStages';
 
 import { useAuth } from './hooks/useAuth';
 
+
+// Pages Admin
+import Statistiques from './pages/admin/Statistiques';
+import AdminEvaluations from './pages/admin/Evaluations';
+import AdminEncadreurs from './pages/admin/Encadreurs';
+import Diplomes from './pages/admin/Diplomes';
+import Stages from './pages/admin/Stages';
+import AdminEtudiants from './pages/admin/Etudiants';
+import AdminEntreprise from './pages/admin/Entreprises';
+
 function DynamicDashboardRedirect() {
   const { user } = useAuth();
   const role = user?.role;
@@ -90,6 +100,13 @@ function App() {
           <Route element={<Layout />}>
             {/* Admin */}
             <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/statistiques" element={<Statistiques />} />
+            <Route path="/admin/evaluations" element={<AdminEvaluations />} /> 
+            <Route path="/admin/encadreurs" element={<AdminEncadreurs />} />
+            <Route path="/admin/diplomes" element={<Diplomes />} />
+            <Route path="/admin/stages" element={<Stages />} />
+            <Route path="/admin/etudiants" element={<AdminEtudiants />} />
+            <Route path="/admin/entreprises" element={<AdminEntreprise />} />
 
             {/* ===== ÉTUDIANT ===== */}
             {/* Dashboard */}
