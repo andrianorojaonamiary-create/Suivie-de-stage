@@ -970,3 +970,134 @@
     padding-top: 8px;
   }
 }
+
+/* ============================================================
+   CARTE COMMUNE (3 CARTES D'INFOS)
+   ============================================================ */
+.etudiant-suivi .avenir-card {
+  background: white;
+  border-radius: 16px;
+  border: 1px solid #E1ECFE;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(22, 36, 73, 0.04);
+  margin-bottom: 20px;
+}
+
+.etudiant-suivi .avenir-card-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid #F5F8FC;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.etudiant-suivi .avenir-card-header h3 {
+  font-size: 16px;
+  color: #162449;
+  margin: 0;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.etudiant-suivi .avenir-card-body {
+  padding: 20px 24px;
+}
+
+.etudiant-suivi .eval-info-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.etudiant-suivi .eval-info-card {
+  background: #F4F8FC;
+  border-radius: 16px;
+  border: 1px solid #E1ECFE;
+  padding: 20px 24px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+}
+
+.etudiant-suivi .eval-info-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: #fff;
+  color: #162449;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.etudiant-suivi .eval-info-card-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.etudiant-suivi .eval-info-card-content h4 {
+  font-size: 12px;
+  color: #6c7a8a;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.etudiant-suivi .eval-info-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #162449;
+  margin: 0;
+}
+
+.etudiant-suivi .eval-info-company {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin: 2px 0;
+}
+
+.etudiant-suivi .eval-info-date {
+  font-size: 12px;
+  color: #6c7a8a;
+  margin: 2px 0;
+}
+
+.etudiant-suivi .eval-info-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: #162449;
+  margin: 0;
+}
+
+.etudiant-suivi .eval-info-role {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin: 2px 0;
+}
+
+.etudiant-suivi .eval-info-email {
+  font-size: 12px;
+  color: #6BA9E6;
+  margin: 2px 0 0 0;
+}
+
+@media (max-width: 992px) {
+  .etudiant-suivi .eval-info-cards {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .etudiant-suivi .eval-info-cards {
+    grid-template-columns: 1fr;
+  }
+}

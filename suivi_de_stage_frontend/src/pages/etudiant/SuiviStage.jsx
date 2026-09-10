@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { 
   FaCheckCircle, FaCircle, FaCalendarAlt, FaClock, 
   FaStar, FaComment, FaUserTie, FaArrowRight,
-  FaBuilding,
+  FaBuilding, FaUserGraduate, FaBriefcase, FaInfoCircle,
   FaFilePdf, FaFileWord, FaFile, FaCheck,
   FaFilter
 } from 'react-icons/fa';
@@ -75,6 +75,26 @@ function SuiviStage() {
   const filteredStages = getFilteredStages();
   const selectedStage = filteredStages.length > 0 ? filteredStages[0] : stages[0];
 
+  // ===== INFOS TUTEUR / ENCADREUR =====
+  const getStageInfo = (stageId) => {
+    const infos = {
+      1: {
+        tuteur: {
+          nom: 'RAKOTONDRASOA Mamy',
+          role: 'Enseignant à l\'EMIT',
+          email: 'm.rakotondrasoa@emit.mg'
+        },
+        encadreur: {
+          nom: 'RABEMANANTSOA Nivo',
+          role: 'Responsable technique',
+          entreprise: 'ABC Informatique'
+        }
+      }
+    };
+    return infos[stageId] || infos[1];
+  };
+  const stageInfo = getStageInfo(selectedStage?.id || 1);
+
   // ===== ÉTAPES =====
   const milestones = [
     { label: "Convention signée", done: true, date: "28/07/2026" },
@@ -94,26 +114,6 @@ function SuiviStage() {
     { name: "Rapport de stage (brouillon)", type: "word", date: "20/08/2026", status: "En cours" },
     { name: "Fichiers du projet", type: "pdf", date: "21/08/2026", status: "Validé" },
     { name: "Attestation de stage", type: "pdf", date: "Non encore déposé", status: "À déposer" },
-  ];
-
-  // ===== ÉVALUATIONS =====
-  const evaluations = [
-    { 
-      id: 1, 
-      titre: 'Évaluation de mi-parcours', 
-      date: '01 Jun 2024', 
-      status: 'Validé',
-      evaluateur: 'Prof. Andrianivo',
-      role: 'Tuteur pédagogique'
-    },
-    { 
-      id: 2, 
-      titre: 'Évaluation de fin de stage', 
-      date: '15 Sep 2024', 
-      status: 'En attente',
-      evaluateur: 'M. Rakotomalala',
-      role: 'Maître de stage'
-    },
   ];
 
   // ===== OBSERVATIONS =====
@@ -182,6 +182,51 @@ function SuiviStage() {
         </div>
         <div className="suivi-filter-count">
           <strong>{stages.length}</strong> stage{stages.length > 1 ? 's' : ''} enregistré{stages.length > 1 ? 's' : ''}
+        </div>
+      </div>
+
+      {/* ===== 3 CARTES : VOTRE STAGE / ENCADREUR PÉDAGOGIQUE / MAÎTRE DE STAGE ===== */}
+      <div className="avenir-card">
+        <div className="avenir-card-header">
+          <h3>
+            <FaInfoCircle /> {selectedStage?.titre}
+          </h3>
+          <span className={getStatusBadge(selectedStage?.statut)}>
+            {selectedStage?.statut}
+          </span>
+        </div>
+        <div className="avenir-card-body">
+          <div className="eval-info-cards">
+            <div className="eval-info-card">
+              <div className="eval-info-card-icon"><FaInfoCircle /></div>
+              <div className="eval-info-card-content">
+                <h4>Votre stage</h4>
+                <p className="eval-info-title">{selectedStage?.titre}</p>
+                <p className="eval-info-company">{selectedStage?.entreprise}</p>
+                <p className="eval-info-date">{selectedStage?.dateDebut} → {selectedStage?.dateFin}</p>
+              </div>
+            </div>
+
+            <div className="eval-info-card">
+              <div className="eval-info-card-icon"><FaUserGraduate /></div>
+              <div className="eval-info-card-content">
+                <h4>Encadreur pédagogique</h4>
+                <p className="eval-info-name">{stageInfo.tuteur.nom}</p>
+                <p className="eval-info-role">{stageInfo.tuteur.role}</p>
+                <p className="eval-info-email">{stageInfo.tuteur.email}</p>
+              </div>
+            </div>
+
+            <div className="eval-info-card">
+              <div className="eval-info-card-icon"><FaBriefcase /></div>
+              <div className="eval-info-card-content">
+                <h4>Maître de stage</h4>
+                <p className="eval-info-name">{stageInfo.encadreur.nom}</p>
+                <p className="eval-info-role">{stageInfo.encadreur.role}</p>
+                <p className="eval-info-company">{stageInfo.encadreur.entreprise}</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -291,34 +336,7 @@ function SuiviStage() {
             ))}
           </div>
         </div>
-      </div>
-
-      {/* ===== ÉVALUATIONS ===== */}
-      <div className="suivi-card evaluations-card">
-        <div className="card-header">
-          <h3><FaStar /> Évaluations</h3>
-          <Link to="/etudiant/evaluations" className="link-view">
-            Voir toutes <FaArrowRight />
-          </Link>
-        </div>
-        <div className="evaluations-list">
-          {evaluations.map((evalItem) => (
-            <div key={evalItem.id} className="evaluation-item">
-              <div className="evaluation-info">
-                <span className="evaluation-title">{evalItem.titre}</span>
-                <span className="evaluation-date">{evalItem.date}</span>
-                <span className="evaluation-evaluateur">
-                  <FaUserTie /> {evalItem.evaluateur}
-                </span>
-                <span className="evaluation-role">{evalItem.role}</span>
-              </div>
-              <span className={getStatusBadge(evalItem.status)}>{evalItem.status}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ===== OBSERVATIONS ===== */}
+      </div>      {/* ===== OBSERVATIONS ===== */}
       <div className="suivi-card observations-card">
         <h3><FaComment /> Observations</h3>
         <div className="observations-list">

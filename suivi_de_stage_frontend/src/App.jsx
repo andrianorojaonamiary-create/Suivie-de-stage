@@ -22,7 +22,6 @@ const AjouterEntreprise = lazy(() => import('./pages/etudiant/AjouterEntreprise'
 const MonEncadreur = lazy(() => import('./pages/etudiant/MonEncadreur'));
 const AjouterEncadreur = lazy(() => import('./pages/etudiant/AjouterEncadreur'));
 const SuiviStage = lazy(() => import('./pages/etudiant/SuiviStage'));
-const Evaluations = lazy(() => import('./pages/etudiant/Evaluations'));
 const MonAvenir = lazy(() => import('./pages/etudiant/MonAvenir'));
 
 // ===== PAGES ENSEIGNANT =====
@@ -120,7 +119,6 @@ function App() {
               <Route path="/etudiant/encadreur/modifier" element={<AjouterEncadreur />} />
               <Route path="/etudiant/encadreur/voir/:id" element={<AjouterEncadreur />} />
               <Route path="/etudiant/suivi-stage" element={<SuiviStage />} />
-              <Route path="/etudiant/evaluations" element={<Evaluations />} />
               <Route path="/etudiant/mon-avenir" element={<MonAvenir />} />
               <Route path="/etudiant/carte" element={<CarteStages />} />
 

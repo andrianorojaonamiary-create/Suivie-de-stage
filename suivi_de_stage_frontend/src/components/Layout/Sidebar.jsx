@@ -66,7 +66,6 @@ function Sidebar() {
         { divider: true },
         { path: '/etudiant/suivi-stage', icon: <FaCalendarAlt />, label: 'Suivi du stage' },
         { path: '/etudiant/rapports', icon: <FaFileAlt />, label: 'Mes rapports' },
-        { path: '/etudiant/evaluations', icon: <FaStar />, label: 'Évaluations' },
         { divider: true },
         { path: '/etudiant/carte', icon: <FaMapMarkedAlt />, label: 'Voir la carte' },
         { path: '/etudiant/mon-avenir', icon: <FaGraduationCap />, label: 'Mon avenir' },
