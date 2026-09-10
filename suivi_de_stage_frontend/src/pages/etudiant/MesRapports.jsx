@@ -1,14 +1,16 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import { 
   FaFileAlt, FaDownload, FaUpload, FaTrash, 
   FaFilePdf, FaFileWord, FaEye, 
   FaBuilding, FaFilter, FaTimes, FaInfoCircle, FaPlus
 } from 'react-icons/fa';
+import { internshipsApi } from '../../api';
 
 function MesRapports() {
   const [selectedStage, setSelectedStage] = useState('all');
   const fileInputRef = useRef(null);
+  const [loading, setLoading] = useState(true);
   
   // ===== ÉTAT DU FORMULAIRE =====
   const [showForm, setShowForm] = useState(false);
@@ -20,7 +22,7 @@ function MesRapports() {
   const [dragging, setDragging] = useState(false);
 
   // ===== DONNÉES : RAPPORTS PAR STAGE =====
-  const [stages] = useState([
+  const [stages, setStages] = useState([
     {
       id: 1,
       titre: 'Développement plateforme web RH',
@@ -29,16 +31,41 @@ function MesRapports() {
         { id: 1, title: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', status: 'Validé', size: '1.2 MB', commentaire: 'Très bon travail !' },
         { id: 2, title: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', status: 'En révision', size: '2.4 MB', commentaire: 'En attente de validation' },
       ]
-    },
-    {
-      id: 2,
-      titre: 'Application mobile de gestion',
-      entreprise: 'Airtel Madagascar',
-      rapports: [
-        { id: 3, title: 'Rapport de prise en main', fileName: null, date: '—', status: 'À déposer', size: '—', commentaire: 'À déposer avant le 01 Avr 2024' },
-      ]
-    },
+    }
   ]);
+
+  useEffect(() => {
+    const fetchStagesWithRapports = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          const mapped = list.map(item => ({
+            id: item.id,
+            titre: item.title || item.subject || 'Stage',
+            entreprise: item.company?.name || item.companyName || 'Entreprise',
+            rapports: (item.reports || item.rapports || []).map((r, idx) => ({
+              id: r.id || idx + 1,
+              title: r.title || r.type || 'Rapport',
+              fileName: r.fileName || r.file || null,
+              date: r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('fr-FR') : '—',
+              status: r.status || 'En révision',
+              size: r.size || '—',
+              commentaire: r.commentaire || r.comment || ''
+            }))
+          }));
+          setStages(mapped);
+        }
+      } catch (err) {
+        console.error('Erreur chargement rapports:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStagesWithRapports();
+  }, []);
 
   // ===== RAPPORTS À DÉPOSER =====
   const pendingReports = stages.flatMap(s => 

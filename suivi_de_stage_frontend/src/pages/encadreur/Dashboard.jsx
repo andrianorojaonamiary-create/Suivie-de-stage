@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { 
@@ -6,6 +7,7 @@ import {
   FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { internshipsApi, evaluationsApi } from '../../api';
 
 // ============================================================
 // CUSTOM TOOLTIP
@@ -70,46 +72,32 @@ const renderCenterLabel = (totalStages) => {
 // ============================================================
 function EncadreurDashboard() {
   const { user } = useAuth();
+  const [encadreurStages, setEncadreurStages] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  // ===== DONNÉES UNIQUEMENT POUR L'ENCADREUR CONNECTÉ =====
-  const encadreurStages = [
-    { 
-      id: 1,
-      etudiant: 'Rakoto Miora',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'En cours',
-      progression: 65,
-      filiere: 'Génie Logiciel'
-    },
-    { 
-      id: 2,
-      etudiant: 'Ramanantsoa Tojo',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'En attente',
-      progression: 15,
-      filiere: 'Sécurité Info.'
-    },
-    { 
-      id: 3,
-      etudiant: 'Razafindramary Fy',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'En cours',
-      progression: 5,
-      filiere: 'Génie Logiciel'
-    },
-    { 
-      id: 4,
-      etudiant: 'Rajaonarivelo Ando',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      statut: 'Refusé',
-      progression: 20,
-      filiere: 'Réseaux'
-    }
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        setEncadreurStages(list.map(s => ({
+          id: s.id,
+          etudiant: s.etudiant ? `${s.etudiant.prenom || ''} ${s.etudiant.nom || ''}`.trim() : (s.studentName || 'Étudiant'),
+          entreprise: s.entreprise?.nom || s.companyName || 'Entreprise',
+          ville: s.entreprise?.ville || s.city || 'Non renseignée',
+          statut: s.statut || s.status || 'En cours',
+          progression: s.progression || 50,
+          filiere: s.etudiant?.filiere || s.filiere || 'Informatique'
+        })));
+      } catch (err) {
+        console.error('Erreur chargement dashboard encadreur:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   // ===== STATISTIQUES =====
   const stats = {

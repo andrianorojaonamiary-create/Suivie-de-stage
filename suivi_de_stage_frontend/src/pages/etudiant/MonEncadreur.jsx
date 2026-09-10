@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   FaUserTie, FaEnvelope, FaPhone, FaBuilding, 
   FaPlus, FaEdit, FaTrash, FaEye, FaUsers
 } from 'react-icons/fa';
+import { supervisorsApi } from '../../api';
 
 function MonEncadreur() {
   const navigate = useNavigate();
@@ -11,8 +12,9 @@ function MonEncadreur() {
   // ===== ÉTATS =====
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [encadreurToDelete, setEncadreurToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
   
-  // ===== DONNÉES SIMULÉES =====
+  // ===== DONNÉES ENCADREURS =====
   const [encadreurs, setEncadreurs] = useState([
     {
       id: 1,
@@ -26,6 +28,36 @@ function MonEncadreur() {
       etudiants: ['Miora Rakoto', 'Hery Rakotondrabe']
     }
   ]);
+
+  const fetchSupervisors = async () => {
+    try {
+      setLoading(true);
+      const res = await supervisorsApi.getAll();
+      const list = Array.isArray(res) ? res : res?.items || [];
+      if (list.length > 0) {
+        const mapped = list.map(item => ({
+          id: item.id,
+          nom: item.lastName || item.user?.lastName || item.nom || 'Encadreur',
+          prenom: item.firstName || item.user?.firstName || item.prenom || '',
+          fonction: item.position || item.function || item.fonction || 'Encadreur',
+          entreprise: item.company?.name || item.companyName || item.entreprise || '',
+          email: item.email || item.user?.email || '',
+          telephone: item.phone || item.user?.phone || item.telephone || '',
+          specialite: item.specialty || item.specialite || '',
+          etudiants: item.students || []
+        }));
+        setEncadreurs(mapped);
+      }
+    } catch (err) {
+      console.error('Erreur chargement encadreurs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchSupervisors();
+  }, []);
 
   // ===== ACTIONS =====
   const handleView = (id) => {
@@ -41,12 +73,21 @@ function MonEncadreur() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    const encadreur = encadreurs.find(e => e.id === encadreurToDelete);
-    setEncadreurs(encadreurs.filter(e => e.id !== encadreurToDelete));
-    setShowDeleteModal(false);
-    setEncadreurToDelete(null);
-    alert(`🗑️ Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
+  const confirmDelete = async () => {
+    try {
+      if (encadreurToDelete) {
+        await supervisorsApi.delete(encadreurToDelete);
+      }
+      const encadreur = encadreurs.find(e => e.id === encadreurToDelete);
+      setEncadreurs(encadreurs.filter(e => e.id !== encadreurToDelete));
+      alert(`🗑️ Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
+    } catch (err) {
+      console.error('Erreur suppression encadreur:', err);
+      alert('Erreur lors de la suppression de l\'encadreur');
+    } finally {
+      setShowDeleteModal(false);
+      setEncadreurToDelete(null);
+    }
   };
 
   const cancelDelete = () => {

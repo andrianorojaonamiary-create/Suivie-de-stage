@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaCalendarAlt, FaFileAlt, 
@@ -9,12 +9,15 @@ import {
   FaCheck
 } from 'react-icons/fa';
 import mapImage from '../../assets/map.jpg';
+import { internshipsApi, notificationsApi } from '../../api';
 
 function EtudiantDashboard() {
-  const [progress] = useState(45);
+  const [progress, setProgress] = useState(45);
+  const [loading, setLoading] = useState(true);
 
   // ===== INFORMATIONS DU STAGE =====
-  const stageInfo = {
+  const [stageInfo, setStageInfo] = useState({
+    id: 1,
     titre: "Développement Web",
     entreprise: 'ABC Informatique',
     ville: 'Antananarivo',
@@ -24,24 +27,24 @@ function EtudiantDashboard() {
     statut: 'En cours',
     duree: '2 mois',
     joursEcoules: 20
-  };
+  });
 
   // ===== RAPPORTS =====
-  const reports = [
+  const [reports, setReports] = useState([
     { name: "Rapport de prise en main", fileName: "rapport_prise_en_main.pdf", date: "20 Mar 2024", status: "Validé" },
     { name: "Rapport intermédiaire", fileName: null, date: "—", status: "À déposer" },
     { name: "Rapport final", fileName: null, date: "—", status: "À venir" },
-  ];
+  ]);
 
   // ===== NOTIFICATIONS =====
-  const recentNotifications = [
+  const [recentNotifications, setRecentNotifications] = useState([
     { text: "Rappel : Déposer la convention", detail: "Il vous reste 5 jours", date: "22/08/2026", icon: <FaBell />, color: '#F59E0B', bg: '#FEF3C7' },
     { text: "Nouvelle activité demandée", detail: "Ajouter le rapport d'avancement", date: "21/08/2026", icon: <FaExclamationTriangle />, color: '#EF4444', bg: '#FEE2E2' },
     { text: "Document validé", detail: "Votre plan de travail a été validé", date: "20/08/2026", icon: <FaCheck />, color: '#22C55E', bg: '#D1FAE5' },
-  ];
+  ]);
 
   // ===== ÉTAPES =====
-  const steps = [
+  const [steps, setSteps] = useState([
     { label: "Convention Validée", done: true },
     { label: "Stage validé", done: true },
     { label: "Stage commencé", done: true },
@@ -49,7 +52,54 @@ function EtudiantDashboard() {
     { label: "Rapport à déposer", done: false },
     { label: "Évaluation", done: false },
     { label: "Stage terminé", done: false },
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const stagesRes = await internshipsApi.getAll();
+        const stagesList = Array.isArray(stagesRes) ? stagesRes : stagesRes?.items || [];
+        if (stagesList.length > 0) {
+          const current = stagesList[0];
+          setStageInfo({
+            id: current.id,
+            titre: current.title || 'Mon Stage',
+            entreprise: current.company?.name || current.companyName || 'Entreprise',
+            ville: current.city || current.company?.city || 'Antananarivo',
+            adresse: current.address || current.company?.address || '',
+            dateDebut: current.startDate ? new Date(current.startDate).toLocaleDateString('fr-FR') : 'Date début',
+            dateFin: current.endDate ? new Date(current.endDate).toLocaleDateString('fr-FR') : 'Date fin',
+            statut: current.status === 'en_cours' ? 'En cours' : current.status === 'termine' ? 'Terminé' : 'À venir',
+            duree: current.duration || '3 mois',
+            joursEcoules: current.elapsedDays || 30
+          });
+          if (current.progressPercentage) {
+            setProgress(current.progressPercentage);
+          }
+        }
+
+        const notifsRes = await notificationsApi.getAll();
+        const notifsList = Array.isArray(notifsRes) ? notifsRes : notifsRes?.items || [];
+        if (notifsList.length > 0) {
+          setRecentNotifications(notifsList.slice(0, 3).map(n => ({
+            text: n.title || n.message,
+            detail: n.content || n.message || '',
+            date: n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : '',
+            icon: <FaBell />,
+            color: '#F59E0B',
+            bg: '#FEF3C7'
+          })));
+        }
+      } catch (err) {
+        console.error('Erreur dashboard etudiant:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const getStatusBadge = (status) => {
     const classes = {

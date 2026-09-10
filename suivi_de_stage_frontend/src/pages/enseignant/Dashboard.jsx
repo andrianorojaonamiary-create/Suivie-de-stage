@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { 
@@ -6,6 +7,7 @@ import {
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import map from '../../assets/map.jpg';
+import { statisticsApi, studentsApi, internshipsApi, notificationsApi } from '../../api';
 
 // ============================================================
 // CUSTOM TOOLTIP
@@ -71,7 +73,7 @@ const renderCenterLabel = (totalStages) => {
 function EnseignantDashboard() {
   const { user } = useAuth();
 
-  const stats = {
+  const [stats, setStats] = useState({
     etudiants: 18,
     etudiantsChange: '+2 ce mois',
     stagesEnCours: 18,
@@ -79,64 +81,87 @@ function EnseignantDashboard() {
     evaluationsEnAttente: 7,
     rapportsRecus: 11,
     rapportsTotal: 18
-  };
+  });
 
-  const stageStatusData = [
+  const [stageStatusData, setStageStatusData] = useState([
     { name: 'En cours', value: 14, color: '#162449' },
     { name: 'Visite à venir', value: 2, color: '#F39C12' },
     { name: 'Rapport en attente', value: 1, color: '#E74C3C' },
     { name: 'Terminés', value: 1, color: '#27AE60' },
-  ];
+  ]);
 
-  const filiereData = [
-    { name: 'Informatique', value: 12, color: '#6BA9E6' },
-    { name: 'Réseaux', value: 9, color: '#5BA3E6' },
-    { name: 'Multimédia', value: 6, color: '#7CB8F0' },
-    { name: 'Électronique', value: 3, color: '#A0C8F5' },
-  ];
+  const [recentActivities, setRecentActivities] = useState([
+    { 
+      id: 1, icon: <FaFileAlt />, text: 'Rapport de Jean R. validé', 
+      detail: 'Développement d\'une application web', time: 'Il y a 2h',
+      color: '#6BA9E6', bg: '#E1ECFE'
+    },
+    { 
+      id: 2, icon: <FaBell />, text: 'Nouvel étudiant assigné', 
+      detail: 'Andrianirina T. vous a été assigné', time: 'Il y a 5h',
+      color: '#27AE60', bg: '#D1FAE5'
+    }
+  ]);
 
-  const recentActivities = [
-    { 
-      id: 1, 
-      icon: <FaFileAlt />, 
-      text: 'Rapport de Jean R. validé', 
-      detail: 'Développement d\'une application web',
-      time: 'Il y a 2h',
-      color: '#6BA9E6',
-      bg: '#E1ECFE'
-    },
-    { 
-      id: 2, 
-      icon: <FaUsers />, 
-      text: 'Nouvel étudiant assigné', 
-      detail: 'Andrianirina T. vous a été assigné',
-      time: 'Il y a 5h',
-      color: '#27AE60',
-      bg: '#D1FAE5'
-    },
-    { 
-      id: 3, 
-      icon: <FaStar />, 
-      text: 'Évaluation soumise', 
-      detail: 'Par l\'entreprise ABC Informatique',
-      time: 'Il y a 1h',
-      color: '#F39C12',
-      bg: '#FEF3C7'
-    },
-    { 
-      id: 4, 
-      icon: <FaFileAlt />, 
-      text: 'Rapport reçu', 
-      detail: '11 nouveaux rapports déposés',
-      time: 'Il y a 2h',
-      color: '#E74C3C',
-      bg: '#FEE2E2'
-    },
-  ];
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const [dashRes, studentsRes, internshipsRes] = await Promise.allSettled([
+          statisticsApi.getDashboard(),
+          studentsApi.getAll(),
+          internshipsApi.getAll()
+        ]);
+
+        if (dashRes.status === 'fulfilled' && dashRes.value) {
+          const d = dashRes.value;
+          setStats(prev => ({
+            ...prev,
+            etudiants: d.totalStudents ?? prev.etudiants,
+            stagesEnCours: d.activeInternships ?? prev.stagesEnCours,
+            evaluationsEnAttente: d.pendingEvaluations ?? prev.evaluationsEnAttente,
+            rapportsRecus: d.submittedReports ?? prev.rapportsRecus,
+            rapportsTotal: d.totalStudents ?? prev.rapportsTotal
+          }));
+
+          if (d.internshipsByStatus) {
+            const statusMap = d.internshipsByStatus;
+            setStageStatusData([
+              { name: 'En cours', value: statusMap.en_cours || 0, color: '#162449' },
+              { name: 'Terminés', value: statusMap.termine || 0, color: '#27AE60' },
+              { name: 'À venir', value: statusMap.a_venir || 0, color: '#F39C12' }
+            ]);
+          }
+        }
+
+        if (studentsRes.status === 'fulfilled') {
+          const list = Array.isArray(studentsRes.value) ? studentsRes.value : studentsRes.value?.items || [];
+          setStats(prev => ({ ...prev, etudiants: list.length || prev.etudiants }));
+        }
+
+        const notifsRes = await notificationsApi.getAll();
+        const notifs = Array.isArray(notifsRes) ? notifsRes : notifsRes?.items || [];
+        if (notifs.length > 0) {
+          setRecentActivities(notifs.slice(0, 4).map((n, idx) => ({
+            id: n.id || idx,
+            icon: <FaBell />,
+            text: n.title || n.message || 'Notification',
+            detail: n.content || n.message || '',
+            time: n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : '',
+            color: '#6BA9E6',
+            bg: '#E1ECFE'
+          })));
+        }
+      } catch (err) {
+        console.error('Erreur dashboard enseignant:', err);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
 
   const localisation = {
     localises: 12,
-    total: 18,
+    total: stats.stagesEnCours,
     lieux: 8
   };
 

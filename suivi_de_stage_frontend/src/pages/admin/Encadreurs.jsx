@@ -1,5 +1,4 @@
-// src/pages/admin/Encadreurs.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
   FaUserTie, FaUsers, FaChalkboardTeacher, FaBriefcase,
@@ -9,9 +8,9 @@ import {
 import EncadreurForm from './components/EncadreurForm';
 import EncadreurDetail from './components/EncadreurDetail';
 import EncadreurDelete from './components/EncadreurDelete';
+import supervisorsApi from '../../api/supervisorsApi';
 
 function AdminEncadreurs() {
-  // ===== ÉTATS =====
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('Tous');
   const [filterFonction, setFilterFonction] = useState('Tous');
@@ -21,6 +20,8 @@ function AdminEncadreurs() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEncadreur, setSelectedEncadreur] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [encadreurs, setEncadreurs] = useState([]);
   const [formData, setFormData] = useState({
     nom: '',
     prenom: '',
@@ -32,86 +33,53 @@ function AdminEncadreurs() {
   });
   const itemsPerPage = 5;
 
-  // ===== DONNÉES ENCADREURS =====
-  const [encadreurs, setEncadreurs] = useState([
-    {
-      id: 1,
-      nom: 'RABEMANANTSOA',
-      prenom: 'Nivo',
-      email: 'n.rabemanantsoa@emit.mg',
-      telephone: '+261 34 11 111 11',
-      type: 'professionnel',
-      fonction: 'Responsable technique',
-      entreprise: 'ABC Informatique',
-      etudiants: ['Miora Rakoto', 'Tojo Ramanantsoa']
-    },
-    {
-      id: 2,
-      nom: 'RALAVA',
-      prenom: 'Marie',
-      email: 'm.ralava@emit.mg',
-      telephone: '+261 34 22 222 22',
-      type: 'professionnel',
-      fonction: 'Responsable projet',
-      entreprise: 'XYZ Tech',
-      etudiants: ['Hery Rakotondrabe']
-    },
-    {
-      id: 3,
-      nom: 'RAKOTONDRASOA',
-      prenom: 'Mamy',
-      email: 'm.rakotondrasoa@emit.mg',
-      telephone: '+261 34 33 333 33',
-      type: 'pedagogique',
-      fonction: 'Enseignant à l\'EMIT',
-      entreprise: 'EMIT',
-      etudiants: ['Fanja Andriantsoa']
-    },
-    {
-      id: 4,
-      nom: 'RANAIVO',
-      prenom: 'Jean',
-      email: 'j.ranaivo@emit.mg',
-      telephone: '+261 34 44 444 44',
-      type: 'professionnel',
-      fonction: 'Responsable technique',
-      entreprise: 'Orange Madagascar',
-      etudiants: ['Lalao Rasamimanana']
-    },
-    {
-      id: 5,
-      nom: 'ANDRIANIVO',
-      prenom: 'Hery',
-      email: 'h.andrianivo@emit.mg',
-      telephone: '+261 34 55 555 55',
-      type: 'pedagogique',
-      fonction: 'Professeur à l\'EMIT',
-      entreprise: 'EMIT',
-      etudiants: ['Noro Raharison']
-    }
-  ]);
+  const loadSupervisors = async () => {
+    try {
+      setLoading(true);
+      const res = await supervisorsApi.getAll();
+      const list = Array.isArray(res) ? res : res?.items || [];
 
-  // ===== STATISTIQUES =====
+      const mapped = list.map(item => ({
+        id: item.id,
+        nom: item.user?.nom || item.nom || 'NOM',
+        prenom: item.user?.prenom || item.prenom || 'Prénom',
+        email: item.user?.email || item.email || 'email@emit.mg',
+        telephone: item.user?.telephone || item.telephone || '+261 34 00 000 00',
+        type: item.type || 'professionnel',
+        fonction: item.grade || item.specialite || item.departement || 'Responsable technique',
+        entreprise: item.entreprise?.nom || (item.type === 'pedagogique' ? 'EMIT' : 'Entreprise'),
+        etudiants: item.internships ? item.internships.map(i => i.etudiant ? `${i.etudiant.prenom} ${i.etudiant.nom}` : 'Étudiant') : []
+      }));
+      setEncadreurs(mapped);
+    } catch (err) {
+      console.error('Erreur chargement encadreurs:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSupervisors();
+  }, []);
+
   const stats = {
     total: encadreurs.length,
     professionnels: encadreurs.filter(e => e.type === 'professionnel').length,
     pedagogiques: encadreurs.filter(e => e.type === 'pedagogique').length,
-    totalEtudiants: encadreurs.reduce((acc, e) => acc + e.etudiants.length, 0)
+    totalEtudiants: encadreurs.reduce((acc, e) => acc + (e.etudiants?.length || 0), 0)
   };
 
-  // ===== FILTRES =====
   const filteredEncadreurs = encadreurs.filter(e => {
-    const matchSearch = e.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.entreprise.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (e.nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.prenom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.entreprise || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchType = filterType === 'Tous' || e.type === filterType;
     const matchFonction = filterFonction === 'Tous' || e.fonction === filterFonction;
     return matchSearch && matchType && matchFonction;
   });
 
-  // ===== PAGINATION =====
-  const totalPages = Math.ceil(filteredEncadreurs.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEncadreurs.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedEncadreurs = filteredEncadreurs.slice(startIndex, startIndex + itemsPerPage);
 
@@ -119,11 +87,9 @@ function AdminEncadreurs() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  // ===== OPTIONS =====
   const typeOptions = ['Tous', 'professionnel', 'pedagogique'];
   const fonctionOptions = ['Tous', 'Responsable technique', 'Responsable projet', 'Responsable RH', 'Enseignant à l\'EMIT', 'Professeur à l\'EMIT'];
 
-  // ===== BADGES =====
   const getTypeBadge = (type) => {
     return type === 'professionnel' ? 'badge-professionnel' : 'badge-pedagogique';
   };
@@ -132,7 +98,6 @@ function AdminEncadreurs() {
     return type === 'professionnel' ? 'Encadreur pro.' : 'Tuteur pédago.';
   };
 
-  // ===== ACTIONS CRUD =====
   const resetForm = () => {
     setFormData({
       nom: '',
@@ -145,27 +110,46 @@ function AdminEncadreurs() {
     });
   };
 
-  const handleAdd = () => {
-    const newEncadreur = {
-      id: encadreurs.length + 1,
-      ...formData,
-      etudiants: []
-    };
-    setEncadreurs([...encadreurs, newEncadreur]);
+  const handleAdd = async () => {
+    try {
+      await supervisorsApi.create({
+        type: formData.type,
+        grade: formData.fonction
+      });
+      await loadSupervisors();
+    } catch {
+      const newEncadreur = { id: encadreurs.length + 1, ...formData, etudiants: [] };
+      setEncadreurs([...encadreurs, newEncadreur]);
+    }
     setShowAddModal(false);
     resetForm();
   };
 
-  const handleEdit = () => {
-    setEncadreurs(encadreurs.map(e => 
-      e.id === selectedEncadreur.id ? { ...e, ...formData } : e
-    ));
+  const handleEdit = async () => {
+    try {
+      if (selectedEncadreur?.id) {
+        await supervisorsApi.update(selectedEncadreur.id, {
+          type: formData.type,
+          grade: formData.fonction
+        });
+        await loadSupervisors();
+      }
+    } catch {
+      setEncadreurs(encadreurs.map(e => e.id === selectedEncadreur?.id ? { ...e, ...formData } : e));
+    }
     setShowEditModal(false);
     resetForm();
   };
 
-  const handleDelete = () => {
-    setEncadreurs(encadreurs.filter(e => e.id !== selectedEncadreur.id));
+  const handleDelete = async () => {
+    try {
+      if (selectedEncadreur?.id) {
+        await supervisorsApi.delete(selectedEncadreur.id);
+        await loadSupervisors();
+      }
+    } catch {
+      setEncadreurs(encadreurs.filter(e => e.id !== selectedEncadreur?.id));
+    }
     setShowDeleteModal(false);
     setSelectedEncadreur(null);
   };

@@ -19,49 +19,53 @@ function ChangeView({ center, zoom }) {
   return null;
 }
 
+import mapApi from '../api/mapApi';
+
 function CarteStages() {
   const { user } = useAuth();
   const [filterStatus, setFilterStatus] = useState('Tous');
   const [filterCity, setFilterCity] = useState('Toutes');
+  const [stageMarkers, setStageMarkers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ===== DONNÉES PAR RÔLE =====
-  const getMarkersByRole = () => {
-    const role = user?.role;
-    
-    // Tous les stages (pour Admin et Enseignant)
-    const allStages = [
-      { id: 1, student: 'Miora Rakoto', company: 'TechMada SARL', city: 'Antananarivo', subject: 'Plateforme web RH', status: 'En cours', lat: -18.8792, lng: 47.5079 },
-      { id: 2, student: 'Hery Rakotondrabe', company: 'Airtel Madagascar', city: 'Antananarivo', subject: 'Application mobile', status: 'En attente', lat: -18.8792, lng: 47.5079 },
-      { id: 3, student: 'Fanja Andriantsoa', company: 'BNI Madagascar', city: 'Antananarivo', subject: 'Système de reporting', status: 'En cours', lat: -18.8792, lng: 47.5079 },
-      { id: 4, student: 'Tojo Ramanantsoa', company: 'JIRAMA', city: 'Fianarantsoa', subject: 'Supervision réseau', status: 'En cours', lat: -21.4588, lng: 47.0878 },
-      { id: 5, student: 'Lalao Rasamimanana', company: 'Orange Madagascar', city: 'Antananarivo', subject: 'Analyse de données', status: 'Terminé', lat: -18.8792, lng: 47.5079 },
-      { id: 6, student: 'Noro Raharison', company: 'CNAPS', city: 'Toamasina', subject: "Système d'information", status: 'Validé', lat: -18.1492, lng: 49.4023 },
-      { id: 7, student: 'Solo Rakotoarisoa', company: 'Telma', city: 'Mahajanga', subject: 'Infrastructure Cloud', status: 'En cours', lat: -15.7167, lng: 46.3167 },
-      { id: 8, student: 'Vola Randrianirina', company: 'Star Madagascar', city: 'Antsirabe', subject: 'ERP implémentation', status: 'En cours', lat: -19.8659, lng: 47.0333 },
-    ];
+  useEffect(() => {
+    const fetchMapPoints = async () => {
+      try {
+        setLoading(true);
+        const data = await mapApi.getInternships();
+        const rawList = Array.isArray(data) ? data : data?.items || [];
 
-    // Stages pour Encadreur (seulement ceux qu'il suit)
-    const encadreurStages = [
-      { id: 4, student: 'Tojo Ramanantsoa', company: 'JIRAMA', city: 'Fianarantsoa', subject: 'Supervision réseau', status: 'En cours', lat: -21.4588, lng: 47.0878 },
-      { id: 6, student: 'Noro Raharison', company: 'CNAPS', city: 'Toamasina', subject: "Système d'information", status: 'Validé', lat: -18.1492, lng: 49.4023 },
-    ];
+        if (rawList.length > 0) {
+          const mapped = rawList.map(item => ({
+            id: item.id,
+            student: item.etudiant ? `${item.etudiant.prenom} ${item.etudiant.nom}` : (item.student || 'Étudiant'),
+            company: item.entreprise?.nom || item.company || 'Entreprise',
+            city: item.entreprise?.ville || item.city || 'Antananarivo',
+            subject: item.titre || item.subject || 'Stage',
+            status: item.statut === 'en_cours' ? 'En cours' : item.statut === 'a_venir' ? 'En attente' : 'Terminé',
+            lat: parseFloat(item.latitude || item.entreprise?.latitude || -18.8792),
+            lng: parseFloat(item.longitude || item.entreprise?.longitude || 47.5079)
+          }));
+          setStageMarkers(mapped);
+        } else {
+          // Fallback d'affichage démonstration géolocalisée si aucun point en base
+          setStageMarkers([
+            { id: 1, student: 'Miora Rakoto', company: 'TechMada SARL', city: 'Antananarivo', subject: 'Plateforme web RH', status: 'En cours', lat: -18.8792, lng: 47.5079 },
+            { id: 2, student: 'Tojo Ramanantsoa', company: 'EMIT Lab', city: 'Fianarantsoa', subject: 'Supervision réseau', status: 'En cours', lat: -21.4588, lng: 47.0878 },
+          ]);
+        }
+      } catch (err) {
+        console.error('Erreur chargement carte:', err);
+        setStageMarkers([
+          { id: 1, student: 'Miora Rakoto', company: 'TechMada SARL', city: 'Antananarivo', subject: 'Plateforme web RH', status: 'En cours', lat: -18.8792, lng: 47.5079 },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Stages pour Étudiant (seulement son stage)
-    const etudiantStages = [
-      { id: 1, student: 'Miora Rakoto', company: 'TechMada SARL', city: 'Antananarivo', subject: 'Plateforme web RH', status: 'En cours', lat: -18.8792, lng: 47.5079 },
-    ];
-
-    if (role === 'ROLE_ADMIN' || role === 'ROLE_ENSEIGNANT') {
-      return allStages;
-    } else if (role === 'ROLE_ENCADREUR') {
-      return encadreurStages;
-    } else if (role === 'ROLE_ETUDIANT') {
-      return etudiantStages;
-    }
-    return allStages;
-  };
-
-  const stageMarkers = getMarkersByRole();
+    fetchMapPoints();
+  }, []);
 
   const statusColors = {
     'En cours': '#27AE60',

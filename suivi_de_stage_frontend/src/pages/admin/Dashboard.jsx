@@ -9,18 +9,43 @@ import {
   FaFileAlt, FaUserPlus
 } from 'react-icons/fa';
 
+import { useState, useEffect } from 'react';
+import statisticsApi from '../../api/statisticsApi';
+
 function AdminDashboard() {
-  // ===== DONNÉES =====
+  const [loading, setLoading] = useState(true);
+  const [dashboardData, setDashboardData] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const data = await statisticsApi.getDashboard();
+        setDashboardData(data);
+      } catch (err) {
+        console.error('Erreur chargement statistiques admin:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  const totalEtudiants = dashboardData?.totalEtudiants ?? 312;
+  const totalEnAttente = dashboardData?.totalEnAttente ?? 24;
+  const totalEnCours = dashboardData?.totalEnCours ?? 187;
+  const totalTermines = dashboardData?.totalTermines ?? 89;
+  const totalEntreprises = dashboardData?.totalEntreprises ?? 63;
 
   const kpis = [
-    { label: 'Étudiants total', value: 312, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
-    { label: 'Stages en attente', value: 24, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
-    { label: 'Stages en cours', value: 187, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
-    { label: 'Stages terminés', value: 89, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#E1ECFE', trendColor: '#1F2937' },
-    { label: 'Entreprises', value: 63, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
+    { label: 'Étudiants total', value: totalEtudiants, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
+    { label: 'Stages en attente', value: totalEnAttente, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
+    { label: 'Stages en cours', value: totalEnCours, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
+    { label: 'Stages terminés', value: totalTermines, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#E1ECFE', trendColor: '#1F2937' },
+    { label: 'Entreprises', value: totalEntreprises, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
   ];
 
-  const monthlyData = [
+  const monthlyData = dashboardData?.monthlyData || [
     { month: 'Jan', stages: 28, valides: 20, termines: 8 },
     { month: 'Fév', stages: 35, valides: 28, termines: 12 },
     { month: 'Mar', stages: 42, valides: 35, termines: 18 },
@@ -31,14 +56,14 @@ function AdminDashboard() {
     { month: 'Août', stages: 31, valides: 25, termines: 38 },
   ];
 
-  const statusData = [
-    { name: 'En cours', value: 187, color: '#3B82F6' },
-    { name: 'En attente', value: 24, color: '#F59E0B' },
-    { name: 'Terminés', value: 89, color: '#1F2937' },
+  const statusData = dashboardData?.statusData || [
+    { name: 'En cours', value: totalEnCours, color: '#3B82F6' },
+    { name: 'En attente', value: totalEnAttente, color: '#F59E0B' },
+    { name: 'Terminés', value: totalTermines, color: '#1F2937' },
     { name: 'Annulés', value: 12, color: '#EF4444' },
   ];
 
-  const cityData = [
+  const cityData = dashboardData?.cityData || [
     { city: 'Fianarantsoa', count: 87 },
     { city: 'Antananarivo', count: 64 },
     { city: 'Toamasina', count: 42 },

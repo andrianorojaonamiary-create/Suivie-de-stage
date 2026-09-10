@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaCheckCircle, FaCircle, FaCalendarAlt, FaClock, 
@@ -7,10 +7,12 @@ import {
   FaFilePdf, FaFileWord, FaFile, FaCheck,
   FaFilter
 } from 'react-icons/fa';
+import { internshipsApi, trackingApi } from '../../api';
 
 function SuiviStage() {
+  const [loading, setLoading] = useState(true);
   // ===== STAGES DE L'ÉTUDIANT =====
-  const [stages] = useState([
+  const [stages, setStages] = useState([
     {
       id: 1,
       titre: "Développement d'une application web",
@@ -24,22 +26,41 @@ function SuiviStage() {
       joursEcoules: 20,
       description: "Développement d'une application web de gestion des ressources humaines avec React et Node.js.",
       progression: 32
-    },
-    {
-      id: 2,
-      titre: "Développement mobile",
-      entreprise: 'XYZ Tech',
-      dateDebut: '01 Jan 2025',
-      dateFin: '30 Juin 2025',
-      statut: 'Terminé',
-      duree: '6 mois',
-      joursRestants: 0,
-      joursTotal: 180,
-      joursEcoules: 180,
-      description: "Développement d'une application mobile de gestion des stocks.",
-      progression: 100
     }
   ]);
+
+  useEffect(() => {
+    const fetchSuivi = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          const mapped = list.map(item => ({
+            id: item.id,
+            titre: item.title || item.subject || 'Stage',
+            entreprise: item.company?.name || item.companyName || 'Entreprise',
+            dateDebut: item.startDate ? new Date(item.startDate).toLocaleDateString('fr-FR') : 'Date début',
+            dateFin: item.endDate ? new Date(item.endDate).toLocaleDateString('fr-FR') : 'Date fin',
+            statut: item.status === 'en_cours' ? 'En cours' : item.status === 'termine' ? 'Terminé' : 'En attente',
+            duree: item.duration || '3 mois',
+            joursRestants: item.remainingDays || 30,
+            joursTotal: item.totalDays || 90,
+            joursEcoules: item.elapsedDays || 30,
+            description: item.description || '',
+            progression: item.progressPercentage || 50
+          }));
+          setStages(mapped);
+        }
+      } catch (err) {
+        console.error('Erreur chargement suivi stage:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuivi();
+  }, []);
 
   // ===== STAGE SÉLECTIONNÉ =====
   const [selectedStageId, setSelectedStageId] = useState('all');

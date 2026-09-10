@@ -10,8 +10,6 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 
 // ===== TOOLTIP PERSONNALISÉ =====
 const EvaluationTooltip = ({ active, payload, label }) => {
@@ -28,12 +26,42 @@ const EvaluationTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+import { useEffect } from 'react';
+import statisticsApi from '../../api/statisticsApi';
+
 function Statistiques() {
 
-  // ===== ÉTAT POUR LE FILTRE (comme dans la page Map) =====
   const [filterYear, setFilterYear] = useState('2026');
   const [isExporting, setIsExporting] = useState(false);
+  const [statsData, setStatsData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const statsRef = useRef(null);
+
+  useEffect(() => {
+    const fetchAllStats = async () => {
+      try {
+        setLoading(true);
+        const [dash, intern, emp, geo] = await Promise.allSettled([
+          statisticsApi.getDashboard(),
+          statisticsApi.getInternships(),
+          statisticsApi.getEmployment(),
+          statisticsApi.getGeography()
+        ]);
+        setStatsData({
+          dash: dash.status === 'fulfilled' ? dash.value : null,
+          intern: intern.status === 'fulfilled' ? intern.value : null,
+          emp: emp.status === 'fulfilled' ? emp.value : null,
+          geo: geo.status === 'fulfilled' ? geo.value : null,
+        });
+      } catch (err) {
+        console.error('Erreur chargement statistiques:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllStats();
+  }, [filterYear]);
 
   // ===== FONCTION EXPORT PDF =====
   const handleExportPDF = async () => {
@@ -42,6 +70,9 @@ function Statistiques() {
       const element = statsRef.current;
       if (!element) return;
       
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,

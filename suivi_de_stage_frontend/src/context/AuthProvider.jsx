@@ -83,6 +83,19 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const updateProfile = async (profileData) => {
+    try {
+      const { data } = await apiClient.patch('/auth/me', profileData);
+      const normalizedUser = normalizeUser(data);
+      setUser(normalizedUser);
+      toast.success('Profil mis à jour avec succès !');
+      return normalizedUser;
+    } catch (error) {
+      toast.error(getApiErrorMessage(error, 'Erreur de mise à jour du profil'));
+      throw error;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -95,6 +108,7 @@ export function AuthProvider({ children }) {
     loading,
     login,
     register,
+    updateProfile,
     logout
   };
 

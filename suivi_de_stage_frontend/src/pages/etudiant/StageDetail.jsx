@@ -11,6 +11,8 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
+import { internshipsApi } from '../../api';
+
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -49,26 +51,38 @@ function StageDetail() {
     updatedAt: ''
   });
 
-  // ===== SIMULATION DE CHARGEMENT =====
   useEffect(() => {
-    setTimeout(() => {
-      setFormData({
-        titre: "Développement d'une plateforme web de gestion RH",
-        entreprise: 'TechMada SARL',
-        ville: 'Antananarivo',
-        adresse: 'Lot II M 77, Antananarivo',
-        dateDebut: '2024-03-01',
-        dateFin: '2024-09-15',
-        statut: 'En cours',
-        tuteur: 'Prof. Andrianivo',
-        encadreur: 'M. Rakotomalala',
-        description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js.",
-        convention: 'convention_stage.pdf',
-        createdAt: '15 Jan 2024',
-        updatedAt: '01 Mar 2024'
-      });
-      setLoading(false);
-    }, 800);
+    const fetchStage = async () => {
+      try {
+        setLoading(true);
+        if (id) {
+          const res = await internshipsApi.getById(id);
+          if (res) {
+            setFormData({
+              titre: res.title || res.subject || '',
+              entreprise: res.company?.name || res.companyName || '',
+              ville: res.city || res.company?.city || 'Antananarivo',
+              adresse: res.address || res.company?.address || '',
+              dateDebut: res.startDate ? res.startDate.split('T')[0] : '',
+              dateFin: res.endDate ? res.endDate.split('T')[0] : '',
+              tuteur: res.tuteurPedagogique ? `${res.tuteurPedagogique.firstName || ''} ${res.tuteurPedagogique.lastName || ''}`.trim() : '',
+              encadreur: res.supervisor ? `${res.supervisor.firstName || ''} ${res.supervisor.lastName || ''}`.trim() : '',
+              description: res.description || '',
+              convention: res.convention || 'convention_stage.pdf',
+              statut: res.status === 'en_cours' ? 'En cours' : res.status === 'termine' ? 'Terminé' : 'En attente',
+              createdAt: res.createdAt ? new Date(res.createdAt).toLocaleDateString('fr-FR') : '',
+              updatedAt: res.updatedAt ? new Date(res.updatedAt).toLocaleDateString('fr-FR') : ''
+            });
+          }
+        }
+      } catch (err) {
+        console.error('Erreur chargement detail stage:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStage();
   }, [id]);
 
   const handleChange = (e) => {

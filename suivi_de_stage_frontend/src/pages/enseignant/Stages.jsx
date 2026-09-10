@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { 
   FaFileAlt,
   FaCheck, FaTimes, FaEye, FaClock, FaFilter, 
   FaSearch, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
+import { internshipsApi } from '../../api';
 
 // Composants Modals
 import ViewModal from './components/ViewModal';
@@ -26,8 +28,8 @@ function StagesEnseignant() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // ===== DONNÉES SIMULÉES =====
-  const [stages] = useState([
+  // ===== DONNÉES API =====
+  const [stages, setStages] = useState([
     {
       id: 1,
       titre: "Développement d'une plateforme web de gestion RH",
@@ -135,6 +137,36 @@ function StagesEnseignant() {
     }
   ]);
 
+  useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const res = await internshipsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          const mapped = list.map(item => ({
+            id: item.id,
+            titre: item.title || item.subject || 'Stage',
+            etudiant: item.student ? `${item.student.lastName || ''} ${item.student.firstName || ''}`.trim() : 'Étudiant',
+            entreprise: item.company?.name || item.companyName || 'Entreprise',
+            ville: item.city || item.location || 'Antananarivo',
+            dateDebut: item.startDate || null,
+            dateFin: item.endDate || null,
+            statutValidation: item.validationStatus || item.status || 'en_attente',
+            description: item.description || '',
+            commentaireValidation: item.validationComment || null,
+            encadreur: item.supervisor ? `${item.supervisor.lastName || ''} ${item.supervisor.firstName || ''}`.trim() : '—',
+            tuteur: item.teacher ? `${item.teacher.lastName || ''} ${item.teacher.firstName || ''}`.trim() : '—',
+            progression: item.progressPercentage || 0
+          }));
+          setStages(mapped);
+        }
+      } catch (err) {
+        console.error('Erreur chargement stages enseignant:', err);
+      }
+    };
+    fetchStages();
+  }, []);
+
   // ===== STATISTIQUES =====
   const stats = {
     enAttente: stages.filter(s => s.statutValidation === 'en_attente').length,
@@ -234,30 +266,50 @@ function StagesEnseignant() {
     setSelectedStage(null);
   };
 
-  const confirmValidate = () => {
+  const confirmValidate = async () => {
     setLoading(true);
-    setTimeout(() => {
-      alert(`✅ Stage "${selectedStage?.titre}" validé avec succès !`);
-      setLoading(false);
+    try {
+      await internshipsApi.update(selectedStage.id, {
+        validationStatus: 'valide',
+        validationComment: commentaire
+      });
+      setStages(prev => prev.map(s =>
+        s.id === selectedStage.id ? { ...s, statutValidation: 'valide', commentaireValidation: commentaire } : s
+      ));
+      toast.success(`✅ Stage "${selectedStage?.titre}" validé avec succès !`);
       setModalValidateOpen(false);
       setSelectedStage(null);
       setCommentaire('');
-    }, 1000);
+    } catch (err) {
+      toast.error('Erreur lors de la validation');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!commentaire || commentaire.trim() === '') {
-      alert('⚠️ Veuillez ajouter un commentaire pour justifier le refus');
+      toast.warning('⚠️ Veuillez ajouter un commentaire pour justifier le refus');
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      alert(`✅ Stage "${selectedStage?.titre}" refusé avec succès !`);
-      setLoading(false);
+    try {
+      await internshipsApi.update(selectedStage.id, {
+        validationStatus: 'refuse',
+        validationComment: commentaire
+      });
+      setStages(prev => prev.map(s =>
+        s.id === selectedStage.id ? { ...s, statutValidation: 'refuse', commentaireValidation: commentaire } : s
+      ));
+      toast.success(`Stage "${selectedStage?.titre}" refusé.`);
       setModalRejectOpen(false);
       setSelectedStage(null);
       setCommentaire('');
-    }, 1000);
+    } catch (err) {
+      toast.error('Erreur lors du refus');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const statusOptions = [

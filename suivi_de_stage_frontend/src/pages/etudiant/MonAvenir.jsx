@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import { 
   FaGraduationCap, FaBriefcase, FaBuilding, FaMapMarkerAlt,
@@ -7,6 +7,7 @@ import {
   FaInfoCircle, FaPlusCircle,
   FaUserGraduate, FaChartLine, FaCalendarCheck
 } from 'react-icons/fa';
+import { professionalSituationsApi } from '../../api';
 
 function MonAvenir() {
   // const navigate = useNavigate();
@@ -26,22 +27,6 @@ function MonAvenir() {
     situationPro: 'En emploi',
     dateMiseAJour: '2025-04-20'
   });
-
-  // ===== TEXTE AUTOMATIQUE =====
-  const getSituationDetail = () => {
-    switch(situation.situationPro) {
-      case 'En emploi':
-        return 'Vous exercez actuellement une activité professionnelle.';
-      case 'En recherche':
-        return 'Vous êtes actuellement en recherche d\'emploi.';
-      case 'Études supérieures':
-        return 'Vous poursuivez actuellement des études supérieures.';
-      case 'Autre':
-        return 'Vous êtes dans une autre situation professionnelle.';
-      default:
-        return '';
-    }
-  };
 
   // ===== EMPLOI ACTUEL =====
   const [emploiActuel, setEmploiActuel] = useState({
@@ -64,24 +49,70 @@ function MonAvenir() {
       localisation: 'Fianarantsoa, Madagascar',
       dateDebut: '2028-01-01',
       dateFin: '2030-12-31'
-    },
-    {
-      id: 2,
-      entreprise: 'XYZ Tech',
-      poste: 'Développeur Full-Stack',
-      localisation: 'Antananarivo, Madagascar',
-      dateDebut: '2028-01-01',
-      dateFin: '2030-12-31'
-    },
-    {
-      id: 3,
-      entreprise: 'EMIT - Étudiant',
-      poste: 'Licence en Informatique',
-      localisation: 'Fianarantsoa, Madagascar',
-      dateDebut: '2023-09-01',
-      dateFin: '2028-07-31'
     }
   ]);
+
+  useEffect(() => {
+    const fetchAvenir = async () => {
+      try {
+        setLoading(true);
+        const res = await professionalSituationsApi.getMe();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          const current = list[0];
+          setEmploiActuel({
+            entreprise: current.entreprise || current.companyName || '',
+            poste: current.poste || current.position || '',
+            domaine: current.domaine || current.sector || '',
+            localisation: current.ville ? `${current.ville}, ${current.pays || 'Madagascar'}` : '',
+            dateDebut: current.dateDebut ? current.dateDebut.split('T')[0] : '',
+            dateFin: current.dateFin ? current.dateFin.split('T')[0] : '',
+            typeContrat: current.contrat || 'CDI',
+            description: current.description || ''
+          });
+
+          setSituation(prev => ({
+            ...prev,
+            situationPro: current.type || current.situation || 'En emploi',
+            dateMiseAJour: current.updatedAt ? current.updatedAt.split('T')[0] : prev.dateMiseAJour
+          }));
+
+          setHistoriqueEmplois(list.map((item, idx) => ({
+            id: item.id || idx + 1,
+            entreprise: item.entreprise || item.companyName || 'Entreprise',
+            poste: item.poste || item.position || 'Poste',
+            localisation: item.ville ? `${item.ville}, ${item.pays || 'Madagascar'}` : '',
+            dateDebut: item.dateDebut ? item.dateDebut.split('T')[0] : '',
+            dateFin: item.dateFin ? item.dateFin.split('T')[0] : ''
+          })));
+        }
+      } catch (err) {
+        console.error('Erreur chargement mon avenir:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAvenir();
+  }, []);
+
+  // ===== TEXTE AUTOMATIQUE =====
+  const getSituationDetail = () => {
+    switch(situation.situationPro) {
+      case 'En emploi':
+        return 'Vous exercez actuellement une activité professionnelle.';
+      case 'En recherche':
+        return 'Vous êtes actuellement en recherche d\'emploi.';
+      case 'Études supérieures':
+        return 'Vous poursuivez actuellement des études supérieures.';
+      case 'Autre':
+        return 'Vous êtes dans une autre situation professionnelle.';
+      default:
+        return '';
+    }
+  };
+
+
 
   // ===== FORMULAIRE HISTORIQUE =====
   const [newJob, setNewJob] = useState({

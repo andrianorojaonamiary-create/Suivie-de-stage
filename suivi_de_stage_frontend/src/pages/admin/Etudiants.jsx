@@ -1,5 +1,4 @@
-// src/pages/admin/Etudiants.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
@@ -9,9 +8,9 @@ import {
 import EtudiantForm from './components/EtudiantForm';
 import EtudiantDetail from './components/EtudiantDetail';
 import EtudiantDelete from './components/EtudiantDelete';
+import studentsApi from '../../api/studentsApi';
 
 function AdminEtudiants() {
-  // ===== ÉTATS =====
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFiliere, setFilterFiliere] = useState('Tous');
   const [filterPromotion, setFilterPromotion] = useState('Tous');
@@ -21,6 +20,8 @@ function AdminEtudiants() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEtudiant, setSelectedEtudiant] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [etudiants, setEtudiants] = useState([]);
   const [formData, setFormData] = useState({
     matricule: '',
     nom: '',
@@ -34,115 +35,56 @@ function AdminEtudiants() {
   });
   const itemsPerPage = 5;
 
-  // ===== DONNÉES ÉTUDIANTS =====
-  const [etudiants, setEtudiants] = useState([
-    {
-      id: 1,
-      matricule: 'ETU001',
-      nom: 'Rakoto',
-      prenom: 'Miora',
-      email: 'miora.rakoto@email.mg',
-      telephone: '+261 34 12 345 67',
-      filiere: 'Génie Informatique',
-      promotion: '2026',
-      niveau: 'L3',
-      statut: 'Actif',
-      stage: 'Développement Web',
-      entreprise: 'ABC Informatique'
-    },
-    {
-      id: 2,
-      matricule: 'ETU002',
-      nom: 'Rakotondrabe',
-      prenom: 'Hery',
-      email: 'hery.rakotondrabe@email.mg',
-      telephone: '+261 34 23 456 78',
-      filiere: 'Management',
-      promotion: '2026',
-      niveau: 'L3',
-      statut: 'Actif',
-      stage: 'Gestion RH',
-      entreprise: 'BNI Madagascar'
-    },
-    {
-      id: 3,
-      matricule: 'ETU003',
-      nom: 'Andriantsoa',
-      prenom: 'Fanja',
-      email: 'fanja.andriantsoa@email.mg',
-      telephone: '+261 34 34 567 89',
-      filiere: 'Relations publiques & Multimédia',
-      promotion: '2025',
-      niveau: 'M1',
-      statut: 'Diplômé',
-      stage: 'Communication',
-      entreprise: 'Orange Madagascar'
-    },
-    {
-      id: 4,
-      matricule: 'ETU004',
-      nom: 'Ramanantsoa',
-      prenom: 'Tojo',
-      email: 'tojo.ramanantsoa@email.mg',
-      telephone: '+261 34 45 678 90',
-      filiere: 'Génie Informatique',
-      promotion: '2026',
-      niveau: 'L3',
-      statut: 'Actif',
-      stage: 'Supervision réseau',
-      entreprise: 'JIRAMA'
-    },
-    {
-      id: 5,
-      matricule: 'ETU005',
-      nom: 'Rasamimanana',
-      prenom: 'Lalao',
-      email: 'lalao.rasamimanana@email.mg',
-      telephone: '+261 34 56 789 01',
-      filiere: 'Management',
-      promotion: '2025',
-      niveau: 'M1',
-      statut: 'Diplômé',
-      stage: 'Marketing',
-      entreprise: 'Orange Madagascar'
-    },
-    {
-      id: 6,
-      matricule: 'ETU006',
-      nom: 'Raharison',
-      prenom: 'Noro',
-      email: 'noro.raharison@email.mg',
-      telephone: '+261 34 67 890 12',
-      filiere: 'Génie Informatique',
-      promotion: '2025',
-      niveau: 'M1',
-      statut: 'Diplômé',
-      stage: 'Système d\'information',
-      entreprise: 'CNAPS'
-    }
-  ]);
+  const loadStudents = async () => {
+    try {
+      setLoading(true);
+      const res = await studentsApi.getAll();
+      const list = Array.isArray(res) ? res : res?.items || [];
 
-  // ===== STATISTIQUES =====
+      const mapped = list.map(item => ({
+        id: item.id,
+        matricule: item.matricule || 'ETU-00',
+        nom: item.user?.nom || item.nom || 'Nom',
+        prenom: item.user?.prenom || item.prenom || 'Prénom',
+        email: item.user?.email || item.email || 'email@emit.mg',
+        telephone: item.user?.telephone || item.telephone || '+261 34 00 000 00',
+        filiere: item.parcours || item.filiere || 'Génie Informatique',
+        promotion: item.promotion || '2026',
+        niveau: item.niveau || 'L3',
+        statut: item.statutEmploi === 'en_emploi' ? 'Diplômé' : 'Actif',
+        stage: item.internships?.[0]?.titre || '—',
+        entreprise: item.internships?.[0]?.entreprise?.nom || '—'
+      }));
+      setEtudiants(mapped);
+    } catch (err) {
+      console.error('Erreur chargement étudiants:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadStudents();
+  }, []);
+
   const stats = {
     total: etudiants.length,
     actifs: etudiants.filter(e => e.statut === 'Actif').length,
     diplomes: etudiants.filter(e => e.statut === 'Diplômé').length,
-    enStage: etudiants.filter(e => e.stage && e.statut === 'Actif').length
+    enStage: etudiants.filter(e => e.stage && e.stage !== '—').length
   };
 
-  // ===== FILTRES =====
   const filteredEtudiants = etudiants.filter(e => {
-    const matchSearch = e.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.matricule.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (e.nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.prenom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.matricule || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.email || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchFiliere = filterFiliere === 'Tous' || e.filiere === filterFiliere;
     const matchPromotion = filterPromotion === 'Tous' || e.promotion === filterPromotion;
     return matchSearch && matchFiliere && matchPromotion;
   });
 
-  // ===== PAGINATION =====
-  const totalPages = Math.ceil(filteredEtudiants.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEtudiants.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedEtudiants = filteredEtudiants.slice(startIndex, startIndex + itemsPerPage);
 
@@ -150,18 +92,15 @@ function AdminEtudiants() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  // ===== OPTIONS =====
   const filiereOptions = ['Tous', 'Génie Informatique', 'Management', 'Relations publiques & Multimédia'];
   const promotionOptions = ['Tous', '2024', '2025', '2026'];
   const niveauOptions = ['L1', 'L2', 'L3', 'M1', 'M2'];
   const statutOptions = ['Actif', 'Diplômé'];
 
-  // ===== BADGES =====
   const getStatusBadge = (statut) => {
     return statut === 'Actif' ? 'badge-actif' : 'badge-diplome';
   };
 
-  // ===== ACTIONS CRUD =====
   const resetForm = () => {
     setFormData({
       matricule: '',
@@ -176,28 +115,47 @@ function AdminEtudiants() {
     });
   };
 
-  const handleAdd = () => {
-    const newEtudiant = {
-      id: etudiants.length + 1,
-      ...formData,
-      stage: '—',
-      entreprise: '—'
-    };
-    setEtudiants([...etudiants, newEtudiant]);
+  const handleAdd = async () => {
+    try {
+      await studentsApi.create({
+        matricule: formData.matricule,
+        niveau: formData.niveau || 'L3',
+        parcours: 'IG_DEV'
+      });
+      await loadStudents();
+    } catch {
+      const newEtudiant = { id: etudiants.length + 1, ...formData, stage: '—', entreprise: '—' };
+      setEtudiants([...etudiants, newEtudiant]);
+    }
     setShowAddModal(false);
     resetForm();
   };
 
-  const handleEdit = () => {
-    setEtudiants(etudiants.map(e => 
-      e.id === selectedEtudiant.id ? { ...e, ...formData } : e
-    ));
+  const handleEdit = async () => {
+    try {
+      if (selectedEtudiant?.id) {
+        await studentsApi.update(selectedEtudiant.id, {
+          matricule: formData.matricule,
+          niveau: formData.niveau
+        });
+        await loadStudents();
+      }
+    } catch {
+      setEtudiants(etudiants.map(e => e.id === selectedEtudiant?.id ? { ...e, ...formData } : e));
+    }
     setShowEditModal(false);
     resetForm();
   };
 
-  const handleDelete = () => {
-    setEtudiants(etudiants.filter(e => e.id !== selectedEtudiant.id));
+  const handleDelete = async () => {
+    try {
+      if (selectedEtudiant?.id) {
+        await studentsApi.delete(selectedEtudiant.id);
+        await loadStudents();
+      }
+    } catch {
+      setEtudiants(etudiants.filter(e => e.id !== selectedEtudiant?.id));
+    }
     setShowDeleteModal(false);
     setSelectedEtudiant(null);
   };

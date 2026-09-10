@@ -1,5 +1,4 @@
-// src/pages/admin/Entreprises.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
   FaBuilding, FaUsers,FaChevronLeft, FaChevronRight
@@ -8,6 +7,7 @@ import {
 import EntrepriseForm from './components/EntrepriseForm';
 import EntrepriseDetail from './components/EntrepriseDetail';
 import EntrepriseDelete from './components/EntrepriseDelete';
+import companiesApi from '../../api/companiesApi';
 
 function AdminEntreprises() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,6 +19,8 @@ function AdminEntreprises() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEntreprise, setSelectedEntreprise] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [entreprises, setEntreprises] = useState([]);
   const [formData, setFormData] = useState({
     nom: '',
     domaine: '',
@@ -31,96 +33,51 @@ function AdminEntreprises() {
   });
   const itemsPerPage = 5;
 
-  const [entreprises, setEntreprises] = useState([
-    {
-      id: 1,
-      nom: 'ABC Informatique',
-      domaine: 'Technologies',
-      adresse: 'Lot III A 15 bis, Andrainjato',
-      ville: 'Antananarivo',
-      telephone: '+261 34 11 111 11',
-      email: 'contact@abc-informatique.mg',
-      stagiaires: 3,
-      latitude: '-18.8792',
-      longitude: '47.5079'
-    },
-    {
-      id: 2,
-      nom: 'XYZ Tech',
-      domaine: 'Technologies',
-      adresse: 'Immeuble Tana Waterfront',
-      ville: 'Antananarivo',
-      telephone: '+261 34 22 222 22',
-      email: 'contact@xyztech.mg',
-      stagiaires: 2,
-      latitude: '-18.9050',
-      longitude: '47.5350'
-    },
-    {
-      id: 3,
-      nom: 'BNI Madagascar',
-      domaine: 'Banque',
-      adresse: 'Avenue de l\'Indépendance',
-      ville: 'Antananarivo',
-      telephone: '+261 34 33 333 33',
-      email: 'contact@bni.mg',
-      stagiaires: 1,
-      latitude: '-18.9000',
-      longitude: '47.5200'
-    },
-    {
-      id: 4,
-      nom: 'Orange Madagascar',
-      domaine: 'Télécom',
-      adresse: 'Lot 66 A Andranomena',
-      ville: 'Antananarivo',
-      telephone: '+261 34 44 444 44',
-      email: 'contact@orange.mg',
-      stagiaires: 2,
-      latitude: '-18.8850',
-      longitude: '47.5400'
-    },
-    {
-      id: 5,
-      nom: 'JIRAMA',
-      domaine: 'Énergie',
-      adresse: 'Rue Ravoninahitriniarivo',
-      ville: 'Antananarivo',
-      telephone: '+261 34 55 555 55',
-      email: 'contact@jirama.mg',
-      stagiaires: 1,
-      latitude: '-18.9100',
-      longitude: '47.5300'
-    },
-    {
-      id: 6,
-      nom: 'CNAPS',
-      domaine: 'Services',
-      adresse: 'Ambohijatovo',
-      ville: 'Antananarivo',
-      telephone: '+261 34 66 666 66',
-      email: 'contact@cnaps.mg',
-      stagiaires: 1,
-      latitude: '-18.8950',
-      longitude: '47.5250'
+  const loadCompanies = async () => {
+    try {
+      setLoading(true);
+      const res = await companiesApi.getAll();
+      const list = Array.isArray(res) ? res : res?.items || [];
+
+      const mapped = list.map(item => ({
+        id: item.id,
+        nom: item.nom || 'Entreprise',
+        domaine: item.secteur || item.domaine || 'Technologies',
+        adresse: item.adresse || 'Madagascar',
+        ville: item.ville || 'Antananarivo',
+        telephone: item.telephone || '+261 34 00 000 00',
+        email: item.email || 'contact@entreprise.mg',
+        stagiaires: item.internships?.length || item.stagiaires || 0,
+        latitude: item.latitude || '-18.8792',
+        longitude: item.longitude || '47.5079'
+      }));
+      setEntreprises(mapped);
+    } catch (err) {
+      console.error('Erreur chargement entreprises:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    loadCompanies();
+  }, []);
 
   const stats = {
     total: entreprises.length,
-    totalStagiaires: entreprises.reduce((acc, e) => acc + e.stagiaires, 0)
+    totalStagiaires: entreprises.reduce((acc, e) => acc + (e.stagiaires || 0), 0)
   };
 
   const filteredEntreprises = entreprises.filter(e => {
-    const matchSearch = e.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        e.ville.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (e.nom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (e.ville || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchDomaine = filterDomaine === 'Tous' || e.domaine === filterDomaine;
     const matchVille = filterVille === 'Tous' || e.ville === filterVille;
     return matchSearch && matchDomaine && matchVille;
   });
 
-  const totalPages = Math.ceil(filteredEntreprises.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredEntreprises.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedEntreprises = filteredEntreprises.slice(startIndex, startIndex + itemsPerPage);
 
@@ -144,27 +101,54 @@ function AdminEntreprises() {
     });
   };
 
-  const handleAdd = () => {
-    const newEntreprise = {
-      id: entreprises.length + 1,
-      ...formData,
-      stagiaires: 0
-    };
-    setEntreprises([...entreprises, newEntreprise]);
+  const handleAdd = async () => {
+    try {
+      await companiesApi.create({
+        nom: formData.nom,
+        secteur: formData.domaine,
+        adresse: formData.adresse,
+        ville: formData.ville || 'Antananarivo',
+        email: formData.email,
+        telephone: formData.telephone
+      });
+      await loadCompanies();
+    } catch {
+      const newEntreprise = { id: entreprises.length + 1, ...formData, stagiaires: 0 };
+      setEntreprises([...entreprises, newEntreprise]);
+    }
     setShowAddModal(false);
     resetForm();
   };
 
-  const handleEdit = () => {
-    setEntreprises(entreprises.map(e => 
-      e.id === selectedEntreprise.id ? { ...e, ...formData } : e
-    ));
+  const handleEdit = async () => {
+    try {
+      if (selectedEntreprise?.id) {
+        await companiesApi.update(selectedEntreprise.id, {
+          nom: formData.nom,
+          secteur: formData.domaine,
+          adresse: formData.adresse,
+          ville: formData.ville,
+          email: formData.email,
+          telephone: formData.telephone
+        });
+        await loadCompanies();
+      }
+    } catch {
+      setEntreprises(entreprises.map(e => e.id === selectedEntreprise?.id ? { ...e, ...formData } : e));
+    }
     setShowEditModal(false);
     resetForm();
   };
 
-  const handleDelete = () => {
-    setEntreprises(entreprises.filter(e => e.id !== selectedEntreprise.id));
+  const handleDelete = async () => {
+    try {
+      if (selectedEntreprise?.id) {
+        await companiesApi.delete(selectedEntreprise.id);
+        await loadCompanies();
+      }
+    } catch {
+      setEntreprises(entreprises.filter(e => e.id !== selectedEntreprise?.id));
+    }
     setShowDeleteModal(false);
     setSelectedEntreprise(null);
   };

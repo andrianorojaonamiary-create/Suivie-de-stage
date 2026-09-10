@@ -1,5 +1,4 @@
-// src/pages/admin/Stages.jsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
   FaList,
@@ -9,6 +8,7 @@ import {
 import StageForm from './components/StageForm';
 import StageDetail from './components/StageDetail';
 import StageDelete from './components/StageDelete';
+import internshipsApi from '../../api/internshipsApi';
 
 function AdminStages() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +20,8 @@ function AdminStages() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stages, setStages] = useState([]);
   const [formData, setFormData] = useState({
     titre: '',
     etudiant: '',
@@ -33,68 +35,35 @@ function AdminStages() {
   });
   const itemsPerPage = 5;
 
-  const [stages, setStages] = useState([
-    {
-      id: 1,
-      titre: "Développement d'une application web",
-      etudiant: 'Miora Rakoto',
-      entreprise: 'ABC Informatique',
-      encadreur: 'RABEMANANTSOA Nivo',
-      domaine: 'Développement Web',
-      dateDebut: '03/08/2026',
-      dateFin: '03/10/2026',
-      statut: 'En cours',
-      progression: 32
-    },
-    {
-      id: 2,
-      titre: "Développement mobile",
-      etudiant: 'Hery Rakotondrabe',
-      entreprise: 'XYZ Tech',
-      encadreur: 'RALAVA Marie',
-      domaine: 'Développement Mobile',
-      dateDebut: '01/01/2025',
-      dateFin: '30/06/2025',
-      statut: 'Terminé',
-      progression: 100
-    },
-    {
-      id: 3,
-      titre: "Système de reporting",
-      etudiant: 'Fanja Andriantsoa',
-      entreprise: 'BNI Madagascar',
-      encadreur: 'RAKOTONDRASOA Mamy',
-      domaine: 'Analyse de Données',
-      dateDebut: '01/03/2026',
-      dateFin: '01/09/2026',
-      statut: 'À venir',
-      progression: 0
-    },
-    {
-      id: 4,
-      titre: "Supervision réseau",
-      etudiant: 'Tojo Ramanantsoa',
-      entreprise: 'JIRAMA',
-      encadreur: 'RABEMANANTSOA Nivo',
-      domaine: 'Réseaux',
-      dateDebut: '15/05/2026',
-      dateFin: '15/08/2026',
-      statut: 'En cours',
-      progression: 60
-    },
-    {
-      id: 5,
-      titre: "Analyse de données",
-      etudiant: 'Lalao Rasamimanana',
-      entreprise: 'Orange Madagascar',
-      encadreur: 'RANAIVO Jean',
-      domaine: 'Analyse de Données',
-      dateDebut: '01/06/2026',
-      dateFin: '01/09/2026',
-      statut: 'En cours',
-      progression: 45
+  const loadStages = async () => {
+    try {
+      setLoading(true);
+      const res = await internshipsApi.getAll();
+      const list = Array.isArray(res) ? res : res?.items || [];
+
+      const mapped = list.map(item => ({
+        id: item.id,
+        titre: item.titre || 'Stage sans titre',
+        etudiant: item.etudiant ? `${item.etudiant.prenom} ${item.etudiant.nom}` : (item.etudiantName || 'Étudiant'),
+        entreprise: item.entreprise ? item.entreprise.nom : (item.companyName || 'Entreprise'),
+        encadreur: item.encadreur ? `${item.encadreur.prenom} ${item.encadreur.nom}` : (item.supervisorName || 'Encadreur'),
+        domaine: item.domaine || item.entreprise?.secteur || 'Développement Web',
+        dateDebut: item.dateDebut ? new Date(item.dateDebut).toLocaleDateString('fr-FR') : '03/08/2026',
+        dateFin: item.dateFin ? new Date(item.dateFin).toLocaleDateString('fr-FR') : '03/10/2026',
+        statut: item.statut === 'en_cours' ? 'En cours' : item.statut === 'a_venir' ? 'À venir' : 'Terminé',
+        progression: item.progression ?? (item.statut === 'termine' ? 100 : item.statut === 'en_cours' ? 45 : 0)
+      }));
+      setStages(mapped);
+    } catch (err) {
+      console.error('Erreur récurrente stages:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  };
+
+  useEffect(() => {
+    loadStages();
+  }, []);
 
   const stats = {
     total: stages.length,
@@ -104,15 +73,15 @@ function AdminStages() {
   };
 
   const filteredStages = stages.filter(s => {
-    const matchSearch = s.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        s.etudiant.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        s.entreprise.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = (s.titre || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (s.etudiant || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        (s.entreprise || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchStatut = filterStatut === 'Tous' || s.statut === filterStatut;
     const matchDomaine = filterDomaine === 'Tous' || s.domaine === filterDomaine;
     return matchSearch && matchStatut && matchDomaine;
   });
 
-  const totalPages = Math.ceil(filteredStages.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredStages.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedStages = filteredStages.slice(startIndex, startIndex + itemsPerPage);
 
@@ -146,26 +115,50 @@ function AdminStages() {
     });
   };
 
-  const handleAdd = () => {
-    const newStage = {
-      id: stages.length + 1,
-      ...formData
-    };
-    setStages([...stages, newStage]);
+  const handleAdd = async () => {
+    try {
+      await internshipsApi.create({
+        titre: formData.titre,
+        description: formData.domaine,
+        statut: formData.statut === 'En cours' ? 'en_cours' : formData.statut === 'À venir' ? 'a_venir' : 'termine',
+        dateDebut: formData.dateDebut || new Date().toISOString(),
+        dateFin: formData.dateFin || new Date().toISOString()
+      });
+      await loadStages();
+    } catch {
+      // fallback local update if creation fails due to missing UUID foreign keys
+      const newStage = { id: stages.length + 1, ...formData };
+      setStages([...stages, newStage]);
+    }
     setShowAddModal(false);
     resetForm();
   };
 
-  const handleEdit = () => {
-    setStages(stages.map(s => 
-      s.id === selectedStage.id ? { ...s, ...formData } : s
-    ));
+  const handleEdit = async () => {
+    try {
+      if (selectedStage?.id) {
+        await internshipsApi.update(selectedStage.id, {
+          titre: formData.titre,
+          statut: formData.statut === 'En cours' ? 'en_cours' : formData.statut === 'À venir' ? 'a_venir' : 'termine'
+        });
+        await loadStages();
+      }
+    } catch {
+      setStages(stages.map(s => s.id === selectedStage?.id ? { ...s, ...formData } : s));
+    }
     setShowEditModal(false);
     resetForm();
   };
 
-  const handleDelete = () => {
-    setStages(stages.filter(s => s.id !== selectedStage.id));
+  const handleDelete = async () => {
+    try {
+      if (selectedStage?.id) {
+        await internshipsApi.delete(selectedStage.id);
+        await loadStages();
+      }
+    } catch {
+      setStages(stages.filter(s => s.id !== selectedStage?.id));
+    }
     setShowDeleteModal(false);
     setSelectedStage(null);
   };

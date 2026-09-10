@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
   FaBuilding, FaMapMarkerAlt, FaPhone, FaEnvelope, 
   FaPlus, FaEdit, FaTrash, FaEye
 } from 'react-icons/fa';
+import { companiesApi } from '../../api';
 
 function MonEntreprise() {
   const navigate = useNavigate();
@@ -11,8 +12,9 @@ function MonEntreprise() {
   // ===== ÉTATS =====
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [entrepriseToDelete, setEntrepriseToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
   
-  // ===== DONNÉES SIMULÉES =====
+  // ===== DONNÉES ENTREPRISES =====
   const [entreprises, setEntreprises] = useState([
     {
       id: 1,
@@ -28,6 +30,36 @@ function MonEntreprise() {
       lng: 47.5079
     }
   ]);
+
+  const fetchCompanies = async () => {
+    try {
+      setLoading(true);
+      const res = await companiesApi.getAll();
+      const list = Array.isArray(res) ? res : res?.items || [];
+      if (list.length > 0) {
+        const mapped = list.map(item => ({
+          id: item.id,
+          nom: item.name || item.nom || 'Entreprise',
+          domaine: item.domain || item.sector || item.domaine || '',
+          adresse: item.address || item.adresse || '',
+          ville: item.city || item.ville || 'Antananarivo',
+          telephone: item.phone || item.telephone || '',
+          email: item.email || '',
+          site: item.website || item.site || '',
+          description: item.description || ''
+        }));
+        setEntreprises(mapped);
+      }
+    } catch (err) {
+      console.error('Erreur chargement entreprises:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCompanies();
+  }, []);
 
   // ===== ACTIONS =====
   const handleView = (id) => {
@@ -45,12 +77,21 @@ function MonEntreprise() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    const entreprise = entreprises.find(e => e.id === entrepriseToDelete);
-    setEntreprises(entreprises.filter(e => e.id !== entrepriseToDelete));
-    setShowDeleteModal(false);
-    setEntrepriseToDelete(null);
-    alert(`🗑️ Entreprise "${entreprise?.nom}" supprimée !`);
+  const confirmDelete = async () => {
+    try {
+      if (entrepriseToDelete) {
+        await companiesApi.delete(entrepriseToDelete);
+      }
+      const entreprise = entreprises.find(e => e.id === entrepriseToDelete);
+      setEntreprises(entreprises.filter(e => e.id !== entrepriseToDelete));
+      alert(`🗑️ Entreprise "${entreprise?.nom}" supprimée !`);
+    } catch (err) {
+      console.error('Erreur suppression entreprise:', err);
+      alert('Erreur lors de la suppression de l\'entreprise');
+    } finally {
+      setShowDeleteModal(false);
+      setEntrepriseToDelete(null);
+    }
   };
 
   const cancelDelete = () => {

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUsers, FaUserGraduate,
@@ -6,144 +6,65 @@ import {
   FaChevronLeft, FaChevronRight, FaClock, FaCheckCircle,
   FaTimes, FaGraduationCap
 } from 'react-icons/fa';
+import { studentsApi } from '../../api';
 
 function EnseignantEtudiants() {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFiliere, setSelectedFiliere] = useState('tous');
   const [selectedNiveau, setSelectedNiveau] = useState('tous');
+  const [loading, setLoading] = useState(true);
   
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const [students] = useState([
+  const [students, setStudents] = useState([
     {
-      id: 1,
-      nom: 'Rakoto Miora',
-      matricule: 'ETU-2024-0421',
-      filiere: 'Génie Logiciel',
-      niveau: 'Master 2',
-      stage: {
-        id: 1,
-        titre: "Plateforme web RH",
-        entreprise: 'TechMada SARL',
-        statut: 'En cours',
-        dateDebut: '2024-03-01',
-        dateFin: '2024-09-15',
-        progression: 65
-      },
-      evaluation: 'Validé',
-      rapports: 2
-    },
-    {
-      id: 2,
-      nom: 'Rakotondrabe Hery',
-      matricule: 'ETU-2024-0422',
-      filiere: 'Réseaux',
-      niveau: 'Licence 3',
-      stage: {
-        id: 2,
-        titre: "App mobile comptes",
-        entreprise: 'Airtel Madagascar',
-        statut: 'En attente',
-        dateDebut: '2024-04-01',
-        dateFin: '2024-10-01',
-        progression: 30
-      },
-      evaluation: 'À faire',
-      rapports: 1
-    },
-    {
-      id: 3,
-      nom: 'Ramanantsoa Tojo',
-      matricule: 'ETU-2024-0423',
-      filiere: 'Sécurité Info.',
-      niveau: 'Master 1',
-      stage: {
-        id: 3,
-        titre: "Migration système",
-        entreprise: 'BNI Madagascar',
-        statut: 'En attente',
-        dateDebut: '2024-05-01',
-        dateFin: '2024-11-01',
-        progression: 15
-      },
-      evaluation: 'À faire',
-      rapports: 0
-    },
-    {
-      id: 4,
-      nom: 'Andriantsoa Fanja',
-      matricule: 'ETU-2024-0424',
-      filiere: 'Génie Logiciel',
-      niveau: 'Licence 2',
-      stage: {
-        id: 4,
-        titre: "Analyse données clients",
-        entreprise: 'Airtel Madagascar',
-        statut: 'En attente',
-        dateDebut: '2024-06-01',
-        dateFin: '2024-12-01',
-        progression: 10
-      },
-      evaluation: 'À faire',
-      rapports: 0
-    },
-    {
-      id: 5,
-      nom: 'Rakotondrabe Hery',
-      matricule: 'ETU-2024-0425',
-      filiere: 'Multimédia',
-      niveau: 'Licence 3',
-      stage: {
-        id: 5,
-        titre: "Plateforme e-learning",
-        entreprise: 'TechMada SARL',
-        statut: 'Terminé',
-        dateDebut: '2024-02-01',
-        dateFin: '2024-08-01',
-        progression: 100
-      },
-      evaluation: 'Validé',
-      rapports: 3
-    },
-    {
-      id: 6,
-      nom: 'Rajaonarivelo Ando',
-      matricule: 'ETU-2024-0426',
-      filiere: 'Réseaux',
-      niveau: 'Licence 1',
-      stage: {
-        id: 6,
-        titre: "Gestion de stock",
-        entreprise: 'DistriTech',
-        statut: 'Refusé',
-        dateDebut: '2024-07-01',
-        dateFin: '2024-12-31',
-        progression: 20
-      },
-      evaluation: 'À corriger',
-      rapports: 1
-    },
-    {
-      id: 7,
-      nom: 'Razafindramary Fy',
-      matricule: 'ETU-2024-0427',
-      filiere: 'Génie Logiciel',
-      niveau: 'Master 2',
-      stage: {
-        id: 7,
-        titre: "Gestion rendez-vous",
-        entreprise: 'Santé Plus',
-        statut: 'En cours',
-        dateDebut: '2024-08-01',
-        dateFin: '2025-01-15',
-        progression: 5
-      },
-      evaluation: 'À faire',
-      rapports: 0
+      id: 1, nom: 'Rakoto Miora', matricule: 'ETU-2024-0421',
+      filiere: 'Génie Logiciel', niveau: 'Master 2',
+      stage: { id: 1, titre: "Plateforme web RH", entreprise: 'TechMada SARL', statut: 'En cours', dateDebut: '2024-03-01', dateFin: '2024-09-15', progression: 65 },
+      evaluation: 'Validé', rapports: 2
     }
   ]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        const res = await studentsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          const mapped = list.map(item => ({
+            id: item.id,
+            nom: `${item.lastName || item.user?.lastName || ''} ${item.firstName || item.user?.firstName || ''}`.trim() || 'Étudiant',
+            matricule: item.studentNumber || item.matricule || `ETU-${item.id}`,
+            filiere: item.filiere || item.major || 'Non renseigné',
+            niveau: item.niveau || item.level || 'Licence 3',
+            stage: item.currentInternship ? {
+              id: item.currentInternship.id,
+              titre: item.currentInternship.title || 'Stage',
+              entreprise: item.currentInternship.company?.name || 'Entreprise',
+              statut: item.currentInternship.status === 'en_cours' ? 'En cours' : item.currentInternship.status === 'termine' ? 'Terminé' : 'En attente',
+              dateDebut: item.currentInternship.startDate || null,
+              dateFin: item.currentInternship.endDate || null,
+              progression: item.currentInternship.progressPercentage || 0
+            } : { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
+            evaluation: item.evaluationStatus || 'À faire',
+            rapports: item.reportsCount || 0
+          }));
+          setStudents(mapped);
+        }
+      } catch (err) {
+        console.error('Erreur chargement étudiants enseignant:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+
 
   const stats = {
     total: students.length,

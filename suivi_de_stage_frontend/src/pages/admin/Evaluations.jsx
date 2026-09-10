@@ -1,6 +1,4 @@
-import { useState, useRef } from 'react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { useState, useRef, useEffect } from 'react';
 import {
   FaStar, FaFilter, FaDownload, FaEye, FaSearch,
   FaChartBar, FaPrint, FaTimes, FaAward, FaChevronLeft, FaChevronRight,
@@ -9,6 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
+import { evaluationsApi, internshipsApi } from '../../api';
 
 function AdminEvaluations() {
   // ===== ÉTATS =====
@@ -19,11 +18,12 @@ function AdminEvaluations() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
   const tableRef = useRef(null);
 
   // ===== DONNÉES ÉVALUATIONS =====
-  const evaluations = [
+  const [evaluations, setEvaluations] = useState([
     {
       id: 1,
       etudiant: 'Miora Rakoto',
@@ -78,71 +78,56 @@ function AdminEvaluations() {
       note: null,
       commentaire: 'En attente de validation par l\'encadreur.',
       criteres: []
-    },
-    {
-      id: 4,
-      etudiant: 'Tojo Ramanantsoa',
-      stage: 'Supervision réseau',
-      entreprise: 'JIRAMA',
-      encadreur: 'RAKOTONDRASOA Mamy',
-      type: 'Tuteur pédagogique',
-      date: '20/08/2026',
-      status: 'En révision',
-      note: 14.5,
-      commentaire: 'Bon travail, quelques points à améliorer.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 14 },
-        { nom: 'Qualité du travail', note: 15 },
-        { nom: 'Autonomie', note: 13 },
-        { nom: 'Respect des délais', note: 14 },
-        { nom: 'Esprit d\'équipe', note: 16 },
-        { nom: 'Communication', note: 14 },
-        { nom: 'Assiduité et ponctualité', note: 15 }
-      ]
-    },
-    {
-      id: 5,
-      etudiant: 'Lalao Rasamimanana',
-      stage: 'Analyse de données',
-      entreprise: 'Orange Madagascar',
-      encadreur: 'RALAVA Marie',
-      type: 'Maître de stage',
-      date: '15/07/2026',
-      status: 'Validé',
-      note: 15.8,
-      commentaire: 'Bon travail dans l\'ensemble.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 16 },
-        { nom: 'Qualité du travail', note: 16 },
-        { nom: 'Autonomie', note: 15 },
-        { nom: 'Respect des délais', note: 16 },
-        { nom: 'Esprit d\'équipe', note: 15 },
-        { nom: 'Communication', note: 16 },
-        { nom: 'Assiduité et ponctualité', note: 17 }
-      ]
-    },
-    {
-      id: 6,
-      etudiant: 'Noro Raharison',
-      stage: 'Système d\'information',
-      entreprise: 'CNAPS',
-      encadreur: 'RABEMANANTSOA Nivo',
-      type: 'Entreprise',
-      date: '10/08/2026',
-      status: 'Validé',
-      note: 15.2,
-      commentaire: 'Bon stagiaire, sérieux et impliqué.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 15 },
-        { nom: 'Qualité du travail', note: 16 },
-        { nom: 'Autonomie', note: 14 },
-        { nom: 'Respect des délais', note: 16 },
-        { nom: 'Esprit d\'équipe', note: 15 },
-        { nom: 'Communication', note: 15 },
-        { nom: 'Assiduité et ponctualité', note: 16 }
-      ]
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      try {
+        setLoading(true);
+        // Try fetching internships to aggregate evaluations
+        const internshipsRes = await internshipsApi.getAll();
+        const internshipsList = Array.isArray(internshipsRes) ? internshipsRes : internshipsRes?.items || [];
+        
+        let loadedEvals = [];
+        for (const stage of internshipsList) {
+          if (stage.id) {
+            try {
+              const evals = await evaluationsApi.getByInternship(stage.id);
+              const evalsList = Array.isArray(evals) ? evals : evals?.items || [];
+              evalsList.forEach((ev, idx) => {
+                loadedEvals.push({
+                  id: ev.id || `${stage.id}-${idx}`,
+                  etudiant: stage.student ? `${stage.student.firstName || ''} ${stage.student.lastName || ''}`.trim() : 'Étudiant',
+                  stage: stage.title || 'Stage',
+                  entreprise: stage.company?.name || 'Entreprise',
+                  encadreur: ev.evaluatorName || (stage.supervisor ? `${stage.supervisor.firstName || ''} ${stage.supervisor.lastName || ''}`.trim() : 'Encadreur'),
+                  type: ev.type || 'Maître de stage',
+                  date: ev.createdAt ? new Date(ev.createdAt).toLocaleDateString('fr-FR') : 'Date',
+                  status: ev.status || (ev.isValidated ? 'Validé' : 'En attente'),
+                  note: ev.note || ev.score || null,
+                  commentaire: ev.commentaire || ev.comment || '',
+                  criteres: ev.criteres || ev.criteria || []
+                });
+              });
+            } catch (err) {
+              // Ignore single stage eval fetch errors
+            }
+          }
+        }
+        
+        if (loadedEvals.length > 0) {
+          setEvaluations(loadedEvals);
+        }
+      } catch (err) {
+        console.error('Erreur chargement évaluations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvaluations();
+  }, []);
 
   // ===== STATISTIQUES =====
   const stats = {
@@ -223,6 +208,9 @@ function AdminEvaluations() {
       const element = tableRef.current;
       if (!element) return;
       
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,

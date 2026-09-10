@@ -1,7 +1,4 @@
-// src/pages/admin/Diplomes.jsx
-import { useState, useRef } from 'react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { useState, useRef, useEffect } from 'react';
 import {
   FaGraduationCap, FaFilter, FaDownload, FaEye, FaSearch,
   FaUserGraduate, FaBuilding, FaBriefcase, FaCalendarAlt,
@@ -14,6 +11,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
+import { professionalSituationsApi } from '../../api';
 
 function AdminDiplomes() {
   // ===== ÉTATS =====
@@ -24,11 +22,12 @@ function AdminDiplomes() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
   const tableRef = useRef(null);
 
   // ===== DONNÉES DIPLÔMÉS =====
-  const diplomes = [
+  const [diplomes, setDiplomes] = useState([
     {
       id: 1,
       nom: 'Rakoto',
@@ -105,46 +104,44 @@ function AdminDiplomes() {
       historique: [
         { entreprise: 'JIRAMA', poste: 'Stagiaire', dateDebut: '2023-01-01', dateFin: '2023-06-30' }
       ]
-    },
-    {
-      id: 5,
-      nom: 'Rasamimanana',
-      prenom: 'Lalao',
-      email: 'lalao.rasamimanana@email.mg',
-      telephone: '+261 34 56 789 01',
-      promotion: '2022',
-      filiere: 'Management',
-      situation: 'En emploi',
-      entreprise: 'Orange Madagascar',
-      poste: 'Responsable marketing',
-      localisation: 'Antananarivo',
-      dateEmbauche: '2022-09-15',
-      secteur: 'Télécom',
-      contrat: 'CDI',
-      historique: [
-        { entreprise: 'Orange Madagascar', poste: 'Responsable marketing', dateDebut: '2022-09-15', dateFin: 'Présent' }
-      ]
-    },
-    {
-      id: 6,
-      nom: 'Raharison',
-      prenom: 'Noro',
-      email: 'noro.raharison@email.mg',
-      telephone: '+261 34 67 890 12',
-      promotion: '2021',
-      filiere: 'Génie Informatique',
-      situation: 'En emploi',
-      entreprise: 'CNAPS',
-      poste: 'Administrateur système',
-      localisation: 'Toamasina',
-      dateEmbauche: '2021-11-01',
-      secteur: 'Services',
-      contrat: 'CDI',
-      historique: [
-        { entreprise: 'CNAPS', poste: 'Administrateur système', dateDebut: '2021-11-01', dateFin: 'Présent' }
-      ]
     }
-  ];
+  ]);
+
+  useEffect(() => {
+    const fetchDiplomes = async () => {
+      try {
+        setLoading(true);
+        const res = await professionalSituationsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || [];
+        if (list.length > 0) {
+          const mapped = list.map((item, idx) => ({
+            id: item.id || idx + 1,
+            nom: item.student?.user?.lastName || item.student?.lastName || item.nom || 'Diplômé',
+            prenom: item.student?.user?.firstName || item.student?.firstName || item.prenom || '',
+            email: item.student?.user?.email || item.email || '',
+            telephone: item.student?.user?.phone || item.student?.phone || item.telephone || '',
+            promotion: item.student?.promotion || item.promotion || '2023',
+            filiere: item.student?.filiere || item.filiere || 'Génie Informatique',
+            situation: item.type || item.situation || 'En emploi',
+            entreprise: item.entreprise || item.companyName || '',
+            poste: item.poste || item.position || '',
+            localisation: item.ville || item.localisation || 'Antananarivo',
+            dateEmbauche: item.dateDebut || item.dateEmbauche || null,
+            secteur: item.domaine || item.secteur || '',
+            contrat: item.contrat || 'CDI',
+            historique: item.historique || []
+          }));
+          setDiplomes(mapped);
+        }
+      } catch (err) {
+        console.error('Erreur chargement diplômés:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDiplomes();
+  }, []);
 
   // ===== STATISTIQUES =====
   const stats = {
@@ -217,6 +214,9 @@ function AdminDiplomes() {
       const element = tableRef.current;
       if (!element) return;
       
+      const html2canvas = (await import('html2canvas')).default;
+      const { jsPDF } = await import('jspdf');
+
       const canvas = await html2canvas(element, {
         scale: 2,
         useCORS: true,

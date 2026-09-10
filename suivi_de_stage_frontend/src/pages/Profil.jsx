@@ -7,50 +7,51 @@ import {
 } from 'react-icons/fa';
 
 function Profil() {
-  const { user } = useAuth();
+  const { user, updateProfile } = useAuth();
 
   const getProfileData = () => {
     const role = user?.role;
     
     const common = {
-      nom: user?.nom || 'Randriamaro',
-      prenom: user?.prenom || 'Jean',
-      email: user?.email || 'j.randriamaro@emit.mg',
-      telephone: user?.telephone || '+261 34 12 345 67',
-      role: role || 'ROLE_ADMIN',
-      membreDepuis: 'Septembre 2023',
+      nom: user?.nom || '',
+      prenom: user?.prenom || '',
+      email: user?.email || '',
+      telephone: user?.telephone || '',
+      adresse: user?.adresse || '',
+      role: role || 'ROLE_ETUDIANT',
+      membreDepuis: 'Stage EMIT 2026',
     };
 
     const roleData = {
       'ROLE_ADMIN': {
         ...common,
-        departement: 'Administration centrale',
-        staffId: 'ADM-2024-001',
+        departement: user?.departement || 'Administration centrale',
+        staffId: user?.id?.substring(0, 8) || 'ADM-001',
       },
       'ROLE_ETUDIANT': {
         ...common,
-        matricule: 'ETU-2024-0421',
-        niveau: 'Master 2',
-        filiere: 'Génie Logiciel',
-        ville: 'Fianarantsoa',
+        matricule: user?.studentProfile?.matricule || user?.matricule || 'Non défini',
+        niveau: user?.studentProfile?.niveau || user?.niveau || 'L3',
+        filiere: user?.studentProfile?.parcours || user?.filiere || 'Informatique',
+        ville: user?.adresse || 'Fianarantsoa',
       },
       'ROLE_ENSEIGNANT': {
         ...common,
-        grade: 'Professeur',
-        departement: 'Informatique',
-        specialite: 'Génie logiciel',
-        staffId: 'ENS-2024-042',
+        grade: user?.supervisorProfile?.grade || user?.grade || 'Enseignant',
+        departement: user?.supervisorProfile?.departement || user?.departement || 'Informatique',
+        specialite: user?.supervisorProfile?.specialite || user?.specialite || 'Informatique',
+        staffId: user?.id?.substring(0, 8) || 'ENS-001',
       },
       'ROLE_ENCADREUR': {
         ...common,
-        entreprise: 'TechMada SARL',
-        poste: 'Directeur technique',
-        adresse: 'Lot II M 77, Antananarivo',
-        secteur: 'Technologies de l\'information',
+        entreprise: user?.supervisorProfile?.entreprise?.nom || user?.entreprise || 'Entreprise',
+        poste: user?.poste || 'Encadreur professionnel',
+        adresse: user?.adresse || 'Madagascar',
+        secteur: user?.supervisorProfile?.entreprise?.secteur || 'Technologie',
       },
     };
 
-    return roleData[role] || roleData['ROLE_ADMIN'];
+    return roleData[role] || roleData['ROLE_ETUDIANT'];
   };
 
   const [profile, setProfile] = useState(getProfileData());
@@ -71,7 +72,6 @@ function Profil() {
     }
   };
 
-  // ===== COULEUR GRISE POUR TOUS LES RÔLES =====
   const roleColor = '#6BA9E6';
 
   const getRoleIcon = (role) => {
@@ -88,7 +88,6 @@ function Profil() {
     const role = profile.role;
     const fields = [];
 
-    // ===== CHAMPS COMMUNS AVEC ICÔNES GRISES =====
     fields.push(
       { name: 'nom', label: 'Nom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
       { name: 'prenom', label: 'Prénom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
@@ -99,21 +98,21 @@ function Profil() {
     if (role === 'ROLE_ADMIN') {
       fields.push(
         { name: 'departement', label: 'Service', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
-        { name: 'staffId', label: 'Matricule', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
+        { name: 'staffId', label: 'ID Utilisateur', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
       );
     } else if (role === 'ROLE_ETUDIANT') {
       fields.push(
         { name: 'matricule', label: 'Numéro étudiant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
         { name: 'niveau', label: 'Niveau', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} /> },
-        { name: 'filiere', label: 'Filière', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
-        { name: 'ville', label: 'Ville de résidence', icon: <FaMapMarkerAlt style={{ color: '#A0B8D0' }} /> },
+        { name: 'filiere', label: 'Parcours', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
+        { name: 'ville', label: 'Adresse / Ville', icon: <FaMapMarkerAlt style={{ color: '#A0B8D0' }} /> },
       );
     } else if (role === 'ROLE_ENSEIGNANT') {
       fields.push(
         { name: 'grade', label: 'Grade', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} /> },
         { name: 'departement', label: 'Département', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
         { name: 'specialite', label: 'Spécialité', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
-        { name: 'staffId', label: 'Numéro enseignant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
+        { name: 'staffId', label: 'ID Enseignant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
       );
     } else if (role === 'ROLE_ENCADREUR') {
       fields.push(
@@ -137,18 +136,35 @@ function Profil() {
     setPasswords(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSave = () => {
-    alert('✅ Profil mis à jour avec succès !');
+  const handleSave = async () => {
+    try {
+      await updateProfile({
+        nom: profile.nom,
+        prenom: profile.prenom,
+        telephone: profile.telephone,
+        adresse: profile.adresse,
+      });
+    } catch {
+      // toast error standard
+    }
   };
 
-  const handlePasswordUpdate = () => {
+  const handlePasswordUpdate = async () => {
+    if (!passwords.new) {
+      alert('Veuillez saisir un nouveau mot de passe');
+      return;
+    }
     if (passwords.new !== passwords.confirm) {
       alert('Les mots de passe ne correspondent pas');
       return;
     }
-    setShowPassForm(false);
-    setPasswords({ current: '', new: '', confirm: '' });
-    alert('✅ Mot de passe mis à jour !');
+    try {
+      await updateProfile({ motDePasse: passwords.new });
+      setShowPassForm(false);
+      setPasswords({ current: '', new: '', confirm: '' });
+    } catch {
+      // toast error
+    }
   };
 
   const roleLabel = getRoleLabel(profile.role);
