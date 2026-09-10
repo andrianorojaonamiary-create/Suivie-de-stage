@@ -1,5 +1,7 @@
+import api from './index';
+
 // ============================================================
-// BASE DE DONNÉES SIMULÉE
+// BASE DE DONNÉES SIMULÉE (AVEC PROXY VERS LE BACKEND RÉEL)
 // ============================================================
 
 // ===== UTILISATEURS =====
@@ -397,72 +399,92 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 export const mockApi = {
   // ===== AUTHENTIFICATION =====
   login: async (email, password) => {
-    await delay(800);
-    const user = users.find(u => u.email === email && u.password === password);
-    if (!user) {
-      throw new Error('Email ou mot de passe incorrect');
-    }
-    const token = btoa(JSON.stringify({ 
-      userId: user.id, 
-      email: user.email, 
-      role: user.role 
-    }));
-    return {
-      token,
-      user: {
-        id: user.id,
-        nom: user.nom,
-        prenom: user.prenom,
-        email: user.email,
-        telephone: user.telephone || '',
-        role: user.role
+    try {
+      const res = await api.auth.login({ email, motDePasse: password });
+      return {
+        token: res.token || res.access_token,
+        user: res.user || res
+      };
+    } catch {
+      await delay(400);
+      const user = users.find(u => u.email === email && u.password === password);
+      if (!user) {
+        throw new Error('Email ou mot de passe incorrect');
       }
-    };
+      const token = btoa(JSON.stringify({ 
+        userId: user.id, 
+        email: user.email, 
+        role: user.role 
+      }));
+      return {
+        token,
+        user: {
+          id: user.id,
+          nom: user.nom,
+          prenom: user.prenom,
+          email: user.email,
+          telephone: user.telephone || '',
+          role: user.role
+        }
+      };
+    }
   },
 
   register: async (userData) => {
-    await delay(800);
-    if (users.find(u => u.email === userData.email)) {
-      throw new Error('Cet email est déjà utilisé');
-    }
-    const newUser = {
-      id: users.length + 1,
-      ...userData,
-      telephone: userData.telephone || '',
-      dateCreation: new Date().toISOString()
-    };
-    users.push(newUser);
-    return {
-      message: 'Inscription réussie !',
-      user: {
-        id: newUser.id,
-        nom: newUser.nom,
-        prenom: newUser.prenom,
-        email: newUser.email,
-        telephone: newUser.telephone,
-        role: newUser.role
+    try {
+      const res = await api.auth.register(userData);
+      return {
+        message: 'Inscription réussie !',
+        user: res.user || res
+      };
+    } catch {
+      await delay(400);
+      if (users.find(u => u.email === userData.email)) {
+        throw new Error('Cet email est déjà utilisé');
       }
-    };
+      const newUser = {
+        id: users.length + 1,
+        ...userData,
+        telephone: userData.telephone || '',
+        dateCreation: new Date().toISOString()
+      };
+      users.push(newUser);
+      return {
+        message: 'Inscription réussie !',
+        user: {
+          id: newUser.id,
+          nom: newUser.nom,
+          prenom: newUser.prenom,
+          email: newUser.email,
+          telephone: newUser.telephone,
+          role: newUser.role
+        }
+      };
+    }
   },
 
   getProfile: async (token) => {
-    await delay(500);
     try {
-      const payload = JSON.parse(atob(token));
-      const user = users.find(u => u.id === payload.userId);
-      if (!user) {
-        throw new Error('Utilisateur non trouvé');
-      }
-      return {
-        id: user.id,
-        nom: user.nom,
-        prenom: user.prenom,
-        email: user.email,
-        telephone: user.telephone || '',
-        role: user.role
-      };
+      return await api.auth.getMe();
     } catch {
-      throw new Error('Token invalide');
+      await delay(300);
+      try {
+        const payload = JSON.parse(atob(token));
+        const user = users.find(u => u.id === payload.userId);
+        if (!user) {
+          throw new Error('Utilisateur non trouvé');
+        }
+        return {
+          id: user.id,
+          nom: user.nom,
+          prenom: user.prenom,
+          email: user.email,
+          telephone: user.telephone || '',
+          role: user.role
+        };
+      } catch {
+        throw new Error('Token invalide');
+      }
     }
   },
 
@@ -479,15 +501,24 @@ export const mockApi = {
 
   // ===== ENTREPRISES =====
   getEntreprises: async () => {
-    await delay(300);
-    return entreprises;
+    try {
+      const res = await api.companies.getAll();
+      return Array.isArray(res) ? res : res.data || res.items || entreprises;
+    } catch {
+      await delay(200);
+      return entreprises;
+    }
   },
 
   getEntreprise: async (id) => {
-    await delay(300);
-    const entreprise = entreprises.find(e => e.id === parseInt(id));
-    if (!entreprise) throw new Error('Entreprise non trouvée');
-    return entreprise;
+    try {
+      return await api.companies.getById(id);
+    } catch {
+      await delay(200);
+      const entreprise = entreprises.find(e => e.id === parseInt(id));
+      if (!entreprise) throw new Error('Entreprise non trouvée');
+      return entreprise;
+    }
   },
 
   createEntreprise: async (data) => {
@@ -520,15 +551,24 @@ export const mockApi = {
 
   // ===== ENCADREURS =====
   getEncadreurs: async () => {
-    await delay(300);
-    return encadreurs;
+    try {
+      const res = await api.supervisors.getAll();
+      return Array.isArray(res) ? res : res.data || res.items || encadreurs;
+    } catch {
+      await delay(200);
+      return encadreurs;
+    }
   },
 
   getEncadreur: async (id) => {
-    await delay(300);
-    const encadreur = encadreurs.find(e => e.id === parseInt(id));
-    if (!encadreur) throw new Error('Encadreur non trouvé');
-    return encadreur;
+    try {
+      return await api.supervisors.getById(id);
+    } catch {
+      await delay(200);
+      const encadreur = encadreurs.find(e => e.id === parseInt(id));
+      if (!encadreur) throw new Error('Encadreur non trouvé');
+      return encadreur;
+    }
   },
 
   createEncadreur: async (data) => {
@@ -560,15 +600,24 @@ export const mockApi = {
 
   // ===== STAGES =====
   getStages: async () => {
-    await delay(300);
-    return stages;
+    try {
+      const res = await api.internships.getAll();
+      return Array.isArray(res) ? res : res.data || res.items || stages;
+    } catch {
+      await delay(200);
+      return stages;
+    }
   },
 
   getStage: async (id) => {
-    await delay(300);
-    const stage = stages.find(s => s.id === parseInt(id));
-    if (!stage) throw new Error('Stage non trouvé');
-    return stage;
+    try {
+      return await api.internships.getById(id);
+    } catch {
+      await delay(200);
+      const stage = stages.find(s => s.id === parseInt(id));
+      if (!stage) throw new Error('Stage non trouvé');
+      return stage;
+    }
   },
 
   getStagesByEtudiant: async (etudiantId) => {
@@ -817,15 +866,24 @@ export const mockApi = {
 
   // ===== UTILISATEURS (Admin) =====
   getUsers: async () => {
-    await delay(300);
-    return users;
+    try {
+      const res = await api.users.getAll();
+      return Array.isArray(res) ? res : res.data || res.items || users;
+    } catch {
+      await delay(200);
+      return users;
+    }
   },
 
   getUser: async (id) => {
-    await delay(300);
-    const user = users.find(u => u.id === parseInt(id));
-    if (!user) throw new Error('Utilisateur non trouvé');
-    return user;
+    try {
+      return await api.users.getById(id);
+    } catch {
+      await delay(200);
+      const user = users.find(u => u.id === parseInt(id));
+      if (!user) throw new Error('Utilisateur non trouvé');
+      return user;
+    }
   },
 
   updateUser: async (id, data) => {

@@ -1,19 +1,38 @@
 import axios from 'axios';
 
+const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
+  baseURL: typeof rawBaseUrl === 'string' ? rawBaseUrl.trim() : rawBaseUrl,
   headers: {
     'Content-Type': 'application/json'
   }
 });
 
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Optionnel: déconnexion si le token est invalide ou expiré
+      const hadToken = Boolean(localStorage.getItem('token'));
+      if (hadToken && !window.location.pathname.includes('/login')) {
+        localStorage.removeItem('token');
+      }
+    }
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
 export const getApiErrorMessage = (error, fallback) => {
   const message = error.response?.data?.message;
@@ -37,4 +56,6 @@ export const normalizeUser = (user) => {
   return { ...user, role };
 };
 
-export default apiClient;
+export const unwrap = (promise) => promise.then((res) => res.data);
+
+export default apiClient;

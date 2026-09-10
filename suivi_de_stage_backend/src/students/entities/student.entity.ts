@@ -14,6 +14,8 @@ import {
 import { User } from '../../users/entities/user.entity';
 import { AcademicStatus } from '../enums/academic-status.enum';
 import { EmploymentStatus } from '../enums/employment-status.enum';
+import { StudentLevel } from '../enums/student-level.enum';
+import { StudentParcours } from '../enums/student-parcours.enum';
 import { ProfessionalSituation } from '../../professional-situations/entities/professional-situation.entity';
 
 @Entity('students')
@@ -27,10 +29,10 @@ export class Student {
   matricule: string;
 
   @Column({ type: 'varchar', length: 150 })
-  formation: string;
+  formation: StudentParcours | string;
 
   @Column({ type: 'varchar', length: 100 })
-  niveau: string;
+  niveau: StudentLevel | string;
 
   @Column({ type: 'varchar', length: 20 })
   promotion: string;
