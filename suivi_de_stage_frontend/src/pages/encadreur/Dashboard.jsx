@@ -306,7 +306,7 @@ function EncadreurDashboard() {
                   tick={{ fontSize: 11, fill: '#6c7a8a' }}
                   axisLine={{ stroke: '#E8EEF4' }}
                   tickLine={false}
-                  domain={[0, Math.max(...filiereData.map(d => d.value)) + 1]}
+                  domain={[0, filiereData.length > 0 ? Math.max(...filiereData.map(d => d.value)) + 1 : 5]}
                 />
                 <Tooltip 
                   contentStyle={{ 

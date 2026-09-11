@@ -165,6 +165,13 @@ function EnseignantDashboard() {
     lieux: 8
   };
 
+  const filiereData = [
+    { name: 'DA2I', value: 8, color: '#162449' },
+    { name: 'ICM', value: 5, color: '#6BA9E6' },
+    { name: 'AES', value: 3, color: '#F39C12' },
+    { name: 'CIGSI', value: 2, color: '#27AE60' },
+  ];
+
   const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
 
   return (
