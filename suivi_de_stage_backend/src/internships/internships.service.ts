@@ -65,15 +65,15 @@ export class InternshipsService {
 
     this.applyAccessScope(query, actor);
     if (dto.studentId)
-      query.andWhere('internship.student_id = :studentId', {
+      query.andWhere('internship.studentId = :studentId', {
         studentId: dto.studentId,
       });
     if (dto.companyId)
-      query.andWhere('internship.company_id = :companyId', {
+      query.andWhere('internship.companyId = :companyId', {
         companyId: dto.companyId,
       });
     if (dto.supervisorId)
-      query.andWhere('internship.supervisor_id = :supervisorId', {
+      query.andWhere('internship.supervisorId = :supervisorId', {
         supervisorId: dto.supervisorId,
       });
     if (dto.statut)
@@ -179,9 +179,9 @@ export class InternshipsService {
     if (actor.role === Role.ETUDIANT) {
       query.andWhere('studentUser.id = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
-      query.andWhere('supervisor.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
     } else if (actor.role !== Role.ADMINISTRATEUR) {
       query.andWhere('1 = 0');
     }

@@ -130,13 +130,13 @@ export class StudentsService {
     actor: AuthenticatedUser,
   ) {
     if (actor.role === Role.ETUDIANT) {
-      query.andWhere('student.user_id = :userId', { userId: actor.id });
+      query.andWhere('student.userId = :userId', { userId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
-      query.andWhere('student.encadreur_id = :encadreurId', {
+      query.andWhere('student.encadreurId = :encadreurId', {
         encadreurId: actor.id,
       });
     } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('student.entreprise_id = :entrepriseId', {
+      query.andWhere('student.entrepriseId = :entrepriseId', {
         entrepriseId: actor.id,
       });
     }
@@ -162,7 +162,7 @@ export class StudentsService {
       });
     }
     if (filters.statutAcademique) {
-      query.andWhere('student.statut_academique = :statutAcademique', {
+      query.andWhere('student.statutAcademique = :statutAcademique', {
         statutAcademique: filters.statutAcademique,
       });
     }
@@ -210,6 +210,7 @@ export class StudentsService {
   private ensureCanRead(student: Student, actor: AuthenticatedUser) {
     const allowed =
       actor.role === Role.ADMINISTRATEUR ||
+      actor.role === Role.ENSEIGNANT ||
       (actor.role === Role.ETUDIANT && student.userId === actor.id) ||
       (actor.role === Role.ENCADREUR && student.encadreurId === actor.id) ||
       (actor.role === Role.ENTREPRISE && student.entrepriseId === actor.id);

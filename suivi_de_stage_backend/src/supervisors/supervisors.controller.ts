@@ -40,7 +40,7 @@ export class SupervisorsController {
   }
 
   @Get()
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENSEIGNANT)
   findAll(
     @Query() dto: FindSupervisorsDto,
     @Req() request: AuthenticatedRequest,

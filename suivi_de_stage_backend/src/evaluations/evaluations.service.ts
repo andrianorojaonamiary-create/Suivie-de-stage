@@ -72,9 +72,9 @@ export class EvaluationsService {
     const query = this.evaluationsRepository
       .createQueryBuilder('evaluation')
       .leftJoinAndSelect('evaluation.evaluateur', 'evaluator')
-      .where('evaluation.stage_id = :stageId', { stageId });
+      .where('evaluation.stageId = :stageId', { stageId });
     if (dto.typeEvaluateur)
-      query.andWhere('evaluation.type_evaluateur = :typeEvaluateur', {
+      query.andWhere('evaluation.typeEvaluateur = :typeEvaluateur', {
         typeEvaluateur: dto.typeEvaluateur,
       });
     const [evaluations, total] = await query

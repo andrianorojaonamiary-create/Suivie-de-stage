@@ -46,12 +46,23 @@ export class UsersService {
   async findAll(findUsersDto: FindUsersDto) {
     const page = findUsersDto.page ?? 1;
     const limit = findUsersDto.limit ?? 10;
-    const [users, total] = await this.usersRepository.findAndCount({
-      where: findUsersDto.role ? { role: findUsersDto.role } : undefined,
-      order: { dateCreation: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const query = this.usersRepository.createQueryBuilder('user');
+
+    if (findUsersDto.role) {
+      query.andWhere('user.role = :role', { role: findUsersDto.role });
+    }
+    if (findUsersDto.search) {
+      query.andWhere(
+        '(LOWER(user.nom) LIKE LOWER(:search) OR LOWER(user.prenom) LIKE LOWER(:search) OR LOWER(user.email) LIKE LOWER(:search))',
+        { search: `%${findUsersDto.search}%` },
+      );
+    }
+
+    const [users, total] = await query
+      .orderBy('user.dateCreation', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
 
     return {
       data: users.map((user) => this.toPublicUser(user)),

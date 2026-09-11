@@ -1,6 +1,7 @@
-import { Module } from '@nestjs/common';
+import { Module, OnModuleInit } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
@@ -65,4 +66,37 @@ import { MapModule } from './map/map.module';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements OnModuleInit {
+  constructor(private readonly dataSource: DataSource) {}
+
+  async onModuleInit() {
+    const roles = [
+      'ETUDIANT',
+      'ENCADREUR',
+      'ENSEIGNANT',
+      'ENTREPRISE',
+      'ADMINISTRATEUR',
+      'ROLE_ETUDIANT',
+      'ROLE_ENCADREUR',
+      'ROLE_ENSEIGNANT',
+      'ROLE_ENTREPRISE',
+      'ROLE_ADMINISTRATEUR',
+    ];
+    for (const role of roles) {
+      try {
+        await this.dataSource.query(
+          `ALTER TYPE public.users_role_enum ADD VALUE IF NOT EXISTS '${role}';`,
+        );
+      } catch (err) {
+        // Ignore
+      }
+      try {
+        await this.dataSource.query(
+          `ALTER TYPE public.utilisateurs_role_enum ADD VALUE IF NOT EXISTS '${role}';`,
+        );
+      } catch (err) {
+        // Ignore
+      }
+    }
+  }
+}

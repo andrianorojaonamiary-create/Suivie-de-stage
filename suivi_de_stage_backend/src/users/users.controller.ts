@@ -32,11 +32,13 @@ export class UsersController {
   }
 
   @Get()
+  @Roles(Role.ADMINISTRATEUR, Role.ENSEIGNANT, Role.ENCADREUR)
   findAll(@Query() findUsersDto: FindUsersDto) {
     return this.usersService.findAll(findUsersDto);
   }
 
   @Get(':id')
+  @Roles(Role.ADMINISTRATEUR, Role.ENSEIGNANT, Role.ENCADREUR)
   findOne(@Param('id', new ParseUUIDPipe()) id: string) {
     return this.usersService.findOne(id);
   }

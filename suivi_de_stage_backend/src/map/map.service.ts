@@ -176,11 +176,11 @@ export class MapService {
     actor: AuthenticatedUser,
   ) {
     if (actor.role === Role.ETUDIANT) {
-      query.andWhere('student.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('student.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
-      query.andWhere('supervisor.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
     }
   }
 
@@ -189,11 +189,11 @@ export class MapService {
     actor: AuthenticatedUser,
   ) {
     if (actor.role === Role.ENCADREUR) {
-      query.andWhere('supervisor.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ETUDIANT) {
-      query.andWhere('student.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('student.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.user_id = :actorId', { actorId: actor.id });
+      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     }
   }
 }
