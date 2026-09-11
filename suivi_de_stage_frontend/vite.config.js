@@ -9,8 +9,9 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react';
+            // Ordre important: tester les plus spécifiques d'abord
+            if (id.includes('react-icons')) {
+              return 'vendor-icons';
             }
             if (id.includes('recharts')) {
               return 'vendor-recharts';
@@ -18,8 +19,8 @@ export default defineConfig({
             if (id.includes('leaflet') || id.includes('react-leaflet')) {
               return 'vendor-leaflet';
             }
-            if (id.includes('react-icons')) {
-              return 'vendor-icons';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+              return 'vendor-react';
             }
           }
         }

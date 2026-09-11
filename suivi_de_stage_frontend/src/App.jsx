@@ -55,6 +55,7 @@ const Diplomes = lazy(() => import('./pages/admin/Diplomes'));
 const Stages = lazy(() => import('./pages/admin/Stages'));
 const AdminEtudiants = lazy(() => import('./pages/admin/Etudiants'));
 const AdminEntreprise = lazy(() => import('./pages/admin/Entreprises'));
+const AdminRapports = lazy(() => import('./pages/admin/Rapports'));
 
 function LoadingFallback() {
   return (
@@ -91,20 +92,35 @@ function App() {
           <Route path="/register" element={<AuthLayout initialMode="register" />} />
           <Route path="/" element={<Navigate to="/login" />} />
 
-          {/* Routes protégées */}
+          {/* Routes protégées — RBAC par rôle */}
+          {/* Communes à tous les rôles authentifiés */}
           <Route element={<PrivateRoute />}>
             <Route element={<Layout />}>
-              {/* Admin */}
+              <Route path="/profil" element={<Profil />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/dashboard" element={<DynamicDashboardRedirect />} />
+            </Route>
+          </Route>
+
+          {/* Admin uniquement */}
+          <Route element={<PrivateRoute allowedRoles={['ROLE_ADMIN', 'ROLE_ADMINISTRATEUR']} />}>
+            <Route element={<Layout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/statistiques" element={<Statistiques />} />
-              <Route path="/admin/evaluations" element={<AdminEvaluations />} /> 
+              <Route path="/admin/evaluations" element={<AdminEvaluations />} />
               <Route path="/admin/encadreurs" element={<AdminEncadreurs />} />
               <Route path="/admin/diplomes" element={<Diplomes />} />
               <Route path="/admin/stages" element={<Stages />} />
               <Route path="/admin/etudiants" element={<AdminEtudiants />} />
               <Route path="/admin/entreprises" element={<AdminEntreprise />} />
+              <Route path="/admin/rapports" element={<AdminRapports />} />
+              <Route path="/admin/carte" element={<CarteStages />} />
+            </Route>
+          </Route>
 
-              {/* ===== ÉTUDIANT ===== */}
+          {/* Étudiant */}
+          <Route element={<PrivateRoute allowedRoles={['ROLE_ETUDIANT']} />}>
+            <Route element={<Layout />}>
               <Route path="/etudiant/dashboard" element={<EtudiantDashboard />} />
               <Route path="/etudiant/mes-stages" element={<MesStages />} />
               <Route path="/etudiant/ajouter-stage" element={<AjouterStage />} />
@@ -121,8 +137,12 @@ function App() {
               <Route path="/etudiant/suivi-stage" element={<SuiviStage />} />
               <Route path="/etudiant/mon-avenir" element={<MonAvenir />} />
               <Route path="/etudiant/carte" element={<CarteStages />} />
+            </Route>
+          </Route>
 
-              {/* ===== ENSEIGNANT ===== */}
+          {/* Enseignant */}
+          <Route element={<PrivateRoute allowedRoles={['ROLE_ENSEIGNANT']} />}>
+            <Route element={<Layout />}>
               <Route path="/enseignant/dashboard" element={<EnseignantDashboard />} />
               <Route path="/enseignant/stages" element={<EnseignantStages />} />
               <Route path="/enseignant/etudiants" element={<EnseignantEtudiants />} />
@@ -133,8 +153,12 @@ function App() {
               <Route path="/enseignant/carte" element={<CarteStages />} />
               <Route path="/enseignant/etudiant/:studentId" element={<EnseignantStudentDetail />} />
               <Route path="/enseignant/observations" element={<EnseignantObservations />} />
+            </Route>
+          </Route>
 
-              {/* ===== ENCADREUR ===== */}
+          {/* Encadreur */}
+          <Route element={<PrivateRoute allowedRoles={['ROLE_ENCADREUR']} />}>
+            <Route element={<Layout />}>
               <Route path="/encadreur/dashboard" element={<EncadreurDashboard />} />
               <Route path="/encadreur/etudiants" element={<EncadreurEtudiants />} />
               <Route path="/encadreur/etudiant/:studentId" element={<EncadreurStudentDetail />} />
@@ -148,14 +172,6 @@ function App() {
               <Route path="/encadreur/rapports/:studentId" element={<EncadreurRapports />} />
               <Route path="/encadreur/carte" element={<CarteStages />} />
               <Route path="/encadreur/entreprise" element={<EncadreurEntreprise />} />
-
-              {/* Communes */}
-              <Route path="/profil" element={<Profil />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/admin/carte" element={<CarteStages />} />
-
-              {/* Redirection dynamique par rôle */}
-              <Route path="/dashboard" element={<DynamicDashboardRedirect />} />
             </Route>
           </Route>
 

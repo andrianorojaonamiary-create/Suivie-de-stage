@@ -22,7 +22,7 @@ export class AuthService {
       prenom: registerDto.prenom,
       email: registerDto.email,
       motDePasse: registerDto.motDePasse,
-      role: registerDto.role || Role.ETUDIANT,
+      role: Role.ETUDIANT,
     };
     const user = await this.usersService.create(createUserDto);
     return this.issueToken(user);

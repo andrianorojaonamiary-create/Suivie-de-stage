@@ -4,6 +4,7 @@ const rawBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
 const apiClient = axios.create({
   baseURL: typeof rawBaseUrl === 'string' ? rawBaseUrl.trim() : rawBaseUrl,
+  timeout: 15000,
   headers: {
     'Content-Type': 'application/json'
   }
@@ -24,10 +25,12 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Optionnel: déconnexion si le token est invalide ou expiré
       const hadToken = Boolean(localStorage.getItem('token'));
       if (hadToken && !window.location.pathname.includes('/login')) {
         localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        // Redirige vers login pour éviter l'état désynchronisé
+        window.location.href = '/login';
       }
     }
     return Promise.reject(error);

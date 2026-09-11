@@ -8,7 +8,6 @@ import {
   Length,
   MinLength,
 } from 'class-validator';
-import { Role } from '../../users/enums/role.enum';
 import { StudentLevel } from '../../students/enums/student-level.enum';
 import { StudentParcours } from '../../students/enums/student-parcours.enum';
 
@@ -22,18 +21,6 @@ const normalizeUpperTrim = ({ value }: { value: unknown }): unknown => {
   if (typeof value !== 'string') return value;
   const trimmed = value.trim();
   return trimmed === '' ? undefined : trimmed.toUpperCase();
-};
-
-const normalizeRole = ({ value }: { value: unknown }): unknown => {
-  if (typeof value !== 'string') return value;
-  let cleanRole = value.trim().toUpperCase();
-  if (cleanRole.startsWith('ROLE_')) {
-    cleanRole = cleanRole.replace('ROLE_', '');
-  }
-  if (cleanRole === 'ADMIN') {
-    cleanRole = 'ADMINISTRATEUR';
-  }
-  return cleanRole;
 };
 
 export class RegisterDto {
@@ -57,10 +44,9 @@ export class RegisterDto {
   @MinLength(8)
   motDePasse: string;
 
-  @Transform(normalizeRole)
-  @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  // role retiré de l'inscription publique pour éviter l'élévation de privilège
+  // L'inscription force ETUDIANT côté serveur. Les rôles admin/enseignant/encadreur
+  // doivent être créés via POST /users par un ADMINISTRATEUR.
 
   @IsOptional()
   @IsString()

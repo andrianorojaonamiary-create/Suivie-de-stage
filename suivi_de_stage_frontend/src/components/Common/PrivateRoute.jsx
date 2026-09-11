@@ -19,14 +19,15 @@ function PrivateRoute({ allowedRoles = [] }) {
   }
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    const dashboardPath = 
-      user.role === 'ROLE_ADMIN' ? '/admin/dashboard' :
-      user.role === 'ROLE_ENSEIGNANT' ? '/enseignant/dashboard' :
-      user.role === 'ROLE_ETUDIANT' ? '/etudiant/dashboard' :
-      user.role === 'ROLE_ENCADREUR' ? '/encadreur/dashboard' :
+    const normalizedRole = user.role?.toUpperCase();
+    const dashboardPath =
+      normalizedRole === 'ROLE_ADMIN' || normalizedRole === 'ROLE_ADMINISTRATEUR' ? '/admin/dashboard' :
+      normalizedRole === 'ROLE_ENSEIGNANT' ? '/enseignant/dashboard' :
+      normalizedRole === 'ROLE_ETUDIANT' ? '/etudiant/dashboard' :
+      normalizedRole === 'ROLE_ENCADREUR' ? '/encadreur/dashboard' :
       '/dashboard';
-    
-    return <Navigate to={dashboardPath} />;
+
+    return <Navigate to={dashboardPath} replace />;
   }
 
   return <Outlet />;
