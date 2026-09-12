@@ -314,7 +314,7 @@
 .action-btn {
   width: 32px;
   height: 32px;
-  border: none;
+  border: 1px solid #FFFFFF;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -328,14 +328,16 @@
 
 .action-btn:hover {
   transform: scale(1.1);
+  background: #E9ECEF;
+  border-color: #4B5563;
 }
 
-.action-btn.validate:hover { background: #E8F5E9; color: #27AE60; }
-.action-btn.reject:hover { background: #FDE8E8; color: #E74C3C; }
-.action-btn.view:hover { background: #E1ECFE; color: #6BA9E6; }
-.action-btn.stage:hover { background: #FFF3E0; color: #F39C12; }
-.action-btn.eval:hover { background: #FFF8E7; color: #FFD700; }
-.action-btn.report:hover { background: #E8F5E9; color: #27AE60; }
+.action-btn.validate:hover { color: #27AE60; }
+.action-btn.reject:hover { color: #E74C3C; }
+.action-btn.view:hover { color: #6BA9E6; }
+.action-btn.stage:hover { color: #F39C12; }
+.action-btn.eval:hover { color: #FFD700; }
+.action-btn.report:hover { color: #27AE60; }
 
 
 

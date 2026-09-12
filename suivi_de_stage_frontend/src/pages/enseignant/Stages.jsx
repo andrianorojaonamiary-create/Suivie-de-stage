@@ -278,13 +278,13 @@ function StagesEnseignant() {
         s.id === selectedStage.id ? { ...s, statutValidation: 'valide', commentaireValidation: commentaire } : s
       ));
       toast.success(`Stage "${selectedStage?.titre}" validé avec succès !`);
-      setModalValidateOpen(false);
-      setSelectedStage(null);
-      setCommentaire('');
     } catch (err) {
       toast.error('Erreur lors de la validation');
     } finally {
       setLoading(false);
+      setModalValidateOpen(false);
+      setSelectedStage(null);
+      setCommentaire('');
     }
   };
 
@@ -303,13 +303,13 @@ function StagesEnseignant() {
         s.id === selectedStage.id ? { ...s, statutValidation: 'refuse', commentaireValidation: commentaire } : s
       ));
       toast.success(`Stage "${selectedStage?.titre}" refusé.`);
-      setModalRejectOpen(false);
-      setSelectedStage(null);
-      setCommentaire('');
     } catch (err) {
       toast.error('Erreur lors du refus');
     } finally {
       setLoading(false);
+      setModalRejectOpen(false);
+      setSelectedStage(null);
+      setCommentaire('');
     }
   };
 

@@ -353,7 +353,7 @@
 .rapports-page .action-btn {
   width: 32px;
   height: 32px;
-  border: none;
+  border: 1px solid #FFFFFF;
   border-radius: 8px;
   display: flex;
   align-items: center;
@@ -367,6 +367,8 @@
 
 .rapports-page .action-btn:hover {
   transform: scale(1.1);
+  background: #E9ECEF;
+  border-color: #4B5563;
 }
 
 .rapports-page .action-btn.view:hover { color: #6BA9E6; }

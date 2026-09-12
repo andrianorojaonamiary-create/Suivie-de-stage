@@ -174,6 +174,13 @@ function EnseignantDashboard() {
 
   const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
 
+  const stagesActifsPct = stats.rapportsTotal > 0
+    ? Math.min(100, Math.round((stats.stagesEnCours / stats.rapportsTotal) * 100)) : 0;
+  const evaluationsPct = stats.stagesEnCours > 0
+    ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.stagesEnCours) * 100)) : 0;
+  const rapportsPct = stats.rapportsTotal > 0
+    ? Math.min(100, Math.round((stats.rapportsRecus / stats.rapportsTotal) * 100)) : 0;
+
   return (
     <div className="enseignant-dashboard">
       {/* HEADER */}
@@ -187,46 +194,62 @@ function EnseignantDashboard() {
       {/* 4 KPI CARDS */}
       <div className="enseignant-kpi">
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaUsers />
+          <div className="kpi-card-top">
+            <div className="kpi-icon" style={{ backgroundColor: '#E1ECFE', color: '#6BA9E6' }}>
+              <FaUsers />
+            </div>
+            <div className="kpi-content">
+              <span className="kpi-value">{stats.etudiants}</span>
+              <span className="kpi-label">Étudiants encadrés</span>
+            </div>
           </div>
-          <div className="kpi-content">
-            <span className="kpi-value">{stats.etudiants}</span>
-            <span className="kpi-label">Étudiants encadrés</span>
-            <span className="kpi-change">{stats.etudiantsChange}</span>
-          </div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#D1FAE5', color: '#27AE60' }}>
-            <FaClipboardList />
-          </div>
-          <div className="kpi-content">
-            <span className="kpi-value">{stats.stagesEnCours}</span>
-            <span className="kpi-label">Stages en cours</span>
-            <span className="kpi-change">{stats.stagesActifs} actifs</span>
+          <div className="kpi-change" style={{ color: '#6BA9E6' }}>
+            {stats.etudiantsChange}
           </div>
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#FEF3C7', color: '#F39C12' }}>
-            <FaStar />
+          <div className="kpi-card-top">
+            <div className="kpi-icon" style={{ backgroundColor: '#D1FAE5', color: '#27AE60' }}>
+              <FaClipboardList />
+            </div>
+            <div className="kpi-content">
+              <span className="kpi-value">{stats.stagesEnCours}</span>
+              <span className="kpi-label">Stages en cours</span>
+            </div>
           </div>
-          <div className="kpi-content">
-            <span className="kpi-value">{stats.evaluationsEnAttente}</span>
-            <span className="kpi-label">Évaluations en attente</span>
-            <span className="kpi-change">À évaluer</span>
+          <div className="kpi-change" style={{ color: '#27AE60' }}>
+            {stagesActifsPct}% <span className="kpi-vs">des étudiants</span>
           </div>
         </div>
 
         <div className="kpi-card">
-          <div className="kpi-icon" style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>
-            <FaFileAlt />
+          <div className="kpi-card-top">
+            <div className="kpi-icon" style={{ backgroundColor: '#FEF3C7', color: '#F39C12' }}>
+              <FaStar />
+            </div>
+            <div className="kpi-content">
+              <span className="kpi-value">{stats.evaluationsEnAttente}</span>
+              <span className="kpi-label">Évaluations en attente</span>
+            </div>
           </div>
-          <div className="kpi-content">
-            <span className="kpi-value">{stats.rapportsRecus}</span>
-            <span className="kpi-label">Rapports reçus</span>
-            <span className="kpi-change">Sur {stats.rapportsTotal} étudiants</span>
+          <div className="kpi-change" style={{ color: '#F39C12' }}>
+            {evaluationsPct}% <span className="kpi-vs">des stages en cours</span>
+          </div>
+        </div>
+
+        <div className="kpi-card">
+          <div className="kpi-card-top">
+            <div className="kpi-icon" style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>
+              <FaFileAlt />
+            </div>
+            <div className="kpi-content">
+              <span className="kpi-value">{stats.rapportsRecus}</span>
+              <span className="kpi-label">Rapports reçus</span>
+            </div>
+          </div>
+          <div className="kpi-change" style={{ color: '#7C3AED' }}>
+            {rapportsPct}% <span className="kpi-vs">des rapports attendus</span>
           </div>
         </div>
       </div>
