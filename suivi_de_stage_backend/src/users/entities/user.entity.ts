@@ -37,6 +37,22 @@ export class User {
   @Column({ default: true })
   actif: boolean;
 
+  @Column({
+    name: 'password_reset_token',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+    select: false,
+  })
+  passwordResetToken?: string | null;
+
+  @Column({
+    name: 'password_reset_expires_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  passwordResetExpiresAt?: Date | null;
+
   @CreateDateColumn({ name: 'date_creation', type: 'timestamptz' })
   dateCreation: Date;
 

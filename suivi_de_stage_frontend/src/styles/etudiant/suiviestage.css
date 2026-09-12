@@ -4,7 +4,7 @@
 
 .etudiant-suivi {
   padding: 20px 0;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -1050,6 +1050,14 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.etudiant-suivi .eval-info-card-content h4 svg {
+  color: #6BA9E6;
+  font-size: 14px;
 }
 
 .etudiant-suivi .eval-info-title {
@@ -1100,4 +1108,4 @@
   .etudiant-suivi .eval-info-cards {
     grid-template-columns: 1fr;
   }
-}
+}

@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   FaSave, FaBuilding, FaUserTie, FaCalendarAlt, 
   FaFileAlt, FaMapMarkerAlt, FaSpinner, FaMapPin,
-  FaTimes, FaUpload, FaInfoCircle, FaBriefcase,
+  FaTimes, FaUpload,
   FaArrowLeft,FaDownload 
 } from 'react-icons/fa';
 import { geocodeAddress } from '../../services/geocoding';
@@ -134,7 +134,7 @@ function StageDetail() {
   };
 
   const handleDownload = () => {
-    alert('📥 Téléchargement de la convention...');
+    alert('Téléchargement de la convention...');
   };
 
   const handleSubmit = (e) => {
@@ -149,7 +149,7 @@ function StageDetail() {
     setSaving(true);
     setTimeout(() => {
       setSaving(false);
-      alert('✅ Stage modifié avec succès !');
+      alert('Stage modifié avec succès !');
       setIsEditing(false);
       navigate(`/etudiant/stage/${id}`);
     }, 1500);
@@ -189,14 +189,6 @@ function StageDetail() {
         <div className="stage-detail-header">
           <div>
             <h1>{getTitle()}</h1>
-            {!isEditing && (
-              <div className="stage-detail-meta">
-                <span className="stage-company">
-                  <FaBuilding /> {formData.entreprise}
-                </span>
-                <span className="badge-en-cours">{formData.statut}</span>
-              </div>
-            )}
           </div>
         </div>
         <p className="text-muted">{getSubtitle()}</p>
@@ -204,105 +196,92 @@ function StageDetail() {
 
       <div className="form-card">
         <form onSubmit={handleSubmit}>
-          {/* ===== SECTION 1 : INFORMATIONS GÉNÉRALES ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaInfoCircle /> Informations générales
-            </h3>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label><FaFileAlt /> Titre du stage {isEditing && '*'}</label>
-                <input
-                  type="text"
-                  name="titre"
-                  value={formData.titre}
-                  onChange={handleChange}
-                  placeholder="Ex: Développement d'une plateforme web"
-                  required={isEditing}
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaCalendarAlt /> Date de début {isEditing && '*'}</label>
-                <input
-                  type="date"
-                  name="dateDebut"
-                  value={formData.dateDebut}
-                  onChange={handleChange}
-                  required={isEditing}
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
-              <div className="form-group">
-                <label><FaCalendarAlt /> Date de fin {isEditing && '*'}</label>
-                <input
-                  type="date"
-                  name="dateFin"
-                  value={formData.dateFin}
-                  onChange={handleChange}
-                  required={isEditing}
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaUserTie /> Tuteur pédagogique</label>
-                <input
-                  type="text"
-                  name="tuteur"
-                  value={formData.tuteur}
-                  onChange={handleChange}
-                  placeholder="Nom du tuteur"
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
-              <div className="form-group">
-                <label><FaUserTie /> Maître de stage</label>
-                <input
-                  type="text"
-                  name="encadreur"
-                  value={formData.encadreur}
-                  onChange={handleChange}
-                  placeholder="Nom de l'encadreur"
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  rows="3"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Description du stage..."
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label><FaFileAlt /> Titre du stage {isEditing && '*'}</label>
+              <input
+                type="text"
+                name="titre"
+                value={formData.titre}
+                onChange={handleChange}
+                placeholder="Ex: Développement d'une plateforme web"
+                required={isEditing}
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
             </div>
           </div>
 
-          {/* ===== SECTION 2 : INFORMATIONS DE L'ENTREPRISE ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaBriefcase /> Informations de l'entreprise
-            </h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaCalendarAlt /> Date de début {isEditing && '*'}</label>
+              <input
+                type="date"
+                name="dateDebut"
+                value={formData.dateDebut}
+                onChange={handleChange}
+                required={isEditing}
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+            <div className="form-group">
+              <label><FaCalendarAlt /> Date de fin {isEditing && '*'}</label>
+              <input
+                type="date"
+                name="dateFin"
+                value={formData.dateFin}
+                onChange={handleChange}
+                required={isEditing}
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+          </div>
 
-            <div className="form-row">
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaUserTie /> Tuteur pédagogique</label>
+              <input
+                type="text"
+                name="tuteur"
+                value={formData.tuteur}
+                onChange={handleChange}
+                placeholder="Nom du tuteur"
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+            <div className="form-group">
+              <label><FaUserTie /> Maître de stage</label>
+              <input
+                type="text"
+                name="encadreur"
+                value={formData.encadreur}
+                onChange={handleChange}
+                placeholder="Nom de l'encadreur"
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label>Description</label>
+              <textarea
+                name="description"
+                rows="3"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Description du stage..."
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
               <div className="form-group">
                 <label><FaBuilding /> Entreprise {isEditing && '*'}</label>
                 <input
@@ -358,7 +337,7 @@ function StageDetail() {
                 </div>
                 {isEditing && geocodeError && <span className="geocode-error">{geocodeError}</span>}
                 {isEditing && locationMap && (
-                  <span className="geocode-success">✅ Localisé</span>
+                  <span className="geocode-success">Localisé</span>
                 )}
               </div>
             </div>
@@ -385,14 +364,7 @@ function StageDetail() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* ===== SECTION 3 : CONVENTION DE STAGE ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaFileAlt /> Documents
-            </h3>
-
+            
             <div className="form-row">
               <div className="form-group full-width">
                 <label><FaFileAlt /> Convention de stage</label>
@@ -410,7 +382,7 @@ function StageDetail() {
                       </label>
                       {fichier ? (
                         <>
-                          <span className="file-selected-name">📄 {fichier.name}</span>
+                          <span className="file-selected-name">{fichier.name}</span>
                           <button
                             type="button"
                             className="file-remove-btn"
@@ -438,7 +410,6 @@ function StageDetail() {
                 )}
               </div>
             </div>
-          </div>
 
           {/* ===== MÉTADONNÉES ===== */}
           {!isEditing && (

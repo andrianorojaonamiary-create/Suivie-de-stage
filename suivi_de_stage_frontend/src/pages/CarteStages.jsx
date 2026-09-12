@@ -20,6 +20,7 @@ function ChangeView({ center, zoom }) {
 }
 
 import mapApi from '../api/mapApi';
+import SelectPersonnalise from '../components/Common/SelectPersonnalise';
 
 function CarteStages() {
   const { user } = useAuth();
@@ -92,9 +93,9 @@ function CarteStages() {
   // ===== TITRE SELON LE RÔLE =====
   const getTitle = () => {
     const role = user?.role;
-    if (role === 'ROLE_ETUDIANT') return '🗺️ Localisation de mon stage';
-    if (role === 'ROLE_ENCADREUR') return '🗺️ Stages que je suis';
-    return '🗺️ Carte des stages';
+    if (role === 'ROLE_ETUDIANT') return 'Localisation de mon stage';
+    if (role === 'ROLE_ENCADREUR') return 'Stages que je suis';
+    return 'Carte des stages';
   };
 
   const getSubtitle = () => {
@@ -116,30 +117,26 @@ function CarteStages() {
           <div className="card-emit">
             <h4 className="filter-title">Filtres</h4>
             <div className="filter-group">
-              <label className="filter-label">Statut</label>
-              <select
+              <SelectPersonnalise
                 value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
+                onChange={setFilterStatus}
                 className="filter-select"
-              >
-                <option>Tous</option>
-                <option>En cours</option>
-                <option>En attente</option>
-                <option>Terminé</option>
-                <option>Validé</option>
-              </select>
+                options={[
+                  { value: 'Tous', label: 'Tous les statuts' },
+                  { value: 'En cours', label: 'En cours' },
+                  { value: 'En attente', label: 'En attente' },
+                  { value: 'Terminé', label: 'Terminé' },
+                  { value: 'Validé', label: 'Validé' }
+                ]}
+              />
             </div>
             <div className="filter-group">
-              <label className="filter-label">Ville</label>
-              <select
+              <SelectPersonnalise
                 value={filterCity}
-                onChange={(e) => setFilterCity(e.target.value)}
+                onChange={setFilterCity}
                 className="filter-select"
-              >
-                {cities.map(city => (
-                  <option key={city}>{city}</option>
-                ))}
-              </select>
+                options={cities.map(city => ({ value: city, label: city === 'Toutes' ? 'Toutes les villes' : city }))}
+              />
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
   FaUserTie, FaUsers, FaChalkboardTeacher, FaBriefcase,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -9,13 +9,13 @@ import EncadreurForm from './components/EncadreurForm';
 import EncadreurDetail from './components/EncadreurDetail';
 import EncadreurDelete from './components/EncadreurDelete';
 import supervisorsApi from '../../api/supervisorsApi';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEncadreurs() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState('Tous');
   const [filterFonction, setFilterFonction] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -87,8 +87,19 @@ function AdminEncadreurs() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const typeOptions = ['Tous', 'professionnel', 'pedagogique'];
-  const fonctionOptions = ['Tous', 'Responsable technique', 'Responsable projet', 'Responsable RH', 'Enseignant à l\'EMIT', 'Professeur à l\'EMIT'];
+  const typeOptions = [
+    { value: 'Tous', label: 'Tous les types' },
+    { value: 'professionnel', label: 'Encadreur professionnel' },
+    { value: 'pedagogique', label: 'Tuteur pédagogique' }
+  ];
+  const fonctionOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Responsable technique', label: 'Responsable technique' },
+    { value: 'Responsable projet', label: 'Responsable projet' },
+    { value: 'Responsable RH', label: 'Responsable RH' },
+    { value: "Enseignant à l'EMIT", label: "Enseignant à l'EMIT" },
+    { value: "Professeur à l'EMIT", label: "Professeur à l'EMIT" }
+  ];
 
   const getTypeBadge = (type) => {
     return type === 'professionnel' ? 'badge-professionnel' : 'badge-pedagogique';
@@ -108,21 +119,6 @@ function AdminEncadreurs() {
       fonction: '',
       entreprise: ''
     });
-  };
-
-  const handleAdd = async () => {
-    try {
-      await supervisorsApi.create({
-        type: formData.type,
-        grade: formData.fonction
-      });
-      await loadSupervisors();
-    } catch {
-      const newEncadreur = { id: encadreurs.length + 1, ...formData, etudiants: [] };
-      setEncadreurs([...encadreurs, newEncadreur]);
-    }
-    setShowAddModal(false);
-    resetForm();
   };
 
   const handleEdit = async () => {
@@ -174,12 +170,9 @@ function AdminEncadreurs() {
     <div className="admin-encadreurs-page">
       <div className="admin-encadreurs-header">
         <div>
-          <h1><FaUserTie /> Gestion des encadreurs</h1>
+          <h1>Gestion des encadreurs</h1>
           <p className="admin-encadreurs-subtitle">Gérez les encadreurs professionnels et les tuteurs pédagogiques</p>
         </div>
-        <button className="admin-encadreurs-btn-primary" onClick={() => setShowAddModal(true)}>
-          <FaPlus /> Ajouter un encadreur
-        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -226,14 +219,18 @@ function AdminEncadreurs() {
       <div className="admin-encadreurs-filters">
         <div className="admin-encadreurs-filter-group">
           <label><FaFilter /> Filtres</label>
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="admin-encadreurs-filter-select">
-            <option value="Tous">Tous les types</option>
-            <option value="professionnel">Encadreur professionnel</option>
-            <option value="pedagogique">Tuteur pédagogique</option>
-          </select>
-          <select value={filterFonction} onChange={(e) => setFilterFonction(e.target.value)} className="admin-encadreurs-filter-select">
-            {fonctionOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+          <SelectPersonnalise
+            value={filterType}
+            onChange={setFilterType}
+            options={typeOptions}
+            className="admin-encadreurs-filter-select"
+          />
+          <SelectPersonnalise
+            value={filterFonction}
+            onChange={setFilterFonction}
+            options={fonctionOptions}
+            className="admin-encadreurs-filter-select"
+          />
         </div>
         <div className="admin-encadreurs-filter-group admin-encadreurs-search-group">
           <FaSearch className="admin-encadreurs-search-icon" />
@@ -322,19 +319,6 @@ function AdminEncadreurs() {
       </div>
 
       {/* ===== MODALES ===== */}
-      {showAddModal && (
-        <EncadreurForm
-          title="Ajouter un encadreur"
-          submitLabel="Ajouter"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleAdd}
-          onCancel={() => { setShowAddModal(false); resetForm(); }}
-          typeOptions={typeOptions}
-          fonctionOptions={fonctionOptions}
-        />
-      )}
-
       {showEditModal && (
         <EncadreurForm
           title="Modifier l'encadreur"

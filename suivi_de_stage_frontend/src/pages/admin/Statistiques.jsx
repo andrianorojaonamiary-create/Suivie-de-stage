@@ -10,6 +10,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 // ===== TOOLTIP PERSONNALISÉ =====
 const EvaluationTooltip = ({ active, payload, label }) => {
@@ -209,7 +210,7 @@ function Statistiques() {
       {/* ===== HEADER ===== */}
       <div className="admin-stats-header">
         <div>
-          <h1><FaChartBar /> Statistiques</h1>
+          <h1>Statistiques</h1>
           <p className="admin-stats-subtitle">Vue d'ensemble des données de la plateforme</p>
         </div>
         <div className="admin-stats-actions">
@@ -229,17 +230,12 @@ function Statistiques() {
           <label>
             <FaFilter /> Filtrer par année
           </label>
-          <select 
-            value={filterYear} 
-            onChange={(e) => setFilterYear(e.target.value)}
+          <SelectPersonnalise
+            value={filterYear}
+            onChange={setFilterYear}
+            options={yearOptions}
             className="admin-stats-filter-select"
-          >
-            {yearOptions.map(option => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          />
         </div>
         <div className="admin-stats-filter-count">
           <strong>{filterYear}</strong> · Données affichées

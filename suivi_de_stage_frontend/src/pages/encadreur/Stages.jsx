@@ -5,6 +5,7 @@ import {
   FaCheckCircle, FaEye, FaTimes, 
 } from 'react-icons/fa';
 import ViewModal from './components/ViewModal';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function EncadreurStages() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -141,7 +142,7 @@ function EncadreurStages() {
     <div className="encadreur-stages">
       <div className="page-header">
         <div>
-          <h1><FaClipboardList /> Stages suivis</h1>
+          <h1>Stages suivis</h1>
           <p className="text-muted">{stages.length} stages que vous encadrez</p>
         </div>
       </div>
@@ -183,17 +184,18 @@ function EncadreurStages() {
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedStatus} 
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="tous">Tous les statuts</option>
-                  <option value="En cours">En cours</option>
-                  <option value="En attente">En attente</option>
-                  <option value="Terminé">Terminé</option>
-                  <option value="Validé">Validé</option>
-                  <option value="Refusé">Refusé</option>
-                </select>
+                <SelectPersonnalise
+                  value={selectedStatus}
+                  onChange={setSelectedStatus}
+                  options={[
+                    { value: 'tous', label: 'Tous les statuts' },
+                    { value: 'En cours', label: 'En cours' },
+                    { value: 'En attente', label: 'En attente' },
+                    { value: 'Terminé', label: 'Terminé' },
+                    { value: 'Validé', label: 'Validé' },
+                    { value: 'Refusé', label: 'Refusé' }
+                  ]}
+                />
               </div>
             </div>
           </div>

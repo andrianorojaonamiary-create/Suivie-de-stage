@@ -90,7 +90,7 @@ function MesStages() {
         await internshipsApi.delete(stageToDelete);
       }
       setStages(stages.filter(s => s.id !== stageToDelete));
-      alert('🗑️ Stage supprimé avec succès !');
+      alert('Stage supprimé avec succès !');
     } catch (err) {
       console.error('Erreur suppression stage:', err);
       alert('Erreur lors de la suppression du stage');
@@ -127,7 +127,7 @@ function MesStages() {
       <div className="stages-grid">
         {stages.length === 0 ? (
           <div className="empty-state">
-            <p>📭 Vous n'avez pas encore de stage.</p>
+            <p>Vous n'avez pas encore de stage.</p>
             <Link to="/etudiant/ajouter-stage" className="btn-primary">
               Ajouter votre premier stage
             </Link>
@@ -170,7 +170,7 @@ function MesStages() {
       {showDeleteModal && (
         <div className="modal-overlay" onClick={cancelDelete}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>🗑️ Confirmer la suppression</h3>
+            <h3>Confirmer la suppression</h3>
             <p>Voulez-vous vraiment supprimer ce stage ? Cette action est irréversible.</p>
             <div className="modal-actions">
               <button className="btn-danger" onClick={confirmDelete}>

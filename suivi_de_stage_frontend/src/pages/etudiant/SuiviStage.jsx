@@ -8,6 +8,7 @@ import {
   FaFilter
 } from 'react-icons/fa';
 import { internshipsApi, trackingApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function SuiviStage() {
   const [loading, setLoading] = useState(true);
@@ -167,18 +168,15 @@ function SuiviStage() {
           <label>
             <FaFilter /> Filtrer par stage
           </label>
-          <select 
-            value={selectedStageId} 
-            onChange={(e) => setSelectedStageId(e.target.value)}
+          <SelectPersonnalise
+            value={selectedStageId}
+            onChange={setSelectedStageId}
             className="suivi-filter-select"
-          >
-            <option value="all">Tous les stages</option>
-            {stages.map(stage => (
-              <option key={stage.id} value={stage.id}>
-                {stage.titre}
-              </option>
-            ))}
-          </select>
+            options={[
+              { value: 'all', label: 'Tous les stages' },
+              ...stages.map(stage => ({ value: String(stage.id), label: stage.titre }))
+            ]}
+          />
         </div>
         <div className="suivi-filter-count">
           <strong>{stages.length}</strong> stage{stages.length > 1 ? 's' : ''} enregistré{stages.length > 1 ? 's' : ''}
@@ -198,9 +196,8 @@ function SuiviStage() {
         <div className="avenir-card-body">
           <div className="eval-info-cards">
             <div className="eval-info-card">
-              <div className="eval-info-card-icon"><FaInfoCircle /></div>
               <div className="eval-info-card-content">
-                <h4>Votre stage</h4>
+                <h4><FaInfoCircle /> Votre stage</h4>
                 <p className="eval-info-title">{selectedStage?.titre}</p>
                 <p className="eval-info-company">{selectedStage?.entreprise}</p>
                 <p className="eval-info-date">{selectedStage?.dateDebut} → {selectedStage?.dateFin}</p>
@@ -208,9 +205,8 @@ function SuiviStage() {
             </div>
 
             <div className="eval-info-card">
-              <div className="eval-info-card-icon"><FaUserGraduate /></div>
               <div className="eval-info-card-content">
-                <h4>Encadreur pédagogique</h4>
+                <h4><FaUserGraduate /> Encadreur pédagogique</h4>
                 <p className="eval-info-name">{stageInfo.tuteur.nom}</p>
                 <p className="eval-info-role">{stageInfo.tuteur.role}</p>
                 <p className="eval-info-email">{stageInfo.tuteur.email}</p>
@@ -218,9 +214,8 @@ function SuiviStage() {
             </div>
 
             <div className="eval-info-card">
-              <div className="eval-info-card-icon"><FaBriefcase /></div>
               <div className="eval-info-card-content">
-                <h4>Maître de stage</h4>
+                <h4><FaBriefcase /> Maître de stage</h4>
                 <p className="eval-info-name">{stageInfo.encadreur.nom}</p>
                 <p className="eval-info-role">{stageInfo.encadreur.role}</p>
                 <p className="eval-info-company">{stageInfo.encadreur.entreprise}</p>

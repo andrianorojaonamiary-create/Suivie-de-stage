@@ -3,6 +3,7 @@ import {
    FaDownload, FaEye, FaFilter, 
   FaUsers, FaBuilding, FaCheck, FaTimes, FaTrash
 } from 'react-icons/fa';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminRapports() {
   const [filters, setFilters] = useState({
@@ -28,10 +29,15 @@ function AdminRapports() {
     return classes[statut] || 'badge-en-attente';
   };
 
-  const etudiants = ['all', ...new Set(rapports.map(r => r.etudiant))];
-  const stages = ['all', ...new Set(rapports.map(r => r.stage))];
-  const entreprises = ['all', ...new Set(rapports.map(r => r.entreprise))];
-  const statuts = ['all', 'En révision', 'Validé', 'À corriger'];
+  const etudiants = ['all', ...new Set(rapports.map(r => r.etudiant))].map(v => ({ value: v, label: v === 'all' ? 'Tous' : v }));
+  const stages = ['all', ...new Set(rapports.map(r => r.stage))].map(v => ({ value: v, label: v === 'all' ? 'Tous' : v }));
+  const entreprises = ['all', ...new Set(rapports.map(r => r.entreprise))].map(v => ({ value: v, label: v === 'all' ? 'Toutes' : v }));
+  const statuts = [
+    { value: 'all', label: 'Tous' },
+    { value: 'En révision', label: 'En révision' },
+    { value: 'Validé', label: 'Validé' },
+    { value: 'À corriger', label: 'À corriger' }
+  ];
 
   const filteredRapports = rapports.filter(r => 
     (filters.etudiant === 'all' || r.etudiant === filters.etudiant) &&
@@ -44,7 +50,7 @@ function AdminRapports() {
     <div className="rapports-admin">
       <div className="page-header">
         <div>
-          <h1>📋 Gestion des rapports</h1>
+          <h1>Gestion des rapports</h1>
           <p className="text-muted">{rapports.length} rapports au total</p>
         </div>
       </div>
@@ -53,54 +59,42 @@ function AdminRapports() {
       <div className="filters-section">
         <div className="filter-group">
           <label><FaUsers /> Étudiant</label>
-          <select 
-            value={filters.etudiant} 
-            onChange={(e) => setFilters({...filters, etudiant: e.target.value})}
+          <SelectPersonnalise
+            value={filters.etudiant}
+            onChange={(v) => setFilters({...filters, etudiant: v})}
+            options={etudiants}
             className="filter-select"
-          >
-            {etudiants.map(opt => (
-              <option key={opt} value={opt}>{opt === 'all' ? 'Tous' : opt}</option>
-            ))}
-          </select>
+          />
         </div>
 
         <div className="filter-group">
           <label><FaBuilding /> Stage</label>
-          <select 
-            value={filters.stage} 
-            onChange={(e) => setFilters({...filters, stage: e.target.value})}
+          <SelectPersonnalise
+            value={filters.stage}
+            onChange={(v) => setFilters({...filters, stage: v})}
+            options={stages}
             className="filter-select"
-          >
-            {stages.map(opt => (
-              <option key={opt} value={opt}>{opt === 'all' ? 'Tous' : opt}</option>
-            ))}
-          </select>
+          />
         </div>
 
         <div className="filter-group">
           <label><FaBuilding /> Entreprise</label>
-          <select 
-            value={filters.entreprise} 
-            onChange={(e) => setFilters({...filters, entreprise: e.target.value})}
+          <SelectPersonnalise
+            value={filters.entreprise}
+            onChange={(v) => setFilters({...filters, entreprise: v})}
+            options={entreprises}
             className="filter-select"
-          >
-            {entreprises.map(opt => (
-              <option key={opt} value={opt}>{opt === 'all' ? 'Toutes' : opt}</option>
-            ))}
-          </select>
+          />
         </div>
 
         <div className="filter-group">
           <label><FaFilter /> Statut</label>
-          <select 
-            value={filters.statut} 
-            onChange={(e) => setFilters({...filters, statut: e.target.value})}
+          <SelectPersonnalise
+            value={filters.statut}
+            onChange={(v) => setFilters({...filters, statut: v})}
+            options={statuts}
             className="filter-select"
-          >
-            {statuts.map(opt => (
-              <option key={opt} value={opt}>{opt === 'all' ? 'Tous' : opt}</option>
-            ))}
-          </select>
+          />
         </div>
       </div>
 

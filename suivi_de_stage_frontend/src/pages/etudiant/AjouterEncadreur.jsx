@@ -5,6 +5,7 @@ import {
   FaTimes, FaInfoCircle, FaUserGraduate, FaArrowLeft,
  
 } from 'react-icons/fa';
+import { sanitizePhone } from '../../utils/phone';
 
 function AjouterEncadreur() {
   const navigate = useNavigate();
@@ -30,7 +31,8 @@ function AjouterEncadreur() {
   const handleChange = (e) => {
     if (isViewMode) return;
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'telephone' ? sanitizePhone(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleSubmit = (e) => {
@@ -45,9 +47,9 @@ function AjouterEncadreur() {
     setLoading(true);
     setTimeout(() => {
       if (isEditing) {
-        alert('✅ Encadreur modifié avec succès !');
+        alert('Encadreur modifié avec succès !');
       } else {
-        alert('✅ Encadreur ajouté avec succès !');
+        alert('Encadreur ajouté avec succès !');
       }
       setLoading(false);
       navigate('/etudiant/encadreur');
@@ -79,78 +81,65 @@ function AjouterEncadreur() {
 
       <div className="form-card">
         <form onSubmit={handleSubmit}>
-          {/* ===== SECTION 1 : IDENTITÉ ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaUserTie /> Identité
-            </h3>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaUserTie /> Nom {!isViewMode && '*'}</label>
-                <input
-                  type="text"
-                  name="nom"
-                  value={formData.nom}
-                  onChange={handleChange}
-                  placeholder="Rakotomalala"
-                  required={!isViewMode}
-                  disabled={isViewMode}
-                  className={isViewMode ? 'field-disabled' : ''}
-                />
-              </div>
-              <div className="form-group">
-                <label><FaUserTie /> Prénom {!isViewMode && '*'}</label>
-                <input
-                  type="text"
-                  name="prenom"
-                  value={formData.prenom}
-                  onChange={handleChange}
-                  placeholder="Jean"
-                  required={!isViewMode}
-                  disabled={isViewMode}
-                  className={isViewMode ? 'field-disabled' : ''}
-                />
-              </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaUserTie /> Nom {!isViewMode && '*'}</label>
+              <input
+                type="text"
+                name="nom"
+                value={formData.nom}
+                onChange={handleChange}
+                placeholder="Rakotomalala"
+                required={!isViewMode}
+                disabled={isViewMode}
+                className={isViewMode ? 'field-disabled' : ''}
+              />
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaInfoCircle /> Fonction</label>
-                <input
-                  type="text"
-                  name="fonction"
-                  value={formData.fonction}
-                  onChange={handleChange}
-                  placeholder="Directeur technique"
-                  disabled={isViewMode}
-                  className={isViewMode ? 'field-disabled' : ''}
-                />
-              </div>
-              <div className="form-group">
-                <label><FaBuilding /> Entreprise</label>
-                <input
-                  type="text"
-                  name="entreprise"
-                  value={formData.entreprise}
-                  onChange={handleChange}
-                  placeholder="Nom de l'entreprise"
-                  disabled={isViewMode}
-                  className={isViewMode ? 'field-disabled' : ''}
-                />
-              </div>
+            <div className="form-group">
+              <label><FaUserTie /> Prénom {!isViewMode && '*'}</label>
+              <input
+                type="text"
+                name="prenom"
+                value={formData.prenom}
+                onChange={handleChange}
+                placeholder="Jean"
+                required={!isViewMode}
+                disabled={isViewMode}
+                className={isViewMode ? 'field-disabled' : ''}
+              />
             </div>
           </div>
 
-          {/* ===== SECTION 2 : CONTACT ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaPhone /> Contact
-            </h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaInfoCircle /> Fonction</label>
+              <input
+                type="text"
+                name="fonction"
+                value={formData.fonction}
+                onChange={handleChange}
+                placeholder="Directeur technique"
+                disabled={isViewMode}
+                className={isViewMode ? 'field-disabled' : ''}
+              />
+            </div>
+            <div className="form-group">
+              <label><FaBuilding /> Entreprise</label>
+              <input
+                type="text"
+                name="entreprise"
+                value={formData.entreprise}
+                onChange={handleChange}
+                placeholder="Nom de l'entreprise"
+                disabled={isViewMode}
+                className={isViewMode ? 'field-disabled' : ''}
+              />
+            </div>
+          </div>
 
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaEnvelope /> Email</label>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaEnvelope /> Email</label>
                 <input
                   type="email"
                   name="email"
@@ -171,18 +160,13 @@ function AjouterEncadreur() {
                   placeholder="+261 34 12 345 67"
                   disabled={isViewMode}
                   className={isViewMode ? 'field-disabled' : ''}
+                  maxLength={14}
+                  inputMode="tel"
                 />
               </div>
             </div>
-          </div>
 
-          {/* ===== SECTION 3 : SPÉCIALITÉ ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaUserGraduate /> Spécialité
-            </h3>
-
-            <div className="form-row">
+          <div className="form-row">
               <div className="form-group full-width">
                 <label><FaUserGraduate /> Spécialité</label>
                 <input
@@ -196,7 +180,6 @@ function AjouterEncadreur() {
                 />
               </div>
             </div>
-          </div>
 
           {/* ===== SECTION 4 : ÉTUDIANTS ===== 
           {isViewMode && encadreurData?.etudiants && (

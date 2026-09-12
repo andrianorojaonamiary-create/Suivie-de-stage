@@ -80,7 +80,7 @@ function MonEncadreur() {
       }
       const encadreur = encadreurs.find(e => e.id === encadreurToDelete);
       setEncadreurs(encadreurs.filter(e => e.id !== encadreurToDelete));
-      alert(`🗑️ Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
+      alert(`Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
     } catch (err) {
       console.error('Erreur suppression encadreur:', err);
       alert('Erreur lors de la suppression de l\'encadreur');
@@ -112,7 +112,6 @@ function MonEncadreur() {
       <div className="encadreur-grid">
         {encadreurs.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">👤</div>
             <p>Aucun encadreur enregistré</p>
             <p className="empty-sub">Ajoutez votre maître de stage</p>
             <Link to="/etudiant/encadreur/ajouter" className="btn-primary">
@@ -157,7 +156,7 @@ function MonEncadreur() {
       {showDeleteModal && (
         <div className="modal-overlay" onClick={cancelDelete}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>🗑️ Confirmer la suppression</h3>
+            <h3>Confirmer la suppression</h3>
             <p>Voulez-vous vraiment supprimer cet encadreur ? Cette action est irréversible.</p>
             <div className="modal-actions">
               <button className="btn-danger" onClick={confirmDelete}>

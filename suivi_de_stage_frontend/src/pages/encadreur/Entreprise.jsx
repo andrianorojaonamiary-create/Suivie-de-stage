@@ -5,6 +5,7 @@ import {
   FaEnvelope, FaGlobe, FaSave, FaTimes, FaInfoCircle,
   FaEdit
 } from 'react-icons/fa';
+import { sanitizePhone } from '../../utils/phone';
 
 function EncadreurEntreprise() {
   
@@ -24,14 +25,15 @@ function EncadreurEntreprise() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'telephone' ? sanitizePhone(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
     setTimeout(() => {
-      alert('✅ Informations de l\'entreprise mises à jour avec succès !');
+      alert('Informations de l\'entreprise mises à jour avec succès !');
       setLoading(false);
       setIsEditing(false);
     }, 1500);
@@ -42,7 +44,7 @@ function EncadreurEntreprise() {
       {/* ===== HEADER SANS BOUTON RETOUR ===== */}
       <div className="page-header">
         <div>
-          <h1><FaBuilding /> Mon entreprise</h1>
+          <h1>Mon entreprise</h1>
           <p className="text-muted">
             {isEditing ? 'Modifiez les informations de votre entreprise' : 'Consultez les informations de votre entreprise'}
           </p>
@@ -158,6 +160,8 @@ function EncadreurEntreprise() {
                     value={formData.telephone}
                     onChange={handleChange}
                     placeholder="+261 34 12 345 67"
+                    maxLength={14}
+                    inputMode="tel"
                   />
                 </div>
                 <div className="form-group">

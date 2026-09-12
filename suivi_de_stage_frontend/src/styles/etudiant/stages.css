@@ -3,7 +3,7 @@
    ============================================================ */
 .etudiant-form-page {
   padding: 20px 0;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -13,7 +13,7 @@
   align-items: center;
   gap: 8px;
   background: white;
-  border: 1.5px solid #E1ECFE;
+  border: 1.5px solid #A0B8D0;
   color: #162449;
   font-size: 14px;
   font-weight: 600;

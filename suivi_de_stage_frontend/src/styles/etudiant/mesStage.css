@@ -3,7 +3,7 @@
    ============================================================ */
 .etudiant-stages {
   padding: 20px 0;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -12,13 +12,13 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 12px;
 }
 
 .etudiant-stages .page-header h1 {
-  font-size: 28px;
+  font-size: 24px;
   color: #162449;
   margin: 0;
   font-weight: 700;
@@ -198,13 +198,23 @@
 }
 
 .btn-action.btn-danger {
-  color: #E74C3C;
-  border-color: #FEE2E2;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  gap: 0;
+  background: white;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  color: #6BA9E6;
+  font-size: 15px;
+  font-weight: 400;
 }
 
 .btn-action.btn-danger:hover {
-  background: #FEE2E2;
+  background: #E74C3C;
   border-color: #E74C3C;
+  color: white;
+  box-shadow: none;
 }
 
 .btn-action.btn-success {

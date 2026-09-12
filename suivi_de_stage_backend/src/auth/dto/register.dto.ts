@@ -69,7 +69,8 @@ export class RegisterDto {
   @Transform(normalizeUpperTrim)
   @IsOptional()
   @IsEnum(StudentParcours, {
-    message: 'La filière/parcours doit être l’un(e) des suivant(e)s : DA2I, ICM, AES, CIGSI',
+    message:
+      'La filière/parcours doit être l’un(e) des suivant(e)s : DA2I, ICM, AES, CIGSI',
   })
   filiere?: StudentParcours;
 
@@ -101,4 +102,3 @@ export class RegisterDto {
   @IsString()
   adresse?: string;
 }
-

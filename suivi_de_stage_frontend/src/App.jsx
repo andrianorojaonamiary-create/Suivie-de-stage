@@ -6,6 +6,9 @@ import Layout from './components/Layout/Layout';
 import PrivateRoute from './components/Common/PrivateRoute';
 import { useAuth } from './hooks/useAuth';
 
+// Pages d'authentification
+const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword'));
+
 // Pages Dashboard par rôle
 const AdminDashboard = lazy(() => import('./pages/admin/Dashboard'));
 const EtudiantDashboard = lazy(() => import('./pages/etudiant/Dashboard'));
@@ -90,6 +93,7 @@ function App() {
           {/* Routes publiques */}
           <Route path="/login" element={<AuthLayout initialMode="login" />} />
           <Route path="/register" element={<AuthLayout initialMode="register" />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/" element={<Navigate to="/login" />} />
 
           {/* Routes protégées — RBAC par rôle */}

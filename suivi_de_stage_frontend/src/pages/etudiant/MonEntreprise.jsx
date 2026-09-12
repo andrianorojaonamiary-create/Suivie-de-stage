@@ -84,7 +84,7 @@ function MonEntreprise() {
       }
       const entreprise = entreprises.find(e => e.id === entrepriseToDelete);
       setEntreprises(entreprises.filter(e => e.id !== entrepriseToDelete));
-      alert(`🗑️ Entreprise "${entreprise?.nom}" supprimée !`);
+      alert(`Entreprise "${entreprise?.nom}" supprimée !`);
     } catch (err) {
       console.error('Erreur suppression entreprise:', err);
       alert('Erreur lors de la suppression de l\'entreprise');
@@ -116,7 +116,6 @@ function MonEntreprise() {
       <div className="entreprise-grid">
         {entreprises.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">🏢</div>
             <p>Aucune entreprise enregistrée</p>
             <p className="empty-sub">Ajoutez votre entreprise d'accueil</p>
             <Link to="/etudiant/entreprise/ajouter" className="btn-primary">
@@ -160,7 +159,7 @@ function MonEntreprise() {
       {showDeleteModal && (
         <div className="modal-overlay" onClick={cancelDelete}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>🗑️ Confirmer la suppression</h3>
+            <h3>Confirmer la suppression</h3>
             <p>Voulez-vous vraiment supprimer cette entreprise ? Cette action est irréversible.</p>
             <div className="modal-actions">
               <button className="btn-danger" onClick={confirmDelete}>

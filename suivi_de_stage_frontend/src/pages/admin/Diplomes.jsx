@@ -12,6 +12,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
 import { professionalSituationsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminDiplomes() {
   // ===== ÉTATS =====
@@ -186,8 +187,18 @@ function AdminDiplomes() {
   };
 
   // ===== OPTIONS =====
-  const situationOptions = ['Tous', 'En emploi', 'En recherche', 'Études supérieures'];
-  const promotionOptions = ['Tous', '2021', '2022', '2023'];
+  const situationOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'En emploi', label: 'En emploi' },
+    { value: 'En recherche', label: 'En recherche' },
+    { value: 'Études supérieures', label: 'Études supérieures' }
+  ];
+  const promotionOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: '2021', label: '2021' },
+    { value: '2022', label: '2022' },
+    { value: '2023', label: '2023' }
+  ];
 
   // ===== BADGES =====
   const getSituationBadge = (situation) => {
@@ -276,7 +287,7 @@ function AdminDiplomes() {
       {/* ===== HEADER ===== */}
       <div className="admin-diplome-header">
         <div>
-          <h1><FaGraduationCap /> Suivi des diplômés</h1>
+          <h1>Suivi des diplômés</h1>
           <p className="admin-diplome-subtitle">Consultez la situation professionnelle et l'historique d'emploi des diplômés</p>
         </div>
         <div className="admin-diplome-actions">
@@ -390,20 +401,18 @@ function AdminDiplomes() {
       <div className="admin-diplome-filters">
         <div className="admin-diplome-filter-group">
           <label><FaFilter /> Filtres</label>
-          <select 
-            value={filterSituation} 
-            onChange={(e) => setFilterSituation(e.target.value)} 
+          <SelectPersonnalise
+            value={filterSituation}
+            onChange={setFilterSituation}
+            options={situationOptions}
             className="admin-diplome-filter-select"
-          >
-            {situationOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          <select 
-            value={filterPromotion} 
-            onChange={(e) => setFilterPromotion(e.target.value)} 
+          />
+          <SelectPersonnalise
+            value={filterPromotion}
+            onChange={setFilterPromotion}
+            options={promotionOptions}
             className="admin-diplome-filter-select"
-          >
-            {promotionOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+          />
         </div>
         <div className="admin-diplome-filter-group admin-diplome-search-group">
           <FaSearch className="admin-diplome-search-icon" />

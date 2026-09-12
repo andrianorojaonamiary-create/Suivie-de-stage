@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
   FaList,
   FaChevronLeft, FaChevronRight, FaCheck, FaTimes, FaClock
 } from 'react-icons/fa';
@@ -9,13 +9,13 @@ import StageForm from './components/StageForm';
 import StageDetail from './components/StageDetail';
 import StageDelete from './components/StageDelete';
 import internshipsApi from '../../api/internshipsApi';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminStages() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatut, setFilterStatut] = useState('Tous');
   const [filterDomaine, setFilterDomaine] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -89,8 +89,20 @@ function AdminStages() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const statutOptions = ['Tous', 'À venir', 'En cours', 'Terminé'];
-  const domaineOptions = ['Tous', 'Développement Web', 'Développement Mobile', 'Analyse de Données', 'Réseaux', 'Systèmes d\'Information'];
+  const statutOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'À venir', label: 'À venir' },
+    { value: 'En cours', label: 'En cours' },
+    { value: 'Terminé', label: 'Terminé' }
+  ];
+  const domaineOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Développement Web', label: 'Développement Web' },
+    { value: 'Développement Mobile', label: 'Développement Mobile' },
+    { value: 'Analyse de Données', label: 'Analyse de Données' },
+    { value: 'Réseaux', label: 'Réseaux' },
+    { value: "Systèmes d'Information", label: "Systèmes d'Information" }
+  ];
 
   const getStatusBadge = (statut) => {
     const classes = {
@@ -113,25 +125,6 @@ function AdminStages() {
       statut: 'En cours',
       progression: 0
     });
-  };
-
-  const handleAdd = async () => {
-    try {
-      await internshipsApi.create({
-        titre: formData.titre,
-        description: formData.domaine,
-        statut: formData.statut === 'En cours' ? 'en_cours' : formData.statut === 'À venir' ? 'a_venir' : 'termine',
-        dateDebut: formData.dateDebut || new Date().toISOString(),
-        dateFin: formData.dateFin || new Date().toISOString()
-      });
-      await loadStages();
-    } catch {
-      // fallback local update if creation fails due to missing UUID foreign keys
-      const newStage = { id: stages.length + 1, ...formData };
-      setStages([...stages, newStage]);
-    }
-    setShowAddModal(false);
-    resetForm();
   };
 
   const handleEdit = async () => {
@@ -183,12 +176,9 @@ function AdminStages() {
     <div className="admin-stages-page">
       <div className="admin-stages-header">
         <div>
-          <h1><FaList /> Gestion des stages</h1>
+          <h1>Gestion des stages</h1>
           <p className="admin-stages-subtitle">Gérez les stages des étudiants</p>
         </div>
-        <button className="admin-stages-btn-primary" onClick={() => setShowAddModal(true)}>
-          <FaPlus /> Ajouter un stage
-        </button>
       </div>
 
       <div className="admin-stages-stats">
@@ -233,12 +223,18 @@ function AdminStages() {
       <div className="admin-stages-filters">
         <div className="admin-stages-filter-group">
           <label><FaFilter /> Filtres</label>
-          <select value={filterStatut} onChange={(e) => setFilterStatut(e.target.value)} className="admin-stages-filter-select">
-            {statutOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          <select value={filterDomaine} onChange={(e) => setFilterDomaine(e.target.value)} className="admin-stages-filter-select">
-            {domaineOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+          <SelectPersonnalise
+            value={filterStatut}
+            onChange={setFilterStatut}
+            options={statutOptions}
+            className="admin-stages-filter-select"
+          />
+          <SelectPersonnalise
+            value={filterDomaine}
+            onChange={setFilterDomaine}
+            options={domaineOptions}
+            className="admin-stages-filter-select"
+          />
         </div>
         <div className="admin-stages-filter-group admin-stages-search-group">
           <FaSearch className="admin-stages-search-icon" />
@@ -325,19 +321,6 @@ function AdminStages() {
           </div>
         )}
       </div>
-
-      {showAddModal && (
-        <StageForm
-          title="Ajouter un stage"
-          submitLabel="Ajouter"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleAdd}
-          onCancel={() => { setShowAddModal(false); resetForm(); }}
-          statutOptions={statutOptions}
-          domaineOptions={domaineOptions}
-        />
-      )}
 
       {showEditModal && (
         <StageForm

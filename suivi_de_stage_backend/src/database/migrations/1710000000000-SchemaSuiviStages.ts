@@ -5,7 +5,9 @@ export class SchemaSuiviStages1710000000000 implements MigrationInterface {
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // 1. Extensions
-    await queryRunner.query('CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public');
+    await queryRunner.query(
+      'CREATE EXTENSION IF NOT EXISTS "uuid-ossp" WITH SCHEMA public',
+    );
 
     // 2. Types Enum
     await queryRunner.query(
@@ -203,8 +205,12 @@ export class SchemaSuiviStages1710000000000 implements MigrationInterface {
   public async down(queryRunner: QueryRunner): Promise<void> {
     // Suppression dans l'ordre inverse des dépendances FK
     await queryRunner.query('DROP TABLE IF EXISTS public.emplois CASCADE');
-    await queryRunner.query('DROP TABLE IF EXISTS public.situations_professionnelles CASCADE');
-    await queryRunner.query('DROP TABLE IF EXISTS public.notifications CASCADE');
+    await queryRunner.query(
+      'DROP TABLE IF EXISTS public.situations_professionnelles CASCADE',
+    );
+    await queryRunner.query(
+      'DROP TABLE IF EXISTS public.notifications CASCADE',
+    );
     await queryRunner.query('DROP TABLE IF EXISTS public.evaluations CASCADE');
     await queryRunner.query('DROP TABLE IF EXISTS public.stages CASCADE');
     await queryRunner.query('DROP TABLE IF EXISTS public.etudiants CASCADE');
@@ -215,9 +221,15 @@ export class SchemaSuiviStages1710000000000 implements MigrationInterface {
     await queryRunner.query('DROP TABLE IF EXISTS public.utilisateurs CASCADE');
 
     // Suppression des types enum
-    await queryRunner.query('DROP TYPE IF EXISTS public.utilisateurs_role_enum');
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS public.utilisateurs_role_enum',
+    );
     await queryRunner.query('DROP TYPE IF EXISTS public.stages_statut_enum');
-    await queryRunner.query('DROP TYPE IF EXISTS public.situations_professionnelles_situation_enum');
-    await queryRunner.query('DROP TYPE IF EXISTS public.notifications_type_enum');
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS public.situations_professionnelles_situation_enum',
+    );
+    await queryRunner.query(
+      'DROP TYPE IF EXISTS public.notifications_type_enum',
+    );
   }
 }

@@ -61,6 +61,40 @@ export const authApi = {
   updateMe: async (data) => {
     const res = await unwrap(apiClient.patch('/auth/me', data));
     return normalizeUser(res);
+  },
+
+  /**
+   * Demande d'envoi d'un email de réinitialisation de mot de passe
+   * @param {string} email
+   */
+  forgotPassword: async (email) => {
+    const { data } = await apiClient.post('/auth/forgot-password', { email });
+    return data;
+  },
+
+  /**
+   * Vérifie le code de réinitialisation reçu par email
+   * @param {string} email
+   * @param {string} code
+   */
+  verifyResetCode: async (email, code) => {
+    const { data } = await apiClient.post('/auth/verify-reset-code', { email, code });
+    return data;
+  },
+
+  /**
+   * Réinitialisation du mot de passe avec le code reçu par email
+   * @param {string} email
+   * @param {string} code
+   * @param {string} motDePasse
+   */
+  resetPassword: async (email, code, motDePasse) => {
+    const { data } = await apiClient.post('/auth/reset-password', {
+      email,
+      code,
+      motDePasse
+    });
+    return data;
   }
 };
 

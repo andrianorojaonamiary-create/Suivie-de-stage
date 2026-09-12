@@ -28,19 +28,22 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: none;
-  border: none;
-  color: #6c7a8a;
+  background: white;
+  border: 1.5px solid #A0B8D0;
+  color: #162449;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   cursor: pointer;
-  padding: 8px 0;
+  padding: 8px 14px;
+  border-radius: 10px;
   transition: all 0.2s;
   margin-bottom: 12px;
 }
 
 .etudiant-form-page .form-header .btn-back:hover {
+  background: #F8FAFC;
   color: #162449;
+  border-color: #6c7a8a;
 }
 
 .stage-detail-header {
@@ -182,10 +185,24 @@
   color: #162449;
 }
 
+.btn-action.btn-danger {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  gap: 0;
+  background: white;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  color: #6BA9E6;
+  font-size: 15px;
+  font-weight: 400;
+}
+
 .btn-action.btn-danger:hover {
-  background: #FEE2E2;
+  background: #E74C3C;
   border-color: #E74C3C;
-  color: #E74C3C;
+  color: white;
+  box-shadow: none;
 }
 
 /* ===== BOUTONS FORMULAIRE ===== */

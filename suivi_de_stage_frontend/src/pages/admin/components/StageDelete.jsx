@@ -13,7 +13,7 @@ function StageDelete({ stage, onConfirm, onCancel }) {
         </div>
         <div className="modal-body">
           <p>Êtes-vous sûr de vouloir supprimer le stage <strong>"{stage.titre}"</strong> ?</p>
-          <p className="text-warning">⚠️ Cette action est irréversible.</p>
+          <p className="text-warning">Cette action est irréversible.</p>
         </div>
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onCancel}>Annuler</button>

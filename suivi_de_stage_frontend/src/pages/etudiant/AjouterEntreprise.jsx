@@ -6,6 +6,7 @@ import {
   FaArrowLeft
 } from 'react-icons/fa';
 import { geocodeAddress } from '../../services/geocoding';
+import { sanitizePhone } from '../../utils/phone';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -45,7 +46,8 @@ function AjouterEntreprise() {
   const handleChange = (e) => {
     if (isViewMode) return;
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'telephone' ? sanitizePhone(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handleGeocode = async () => {
@@ -89,9 +91,9 @@ function AjouterEntreprise() {
     setLoading(true);
     setTimeout(() => {
       if (isEditing) {
-        alert('✅ Entreprise modifiée avec succès !');
+        alert('Entreprise modifiée avec succès !');
       } else {
-        alert('✅ Entreprise ajoutée avec succès !');
+        alert('Entreprise ajoutée avec succès !');
       }
       setLoading(false);
       navigate('/etudiant/entreprise');
@@ -123,51 +125,38 @@ function AjouterEntreprise() {
 
       <div className="form-card">
         <form onSubmit={handleSubmit}>
-          {/* ===== SECTION 1 : INFORMATIONS GÉNÉRALES ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaBuilding /> Informations générales
-            </h3>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label><FaBuilding /> Nom de l'entreprise {!isViewMode && '*'}</label>
-                <input
-                  type="text"
-                  name="nom"
-                  value={formData.nom}
-                  onChange={handleChange}
-                  placeholder="TechMada SARL"
-                  required={!isViewMode}
-                  disabled={isViewMode}
-                  className={isViewMode ? 'field-disabled' : ''}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaInfoCircle /> Domaine d'activité</label>
-                <input
-                  type="text"
-                  name="domaine"
-                  value={formData.domaine}
-                  onChange={handleChange}
-                  placeholder="Technologies de l'information"
-                  disabled={isViewMode}
-                  className={isViewMode ? 'field-disabled' : ''}
-                />
-              </div>
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label><FaBuilding /> Nom de l'entreprise {!isViewMode && '*'}</label>
+              <input
+                type="text"
+                name="nom"
+                value={formData.nom}
+                onChange={handleChange}
+                placeholder="TechMada SARL"
+                required={!isViewMode}
+                disabled={isViewMode}
+                className={isViewMode ? 'field-disabled' : ''}
+              />
             </div>
           </div>
 
-          {/* ===== SECTION 2 : LOCALISATION ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaMapMarkerAlt /> Localisation
-            </h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaInfoCircle /> Domaine d'activité</label>
+              <input
+                type="text"
+                name="domaine"
+                value={formData.domaine}
+                onChange={handleChange}
+                placeholder="Technologies de l'information"
+                disabled={isViewMode}
+                className={isViewMode ? 'field-disabled' : ''}
+              />
+            </div>
+          </div>
 
-            <div className="form-row">
+          <div className="form-row">
               <div className="form-group">
                 <label><FaMapMarkerAlt /> Ville {!isViewMode && '*'}</label>
                 <input
@@ -208,7 +197,7 @@ function AjouterEntreprise() {
                     {geocoding ? 'Recherche...' : 'Localiser sur la carte'}
                   </button>
                   {geocodeError && <span className="geocode-error">{geocodeError}</span>}
-                  {locationMap && <span className="geocode-success">✅ Localisé</span>}
+                  {locationMap && <span className="geocode-success">Localisé</span>}
                 </div>
               </div>
             )}
@@ -235,14 +224,7 @@ function AjouterEntreprise() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* ===== SECTION 3 : CONTACT ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaPhone /> Contact
-            </h3>
-
+            
             <div className="form-row">
               <div className="form-group">
                 <label><FaPhone /> Téléphone</label>
@@ -254,6 +236,8 @@ function AjouterEntreprise() {
                   placeholder="+261 34 12 345 67"
                   disabled={isViewMode}
                   className={isViewMode ? 'field-disabled' : ''}
+                  maxLength={14}
+                  inputMode="tel"
                 />
               </div>
               <div className="form-group">
@@ -284,16 +268,10 @@ function AjouterEntreprise() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* ===== SECTION 4 : DESCRIPTION ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaInfoCircle /> Description
-            </h3>
 
             <div className="form-row">
               <div className="form-group full-width">
+                <label><FaInfoCircle /> Description</label>
                 <textarea
                   name="description"
                   rows="4"
@@ -305,7 +283,6 @@ function AjouterEntreprise() {
                 />
               </div>
             </div>
-          </div>
 
           {/* ===== BOUTONS ===== */}
           <div className="form-actions">

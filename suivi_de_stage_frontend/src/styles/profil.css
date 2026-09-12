@@ -2,20 +2,20 @@
    PROFIL PAGE
    ============================================================ */
 .profil-page-container {
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 20px 0;
 }
 
 .profil-header {
   margin-bottom: 24px;
-  padding-top: 20px;
 }
 
 .profil-header h2 {
   font-size: 26px;
   color: #162449;
   margin: 0;
+  font-weight: 700 ;
   display: flex;
   align-items: center;
 }

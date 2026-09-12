@@ -1,5 +1,7 @@
 // src/pages/admin/components/EntrepriseForm.jsx
 import { FaTimes } from 'react-icons/fa';
+import SelectPersonnalise from '../../../components/Common/SelectPersonnalise';
+import { sanitizePhone } from '../../../utils/phone';
 
 function EntrepriseForm({ 
   formData, 
@@ -31,15 +33,13 @@ function EntrepriseForm({
             </div>
             <div className="form-group">
               <label>Domaine</label>
-              <select 
-                value={formData.domaine} 
-                onChange={(e) => setFormData({...formData, domaine: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {domaineOptions.filter(d => d !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.domaine}
+                onChange={(v) => setFormData({...formData, domaine: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={domaineOptions.filter(d => d.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Adresse</label>
@@ -52,23 +52,23 @@ function EntrepriseForm({
             </div>
             <div className="form-group">
               <label>Ville</label>
-              <select 
-                value={formData.ville} 
-                onChange={(e) => setFormData({...formData, ville: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {villeOptions.filter(v => v !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.ville}
+                onChange={(v) => setFormData({...formData, ville: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={villeOptions.filter(v => v.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Téléphone</label>
               <input 
-                type="text" 
+                type="tel" 
                 value={formData.telephone} 
-                onChange={(e) => setFormData({...formData, telephone: e.target.value})} 
+                onChange={(e) => setFormData({...formData, telephone: sanitizePhone(e.target.value)})} 
                 placeholder="+261 34 XX XXX XX"
+                maxLength={14}
+                inputMode="tel"
               />
             </div>
             <div className="form-group">

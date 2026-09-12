@@ -6,6 +6,7 @@ import {
   FaSearch, FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 import { internshipsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 // Composants Modals
 import ViewModal from './components/ViewModal';
@@ -276,7 +277,7 @@ function StagesEnseignant() {
       setStages(prev => prev.map(s =>
         s.id === selectedStage.id ? { ...s, statutValidation: 'valide', commentaireValidation: commentaire } : s
       ));
-      toast.success(`✅ Stage "${selectedStage?.titre}" validé avec succès !`);
+      toast.success(`Stage "${selectedStage?.titre}" validé avec succès !`);
       setModalValidateOpen(false);
       setSelectedStage(null);
       setCommentaire('');
@@ -289,7 +290,7 @@ function StagesEnseignant() {
 
   const confirmReject = async () => {
     if (!commentaire || commentaire.trim() === '') {
-      toast.warning('⚠️ Veuillez ajouter un commentaire pour justifier le refus');
+      toast.warning('Veuillez ajouter un commentaire pour justifier le refus');
       return;
     }
     setLoading(true);
@@ -324,7 +325,7 @@ function StagesEnseignant() {
       {/* ===== EN-TÊTE ===== */}
       <div className="page-header">
         <div>
-          <h1><FaFileAlt /> Stages à valider</h1>
+          <h1>Stages à valider</h1>
           <p className="text-muted">Gérez les stages en attente de validation</p>
         </div>
       </div>
@@ -369,14 +370,11 @@ function StagesEnseignant() {
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedStatus} 
-                  onChange={(e) => handleFilterChange(e.target.value)}
-                >
-                  {statusOptions.map(opt => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ))}
-                </select>
+                <SelectPersonnalise
+                  value={selectedStatus}
+                  onChange={handleFilterChange}
+                  options={statusOptions}
+                />
               </div>
             </div>
           </div>

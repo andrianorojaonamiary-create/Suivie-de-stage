@@ -6,6 +6,7 @@ import {
   FaUserGraduate, FaBuilding, FaTimes, FaSave,
   FaClock, FaInfoCircle, FaArrowLeft
 } from 'react-icons/fa';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function EncadreurObservations() {
   const { studentId } = useParams();
@@ -17,7 +18,9 @@ function EncadreurObservations() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedObs, setSelectedObs] = useState(null);
+  const [obsToDelete, setObsToDelete] = useState(null);
 
   const [observations, setObservations] = useState([
     { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', date: '15 Mai 2024', contenu: "L'étudiant progresse bien, bon investissement dans le projet.", auteur: 'M. Rakotomalala' },
@@ -38,7 +41,7 @@ function EncadreurObservations() {
   };
 
   const studentName = getStudentName();
-  const etudiants = ['tous', ...new Set(allObservations.map(o => o.etudiant))];
+  const etudiants = ['tous', ...new Set(allObservations.map(o => o.etudiant))].map(v => ({ value: v, label: v === 'tous' ? 'Tous les étudiants' : v }));
 
   const [formData, setFormData] = useState({ etudiant: '', contenu: '' });
 
@@ -94,7 +97,7 @@ function EncadreurObservations() {
       auteur: 'M. Rakotomalala'
     };
     setObservations([newObservation, ...observations]);
-    alert('✅ Observation ajoutée avec succès !');
+    alert('Observation ajoutée avec succès !');
     setShowAddModal(false);
     setFormData({ etudiant: '', contenu: '' });
   };
@@ -114,17 +117,26 @@ function EncadreurObservations() {
       o.id === selectedObs.id ? { ...o, etudiant: formData.etudiant, contenu: formData.contenu } : o
     );
     setObservations(updated);
-    alert('✅ Observation modifiée avec succès !');
+    alert('Observation modifiée avec succès !');
     setShowEditModal(false);
     setSelectedObs(null);
     setFormData({ etudiant: '', contenu: '' });
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('Supprimer cette observation ?')) {
-      setObservations(observations.filter(o => o.id !== id));
-      alert('🗑️ Observation supprimée !');
-    }
+  const handleDelete = (obs) => {
+    setObsToDelete(obs);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    setObservations(observations.filter(o => o.id !== obsToDelete.id));
+    setShowDeleteModal(false);
+    setObsToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setObsToDelete(null);
   };
 
   const handleView = (obs) => {
@@ -141,7 +153,7 @@ function EncadreurObservations() {
               <FaArrowLeft /> Retour
             </button>
           )}
-          <h1><FaComment /> Observations</h1>
+          <h1>Observations</h1>
           <p className="text-muted">
             {studentId ? `Observations de ${studentName}` : 'Gérez les observations sur les étudiants'}
           </p>
@@ -174,14 +186,11 @@ function EncadreurObservations() {
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedEtudiant} 
-                  onChange={(e) => setSelectedEtudiant(e.target.value)}
-                >
-                  {etudiants.map(opt => (
-                    <option key={opt} value={opt}>{opt === 'tous' ? 'Tous les étudiants' : opt}</option>
-                  ))}
-                </select>
+                <SelectPersonnalise
+                  value={selectedEtudiant}
+                  onChange={setSelectedEtudiant}
+                  options={etudiants}
+                />
               </div>
             </div>
           </div>
@@ -248,7 +257,7 @@ function EncadreurObservations() {
                         <button className="action-btn edit" onClick={() => handleEdit(obs)} title="Modifier">
                           <FaEdit />
                         </button>
-                        <button className="action-btn delete" onClick={() => handleDelete(obs.id)} title="Supprimer">
+                        <button className="action-btn delete" onClick={() => handleDelete(obs)} title="Supprimer">
                           <FaTrash />
                         </button>
                       </div>
@@ -303,16 +312,13 @@ function EncadreurObservations() {
             <div className="modal-body">
               <div className="form-group">
                 <label><FaUserGraduate /> Étudiant *</label>
-                <select 
+                <SelectPersonnalise
                   className="form-control"
                   value={formData.etudiant}
-                  onChange={(e) => setFormData({ ...formData, etudiant: e.target.value })}
-                >
-                  <option value="">Sélectionner un étudiant</option>
-                  {etudiants.filter(e => e !== 'tous').map((e, i) => (
-                    <option key={i} value={e}>{e}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setFormData({ ...formData, etudiant: v })}
+                  placeholder="Sélectionner un étudiant"
+                  options={etudiants.filter(e => e.value !== 'tous')}
+                />
               </div>
               <div className="form-group">
                 <label><FaComment /> Observation *</label>
@@ -346,16 +352,13 @@ function EncadreurObservations() {
             <div className="modal-body">
               <div className="form-group">
                 <label><FaUserGraduate /> Étudiant *</label>
-                <select 
+                <SelectPersonnalise
                   className="form-control"
                   value={formData.etudiant}
-                  onChange={(e) => setFormData({ ...formData, etudiant: e.target.value })}
-                >
-                  <option value="">Sélectionner un étudiant</option>
-                  {etudiants.filter(e => e !== 'tous').map((e, i) => (
-                    <option key={i} value={e}>{e}</option>
-                  ))}
-                </select>
+                  onChange={(v) => setFormData({ ...formData, etudiant: v })}
+                  placeholder="Sélectionner un étudiant"
+                  options={etudiants.filter(e => e.value !== 'tous')}
+                />
               </div>
               <div className="form-group">
                 <label><FaComment /> Observation *</label>
@@ -414,6 +417,26 @@ function EncadreurObservations() {
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancel" onClick={() => setShowViewModal(false)}>Fermer</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL CONFIRMATION SUPPRESSION ===== */}
+      {showDeleteModal && obsToDelete && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirmer la suppression</h3>
+            <p>
+              Voulez-vous vraiment supprimer cette observation de <strong>{obsToDelete.etudiant}</strong> ? Cette action est irréversible.
+            </p>
+            <div className="modal-actions">
+              <button className="btn-danger" onClick={confirmDelete}>
+                Supprimer
+              </button>
+              <button className="btn-secondary" onClick={cancelDelete}>
+                Annuler
+              </button>
             </div>
           </div>
         </div>

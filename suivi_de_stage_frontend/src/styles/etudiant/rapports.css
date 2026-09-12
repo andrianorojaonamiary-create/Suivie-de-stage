@@ -4,7 +4,7 @@
 
 .etudiant-rapports {
   padding: 20px 0;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -48,8 +48,6 @@
 
 .btn-deposer-principal:hover {
   background: #162449;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(74, 144, 217, 0.3);
 }
 
 /* ===== FORMULAIRE DE DÉPÔT ===== */
@@ -468,13 +466,20 @@
 }
 
 .btn-action-icon.btn-danger {
-  color: #E74C3C;
+  color: #6BA9E6;
+  background: #FAFBFF;
+  border: 1px solid #E1ECFE;
+  padding: 0;
+  gap: 0;
+  font-weight: 400;
 }
 
 .btn-action-icon.btn-danger:hover {
   background: #E74C3C;
   color: white;
   border-color: #E74C3C;
+  box-shadow: none;
+  transform: none;
 }
 
 .btn-action-icon.btn-success {

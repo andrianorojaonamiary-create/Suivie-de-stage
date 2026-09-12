@@ -1,5 +1,6 @@
 // src/pages/admin/components/StageForm.jsx
 import { FaTimes } from 'react-icons/fa';
+import SelectPersonnalise from '../../../components/Common/SelectPersonnalise';
 
 function StageForm({ 
   formData, 
@@ -31,15 +32,13 @@ function StageForm({
             </div>
             <div className="form-group">
               <label>Domaine</label>
-              <select 
-                value={formData.domaine} 
-                onChange={(e) => setFormData({...formData, domaine: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {domaineOptions.filter(d => d !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.domaine}
+                onChange={(v) => setFormData({...formData, domaine: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={domaineOptions.filter(d => d.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Étudiant</label>
@@ -70,14 +69,12 @@ function StageForm({
             </div>
             <div className="form-group">
               <label>Statut</label>
-              <select 
-                value={formData.statut} 
-                onChange={(e) => setFormData({...formData, statut: e.target.value})}
-              >
-                {statutOptions.filter(s => s !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.statut}
+                onChange={(v) => setFormData({...formData, statut: v})}
+                className="form-control"
+                options={statutOptions.filter(s => s.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Date de début</label>

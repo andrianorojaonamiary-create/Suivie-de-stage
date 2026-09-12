@@ -8,6 +8,7 @@ import {
   FaUserGraduate, FaChartLine, FaCalendarCheck
 } from 'react-icons/fa';
 import { professionalSituationsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function MonAvenir() {
   // const navigate = useNavigate();
@@ -19,6 +20,8 @@ function MonAvenir() {
   const [editingHistoriqueId, setEditingHistoriqueId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showAddJob, setShowAddJob] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
 
   // ===== SITUATION PROFESSIONNELLE =====
   const [situation, setSituation] = useState({
@@ -154,7 +157,7 @@ function MonAvenir() {
     setTimeout(() => {
       setLoading(false);
       setIsEditingSituation(false);
-      alert('✅ Situation mise à jour avec succès !');
+      alert('Situation mise à jour avec succès !');
     }, 1500);
   };
 
@@ -174,7 +177,7 @@ function MonAvenir() {
     setTimeout(() => {
       setLoading(false);
       setIsEditingEmploi(false);
-      alert('✅ Emploi mis à jour avec succès !');
+      alert('Emploi mis à jour avec succès !');
     }, 1500);
   };
 
@@ -205,7 +208,7 @@ function MonAvenir() {
     setHistoriqueEmplois([...historiqueEmplois, newEntry]);
     setNewJob({ entreprise: '', poste: '', localisation: '', dateDebut: '', dateFin: '' });
     setShowAddJob(false);
-    alert('✅ Expérience ajoutée avec succès !');
+    alert('Expérience ajoutée avec succès !');
   };
 
   const handleEditClick = (job) => {
@@ -228,7 +231,7 @@ function MonAvenir() {
     setIsEditingHistorique(false);
     setEditingHistoriqueId(null);
     setEditJob({ entreprise: '', poste: '', localisation: '', dateDebut: '', dateFin: '' });
-    alert('✅ Expérience modifiée avec succès !');
+    alert('Expérience modifiée avec succès !');
   };
 
   const handleEditCancel = () => {
@@ -236,11 +239,21 @@ function MonAvenir() {
     setEditingHistoriqueId(null);
   };
 
-  const handleDeleteJob = (id, entreprise) => {
-    if (window.confirm(`Supprimer l'expérience chez "${entreprise}" ?`)) {
-      setHistoriqueEmplois(historiqueEmplois.filter(j => j.id !== id));
-      alert(`🗑️ Expérience chez "${entreprise}" supprimée !`);
-    }
+  const handleDeleteClick = (id, entreprise) => {
+    setJobToDelete({ id, entreprise });
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    setHistoriqueEmplois(prev => prev.filter(j => j.id !== jobToDelete.id));
+    alert(`Expérience chez "${jobToDelete.entreprise}" supprimée !`);
+    setShowDeleteModal(false);
+    setJobToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setJobToDelete(null);
   };
 
   // ===== REGROUPER PAR ANNÉE =====
@@ -265,7 +278,7 @@ function MonAvenir() {
       {/* ===== HEADER ===== */}
       <div className="page-header">
         <div className="header-content">
-          <h1><FaGraduationCap /> Mon avenir</h1>
+          <h1>Mon avenir</h1>
           <p className="text-muted">Votre parcours professionnel</p>
         </div>
       </div>
@@ -286,15 +299,15 @@ function MonAvenir() {
               <div className="situation-edit-grid">
                 <div className="form-group">
                   <label><FaUserGraduate /> Statut</label>
-                  <select
-                    name="statut"
+                  <SelectPersonnalise
                     value={situation.statut}
-                    onChange={handleSituationChange}
+                    onChange={(v) => handleSituationChange({ target: { name: 'statut', value: v } })}
                     className="form-control"
-                  >
-                    <option value="Diplômé">Diplômé</option>
-                    <option value="En cours">En cours</option>
-                  </select>
+                    options={[
+                      { value: 'Diplômé', label: 'Diplômé' },
+                      { value: 'En cours', label: 'En cours' }
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label><FaCalendarAlt /> Date de diplôme</label>
@@ -308,17 +321,17 @@ function MonAvenir() {
                 </div>
                 <div className="form-group">
                   <label><FaChartLine /> Situation professionnelle</label>
-                  <select
-                    name="situationPro"
+                  <SelectPersonnalise
                     value={situation.situationPro}
-                    onChange={handleSituationChange}
+                    onChange={(v) => handleSituationChange({ target: { name: 'situationPro', value: v } })}
                     className="form-control"
-                  >
-                    <option value="En emploi">En emploi</option>
-                    <option value="En recherche">En recherche</option>
-                    <option value="Études supérieures">Études supérieures</option>
-                    <option value="Autre">Autre</option>
-                  </select>
+                    options={[
+                      { value: 'En emploi', label: 'En emploi' },
+                      { value: 'En recherche', label: 'En recherche' },
+                      { value: 'Études supérieures', label: 'Études supérieures' },
+                      { value: 'Autre', label: 'Autre' }
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label><FaCalendarCheck /> Date de mise à jour</label>
@@ -471,19 +484,19 @@ function MonAvenir() {
               <div className="form-row">
                 <div className="form-group">
                   <label>Type de contrat</label>
-                  <select
-                    name="typeContrat"
+                  <SelectPersonnalise
                     value={emploiActuel.typeContrat}
-                    onChange={handleEmploiChange}
+                    onChange={(v) => handleEmploiChange({ target: { name: 'typeContrat', value: v } })}
+                    placeholder="Sélectionnez un type"
                     className="form-control"
-                  >
-                    <option value="">Sélectionnez un type</option>
-                    <option value="CDI">CDI</option>
-                    <option value="CDD">CDD</option>
-                    <option value="Stage">Stage</option>
-                    <option value="Alternance">Alternance</option>
-                    <option value="Freelance">Freelance</option>
-                  </select>
+                    options={[
+                      { value: 'CDI', label: 'CDI' },
+                      { value: 'CDD', label: 'CDD' },
+                      { value: 'Stage', label: 'Stage' },
+                      { value: 'Alternance', label: 'Alternance' },
+                      { value: 'Freelance', label: 'Freelance' }
+                    ]}
+                  />
                 </div>
                 <div className="form-group">
                   <label>Description (optionnel)</label>
@@ -653,7 +666,7 @@ function MonAvenir() {
                               </button>
                               <button 
                                 className="btn-delete-item" 
-                                onClick={() => handleDeleteJob(job.id, job.entreprise)}
+                                onClick={() => handleDeleteClick(job.id, job.entreprise)}
                                 title="Supprimer"
                               >
                                 <FaTrash />
@@ -745,6 +758,24 @@ function MonAvenir() {
           )}
         </div>
       </div>
+
+      {/* ===== MODAL DE CONFIRMATION SUPPRESSION ===== */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirmer la suppression</h3>
+            <p>Voulez-vous vraiment supprimer cette expérience chez "{jobToDelete?.entreprise}" ? Cette action est irréversible.</p>
+            <div className="modal-actions">
+              <button className="btn-danger" onClick={confirmDelete}>
+                Supprimer
+              </button>
+              <button className="btn-secondary" onClick={cancelDelete}>
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ===== FOOTER ===== */}
       <div className="avenir-footer">

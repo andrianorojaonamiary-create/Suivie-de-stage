@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   FaCalendarAlt, FaFileAlt, 
-  FaArrowRight, FaClock, FaPlus,
-  FaChartLine, FaAward,
+  FaArrowRight, FaClock, 
+  FaChartLine,
   FaFilePdf, FaFileWord, FaFile, FaBell,
   FaMapPin, FaEye, FaExclamationTriangle,
   FaCheck
@@ -129,9 +129,6 @@ function EtudiantDashboard() {
           <h1>Dashboard</h1>
           <p className="text-muted">Bienvenue dans votre espace étudiant</p>
         </div>
-        <Link to="/etudiant/ajouter-stage" className="btn-primary">
-          <FaPlus /> Ajouter un stage
-        </Link>
       </div>
 
       {/* ===== STATS ===== */}
@@ -164,12 +161,12 @@ function EtudiantDashboard() {
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon" style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>
-            <FaAward />
+          <div className="stat-icon" style={{ backgroundColor: '#E0F2FE', color: '#0891B2' }}>
+            <FaCalendarAlt />
           </div>
           <div className="stat-content">
-            <span className="stat-value">4.5</span>
-            <span className="stat-label">Évaluation moyenne</span>
+            <span className="stat-value">{stageInfo.joursEcoules}</span>
+            <span className="stat-label">Jours de stage écoulés</span>
           </div>
         </div>
       </div>
@@ -219,7 +216,7 @@ function EtudiantDashboard() {
 
         {/* LOCALISATION */}
         <div className="dashboard-localisation">
-          <h3><FaMapPin /> Localisation du stage</h3>
+          <h3> Localisation du stage</h3>
           <div className="localisation-card">
             <div className="localisation-map">
               <img 
@@ -237,9 +234,6 @@ function EtudiantDashboard() {
                 <p>{stageInfo.adresse}</p>
                 <p>{stageInfo.ville}, Madagascar</p>
               </div>
-              <Link to="/etudiant/carte" className="btn-voir-carte">
-                <FaEye /> Voir sur la carte
-              </Link>
             </div>
           </div>
         </div>

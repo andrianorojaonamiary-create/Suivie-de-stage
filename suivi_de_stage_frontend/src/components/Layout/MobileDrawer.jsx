@@ -62,7 +62,6 @@ function MobileDrawer({ isOpen, onClose }) {
         { path: '/etudiant/suivi-stage', icon: <FaCalendarAlt />, label: 'Suivi du stage' },
         { path: '/etudiant/rapports', icon: <FaFileAlt />, label: 'Mes rapports' },
         { divider: true, label: 'DÉCOUVRIR' },
-        { path: '/etudiant/carte', icon: <FaMapMarkedAlt />, label: 'Voir la carte' },
         { path: '/etudiant/mon-avenir', icon: <FaGraduationCap />, label: 'Mon avenir' },
         { divider: true, label: 'COMPTE' },
         { path: '/notifications', icon: <FaBell />, label: 'Notifications' },

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   FaSave, FaBuilding, FaUserTie, FaCalendarAlt,
   FaFileAlt, FaMapMarkerAlt, FaSpinner, FaMapPin,
-  FaTimes, FaUpload, FaInfoCircle, FaBriefcase, FaArrowLeft
+  FaTimes, FaUpload, FaArrowLeft
 } from 'react-icons/fa';
 import { geocodeAddress } from '../../services/geocoding';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -108,7 +108,7 @@ function AjouterStage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      alert('✅ Stage ajouté avec succès !');
+      alert('Stage ajouté avec succès !');
       navigate('/etudiant/mes-stages');
     }, 1500);
   };
@@ -130,80 +130,67 @@ function AjouterStage() {
 
       <div className="form-card">
         <form onSubmit={handleSubmit}>
-          {/* ===== SECTION 1 : INFORMATIONS GÉNÉRALES ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaInfoCircle /> Informations générales
-            </h3>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaFileAlt /> Titre du stage *</label>
-                <input
-                  type="text"
-                  name="titre"
-                  value={formData.titre}
-                  onChange={handleChange}
-                  placeholder="Ex: Développement d'une plateforme web"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label><FaUserTie /> Tuteur pédagogique</label>
-                <input
-                  type="text"
-                  name="tuteur"
-                  value={formData.tuteur}
-                  onChange={handleChange}
-                  placeholder="Nom du tuteur"
-                />
-              </div>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaFileAlt /> Titre du stage *</label>
+              <input
+                type="text"
+                name="titre"
+                value={formData.titre}
+                onChange={handleChange}
+                placeholder="Ex: Développement d'une plateforme web"
+                required
+              />
             </div>
-
-            <div className="form-row">
-              <div className="form-group">
-                <label><FaCalendarAlt /> Date de début *</label>
-                <input
-                  type="date"
-                  name="dateDebut"
-                  value={formData.dateDebut}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label><FaCalendarAlt /> Date de fin *</label>
-                <input
-                  type="date"
-                  name="dateFin"
-                  value={formData.dateFin}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label>Description</label>
-                <textarea
-                  name="description"
-                  rows="3"
-                  value={formData.description}
-                  onChange={handleChange}
-                  placeholder="Description du stage..."
-                />
-              </div>
+            <div className="form-group">
+              <label><FaUserTie /> Tuteur pédagogique</label>
+              <input
+                type="text"
+                name="tuteur"
+                value={formData.tuteur}
+                onChange={handleChange}
+                placeholder="Nom du tuteur"
+              />
             </div>
           </div>
 
-          {/* ===== SECTION 2 : INFORMATIONS DE L'ENTREPRISE ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaBriefcase /> Informations de l'entreprise
-            </h3>
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaCalendarAlt /> Date de début *</label>
+              <input
+                type="date"
+                name="dateDebut"
+                value={formData.dateDebut}
+                onChange={handleChange}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label><FaCalendarAlt /> Date de fin *</label>
+              <input
+                type="date"
+                name="dateFin"
+                value={formData.dateFin}
+                onChange={handleChange}
+                required
+              />
+            </div>
+          </div>
 
-            <div className="form-row">
+          <div className="form-row">
+            <div className="form-group full-width">
+              <label>Description</label>
+              <textarea
+                name="description"
+                rows="3"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Description du stage..."
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
               <div className="form-group">
                 <label><FaBuilding /> Entreprise *</label>
                 <input
@@ -252,7 +239,7 @@ function AjouterStage() {
                 </div>
                 {geocodeError && <span className="geocode-error">{geocodeError}</span>}
                 {location && (
-                  <span className="geocode-success">✅ Localisé</span>
+                  <span className="geocode-success">Localisé</span>
                 )}
               </div>
             </div>
@@ -292,13 +279,6 @@ function AjouterStage() {
                 />
               </div>
             </div>
-          </div>
-
-          {/* ===== SECTION 3 : CONVENTION DE STAGE ===== */}
-          <div className="form-section">
-            <h3 className="form-section-title">
-              <FaFileAlt /> Documents
-            </h3>
 
             <div className="form-row">
               <div className="form-group full-width">
@@ -315,7 +295,7 @@ function AjouterStage() {
                   </label>
                   {fichier ? (
                     <>
-                      <span className="file-selected-name">📄 {fichier.name}</span>
+                      <span className="file-selected-name">{fichier.name}</span>
                       <button
                         type="button"
                         className="file-remove-btn"
@@ -331,7 +311,6 @@ function AjouterStage() {
                 <small className="form-hint">Format PDF, max 5 Mo</small>
               </div>
             </div>
-          </div>
 
           {/* ===== BOUTONS ===== */}
           <div className="form-actions">

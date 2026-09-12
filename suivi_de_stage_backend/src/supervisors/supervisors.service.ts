@@ -183,10 +183,7 @@ export class SupervisorsService {
   }
 
   private ensureAdminOrEnseignant(actor: AuthenticatedUser) {
-    if (
-      actor.role !== Role.ADMINISTRATEUR &&
-      actor.role !== Role.ENSEIGNANT
-    ) {
+    if (actor.role !== Role.ADMINISTRATEUR && actor.role !== Role.ENSEIGNANT) {
       throw new ForbiddenException(
         'Accès réservé aux administrateurs et enseignants.',
       );
@@ -199,7 +196,9 @@ export class SupervisorsService {
       actor.role !== Role.ENSEIGNANT &&
       actor.role !== Role.ADMINISTRATEUR
     ) {
-      throw new ForbiddenException('Accès réservé aux encadreurs et enseignants.');
+      throw new ForbiddenException(
+        'Accès réservé aux encadreurs et enseignants.',
+      );
     }
   }
 

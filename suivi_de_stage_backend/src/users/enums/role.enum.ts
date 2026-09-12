@@ -5,4 +5,3 @@ export enum Role {
   ENTREPRISE = 'ENTREPRISE',
   ADMINISTRATEUR = 'ADMINISTRATEUR',
 }
-

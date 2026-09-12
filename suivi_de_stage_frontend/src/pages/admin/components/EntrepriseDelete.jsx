@@ -13,7 +13,7 @@ function EntrepriseDelete({ entreprise, onConfirm, onCancel }) {
         </div>
         <div className="modal-body">
           <p>Êtes-vous sûr de vouloir supprimer l'entreprise <strong>{entreprise.nom}</strong> ?</p>
-          <p className="text-warning">⚠️ Cette action est irréversible.</p>
+          <p className="text-warning">Cette action est irréversible.</p>
         </div>
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onCancel}>Annuler</button>

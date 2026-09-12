@@ -6,6 +6,7 @@ import {
   FaBuilding, FaFilter, FaTimes, FaInfoCircle, FaPlus
 } from 'react-icons/fa';
 import { internshipsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function MesRapports() {
   const [selectedStage, setSelectedStage] = useState('all');
@@ -20,6 +21,10 @@ function MesRapports() {
     file: null
   });
   const [dragging, setDragging] = useState(false);
+
+  // ===== ÉTAT MODAL CONFIRMATION SUPPRESSION =====
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [reportToDelete, setReportToDelete] = useState(null);
 
   // ===== DONNÉES : RAPPORTS PAR STAGE =====
   const [stages, setStages] = useState([
@@ -149,17 +154,17 @@ function MesRapports() {
 
   const handleSubmitReport = () => {
     if (!formData.stageId) {
-      toast.error('⚠️ Veuillez sélectionner un stage');
+      toast.error('Veuillez sélectionner un stage');
       return;
     }
     if (!formData.file) {
-      toast.error('⚠️ Veuillez sélectionner un fichier');
+      toast.error('Veuillez sélectionner un fichier');
       return;
     }
 
     const selectedStage = stages.find(s => s.id === parseInt(formData.stageId));
     
-    toast.success(`✅ Rapport "${formData.file.name}" déposé avec succès pour ${selectedStage?.titre} !`);
+    toast.success(`Rapport "${formData.file.name}" déposé avec succès pour ${selectedStage?.titre} !`);
     handleCloseForm();
   };
 
@@ -168,7 +173,7 @@ function MesRapports() {
   // ===== VOIR - Ouvre le fichier dans un nouvel onglet =====
   const handleVoir = (fileName) => {
     if (!fileName) {
-      toast.error('❌ Aucun fichier à visualiser');
+      toast.error('Aucun fichier à visualiser');
       return;
     }
     
@@ -176,9 +181,9 @@ function MesRapports() {
       // Ouvrir le fichier dans un nouvel onglet
       // En production, utilisez l'URL de votre API
       window.open(`/documents/${fileName}`, '_blank');
-      toast.info(`👁️ Ouverture de "${fileName}"...`);
+      toast.info(`Ouverture de "${fileName}"...`);
     } catch (error) {
-      toast.error('❌ Erreur lors de l\'ouverture du fichier');
+      toast.error('Erreur lors de l\'ouverture du fichier');
       console.error('Erreur:', error);
     }
   };
@@ -186,7 +191,7 @@ function MesRapports() {
   // ===== TÉLÉCHARGER - Télécharge le fichier =====
   const handleTelecharger = (fileName) => {
     if (!fileName) {
-      toast.error('❌ Aucun fichier à télécharger');
+      toast.error('Aucun fichier à télécharger');
       return;
     }
     
@@ -199,23 +204,32 @@ function MesRapports() {
       link.click();
       document.body.removeChild(link);
       
-      toast.success(`📥 Téléchargement de "${fileName}"...`);
+      toast.success(`Téléchargement de "${fileName}"...`);
     } catch (error) {
-      toast.error('❌ Erreur lors du téléchargement');
+      toast.error('Erreur lors du téléchargement');
       console.error('Erreur:', error);
     }
   };
 
   // ===== SUPPRIMER =====
-  const handleSupprimer = (id, title) => {
-    if (window.confirm(`Supprimer "${title}" ?`)) {
-      // Ici, vous feriez un appel API pour supprimer
-      toast.success(`🗑️ Rapport "${title}" supprimé !`);
-    }
+  const handleDeleteClick = (report) => {
+    setReportToDelete(report);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    toast.success(`Rapport "${reportToDelete?.title}" supprimé !`);
+    setShowDeleteModal(false);
+    setReportToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setReportToDelete(null);
   };
 
   // ===== FILTRES PAR STAGE =====
-  const stageOptions = ['all', ...stages.map(s => s.titre)];
+  const stageOptions = ['all', ...stages.map(s => s.titre)].map(v => ({ value: v, label: v === 'all' ? 'Tous les stages' : v }));
 
   return (
     <div className="etudiant-rapports">
@@ -237,18 +251,13 @@ function MesRapports() {
           <label htmlFor="stage-filter" className="filter-label">
             <FaFilter /> Filtrer par stage :
           </label>
-          <select 
+          <SelectPersonnalise
             id="stage-filter"
-            value={selectedStage} 
-            onChange={(e) => setSelectedStage(e.target.value)}
+            value={selectedStage}
+            onChange={setSelectedStage}
+            options={stageOptions}
             className="filter-select-inline"
-          >
-            {stageOptions.map(option => (
-              <option key={option} value={option}>
-                {option === 'all' ? 'Tous les stages' : option}
-              </option>
-            ))}
-          </select>
+          />
         </div>
 
         <button className="btn-deposer-principal" onClick={handleOpenForm}>
@@ -277,33 +286,27 @@ function MesRapports() {
           <div className="deposit-form-body">
             <div className="form-group">
               <label><FaBuilding /> Stage *</label>
-              <select
-                name="stageId"
+              <SelectPersonnalise
                 value={formData.stageId}
-                onChange={handleFormChange}
+                onChange={(v) => handleFormChange({ target: { name: 'stageId', value: v } })}
+                placeholder="Sélectionnez un stage"
                 className="form-control"
-              >
-                <option value="">Sélectionnez un stage</option>
-                {stages.map(stage => (
-                  <option key={stage.id} value={stage.id}>
-                    {stage.titre} - {stage.entreprise}
-                  </option>
-                ))}
-              </select>
+                options={stages.map(stage => ({ value: String(stage.id), label: `${stage.titre} - ${stage.entreprise}` }))}
+              />
             </div>
 
             <div className="form-group">
               <label><FaInfoCircle /> Type de rapport *</label>
-              <select
-                name="type"
+              <SelectPersonnalise
                 value={formData.type}
-                onChange={handleFormChange}
+                onChange={(v) => handleFormChange({ target: { name: 'type', value: v } })}
                 className="form-control"
-              >
-                <option value="Prise en main">Prise en main</option>
-                <option value="Intermédiaire">Intermédiaire</option>
-                <option value="Final">Final</option>
-              </select>
+                options={[
+                  { value: 'Prise en main', label: 'Prise en main' },
+                  { value: 'Intermédiaire', label: 'Intermédiaire' },
+                  { value: 'Final', label: 'Final' }
+                ]}
+              />
             </div>
 
             <div className="form-group">
@@ -429,7 +432,7 @@ function MesRapports() {
                     </button>
                     <button 
                       className="btn-action-icon btn-danger" 
-                      onClick={() => handleSupprimer(report.id, report.title)}
+                      onClick={() => handleDeleteClick(report)}
                       title="Supprimer"
                     >
                       <FaTrash />
@@ -441,6 +444,24 @@ function MesRapports() {
           ))
         )}
       </div>
+
+      {/* ===== MODAL DE CONFIRMATION SUPPRESSION ===== */}
+      {showDeleteModal && (
+        <div className="modal-overlay" onClick={cancelDelete}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <h3>Confirmer la suppression</h3>
+            <p>Voulez-vous vraiment supprimer le rapport « {reportToDelete?.title} » ? Cette action est irréversible.</p>
+            <div className="modal-actions">
+              <button className="btn-danger" onClick={confirmDelete}>
+                Supprimer
+              </button>
+              <button className="btn-secondary" onClick={cancelDelete}>
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

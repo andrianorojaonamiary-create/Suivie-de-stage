@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 
 import EvaluationForm from './components/EvaluationForm';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 // ============================================================
 // MODAL DÉTAILS ÉVALUATION
@@ -193,7 +194,7 @@ function EnseignantEvaluations() {
   };
 
   const handleSaveEvaluation = (data) => {
-    alert(`✅ Évaluation enregistrée avec succès !\nNote moyenne : ${data.moyenne}/20`);
+    alert(`Évaluation enregistrée avec succès !\nNote moyenne : ${data.moyenne}/20`);
     setShowEvaluationForm(false);
   };
 
@@ -213,7 +214,7 @@ function EnseignantEvaluations() {
               <FaArrowLeft /> Retour
             </button>
           )}
-          <h1><FaStar /> Évaluations</h1>
+          <h1>Évaluations</h1>
           <p className="text-muted">
             {studentId ? `Évaluations de ${studentName}` : 'Gérer les évaluations des étudiants'}
           </p>
@@ -253,15 +254,16 @@ function EnseignantEvaluations() {
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedStatus} 
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="tous">Tous les statuts</option>
-                  <option value="Validé">Validé</option>
-                  <option value="À faire">À faire</option>
-                  <option value="En attente">En attente</option>
-                </select>
+                <SelectPersonnalise
+                  value={selectedStatus}
+                  onChange={setSelectedStatus}
+                  options={[
+                    { value: 'tous', label: 'Tous les statuts' },
+                    { value: 'Validé', label: 'Validé' },
+                    { value: 'À faire', label: 'À faire' },
+                    { value: 'En attente', label: 'En attente' }
+                  ]}
+                />
               </div>
             </div>
           </div>
@@ -328,8 +330,7 @@ function EnseignantEvaluations() {
                     <td>
                       {evalItem.note ? (
                         <div className="note-cell">
-                          <span className="note-value">{evalItem.note}</span>
-                          <span className="note-stars">{getStars(evalItem.note)}</span>
+                          <span className="note-value">{evalItem.note}/20</span>
                         </div>
                       ) : (
                         <span className="note-empty">—</span>

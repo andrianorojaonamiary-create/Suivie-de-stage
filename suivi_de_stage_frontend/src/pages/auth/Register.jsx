@@ -7,6 +7,8 @@ import {
   FaGraduationCap, FaChalkboardTeacher, FaUserTie
 } from 'react-icons/fa';
 import logo from '../../assets/logo_emit.jpg';  // ← Import du logo
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { sanitizePhone } from '../../utils/phone';
 
 function Register() {
   const { register } = useAuth();
@@ -49,20 +51,39 @@ function Register() {
     },
   ];
 
+  const niveauOptions = [
+    { value: 'L1', label: 'L1' },
+    { value: 'L2', label: 'L2' },
+    { value: 'L3', label: 'L3' },
+    { value: 'M1', label: 'M1' },
+    { value: 'M2', label: 'M2' },
+  ];
+
+  const licenceFilieres = ['DA2I', 'CM', 'RCPO', 'AES', 'CIGSI'];
+  const masterFilieres = ['M2I', 'SIGS', 'SDIA', 'IGTI', 'MD', 'CMN', 'RPC'];
+
+  const filiereOptionsByNiveau = {
+    L1: licenceFilieres.map(v => ({ value: v, label: v })),
+    L2: licenceFilieres.map(v => ({ value: v, label: v })),
+    L3: licenceFilieres.map(v => ({ value: v, label: v })),
+    M1: masterFilieres.map(v => ({ value: v, label: v })),
+    M2: masterFilieres.map(v => ({ value: v, label: v })),
+  };
+
   const getFieldsByRole = (role) => {
     const common = [
       { name: 'nom', label: 'Nom', placeholder: 'Votre nom', required: true },
       { name: 'prenom', label: 'Prénom', placeholder: 'Votre prénom', required: true },
       { name: 'email', label: 'Email', placeholder: 'votre.email@exemple.com', type: 'email', required: true },
-      { name: 'telephone', label: 'Téléphone', placeholder: '+261 32 00 111 22', type: 'tel' },
+      { name: 'telephone', label: 'Téléphone', placeholder: '+261 32 00 111 22', type: 'tel', maxLength: 14, inputMode: 'tel' },
     ];
 
     const roleFields = {
       'ROLE_ETUDIANT': [
         ...common,
-        { name: 'matricule', label: 'Numéro étudiant', placeholder: 'ETU-2024-0421', required: true },
-        { name: 'niveau', label: 'Niveau', placeholder: 'Master 2', required: true },
-        { name: 'filiere', label: 'Filière', placeholder: 'Génie Logiciel', required: true },
+        { name: 'matricule', label: 'Numéro étudiant', placeholder: '001I00', required: true },
+        { name: 'niveau', label: 'Niveau', type: 'select', placeholder: 'Sélectionner le niveau', required: true, options: () => niveauOptions },
+        { name: 'filiere', label: 'Filière', type: 'select', placeholder: 'Sélectionner la filière', required: true, options: () => filiereOptionsByNiveau[formData.niveau] || [] },
       ],
       'ROLE_ENSEIGNANT': [
         ...common,
@@ -92,7 +113,24 @@ function Register() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'telephone' ? sanitizePhone(value) : value;
+    setFormData(prev => ({ ...prev, [name]: nextValue }));
+  };
+
+  const handleSelectChange = (name, value) => {
+    setFormData(prev => {
+      if (name === 'niveau') {
+        const currentFiliere = prev.filiere;
+        const nextFilieres = filiereOptionsByNiveau[value] || [];
+        const filiereStillValid = nextFilieres.some(f => f.value === currentFiliere);
+        return {
+          ...prev,
+          niveau: value,
+          filiere: filiereStillValid ? prev.filiere : '',
+        };
+      }
+      return { ...prev, [name]: value };
+    });
   };
 
   const handleNext = () => {
@@ -288,14 +326,26 @@ function Register() {
                 {fields.map((field) => (
                   <div key={field.name} className="form-group">
                     <label>{field.label} {field.required && <span className="required">*</span>}</label>
-                    <input
-                      type={field.type || 'text'}
-                      name={field.name}
-                      placeholder={field.placeholder}
-                      value={formData[field.name] || ''}
-                      onChange={handleChange}
-                      required={field.required}
-                    />
+                    {field.type === 'select' ? (
+                      <SelectPersonnalise
+                        value={formData[field.name] || ''}
+                        onChange={(v) => handleSelectChange(field.name, v)}
+                        placeholder={field.placeholder}
+                        options={field.options ? field.options() : []}
+                        className="form-control"
+                      />
+                    ) : (
+                      <input
+                        type={field.type || 'text'}
+                        name={field.name}
+                        placeholder={field.placeholder}
+                        value={formData[field.name] || ''}
+                        onChange={handleChange}
+                        maxLength={field.maxLength}
+                        inputMode={field.inputMode}
+                        required={field.required}
+                      />
+                    )}
                   </div>
                 ))}
                 {passwordFields.map((field) => (

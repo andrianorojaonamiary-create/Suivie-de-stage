@@ -153,12 +153,15 @@
   color: #6BA9E6;
 }
 .admin-etudiants-search-group {
-  flex: 2;
-  min-width: 280px;
+  position: relative;
+  flex: 1.5;
+  min-width: 260px;
+  max-width: 420px;
 }
 .admin-etudiants-search-input {
   flex: 1;
   padding: 10px 16px;
+  padding-left: 40px;
   border: 1.5px solid #E1ECFE;
   border-radius: 8px;
   font-size: 14px;
@@ -177,6 +180,11 @@
   color: #A0B8D0;
 }
 .admin-etudiants-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
   color: #6c7a8a;
   font-size: 16px;
 }
@@ -191,7 +199,7 @@
   background: white;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 130px;
+  min-width: 180px;
   appearance: none;
   -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
@@ -212,11 +220,12 @@
   background: white;
   border-radius: 12px;
   border: 1px solid #E1ECFE;
-  overflow: hidden;
+  overflow-x: auto;
   box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
 }
 .admin-etudiants-table {
   width: 100%;
+  min-width: max-content;
   border-collapse: collapse;
 }
 .admin-etudiants-table thead th {

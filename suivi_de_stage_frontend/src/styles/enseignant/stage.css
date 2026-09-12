@@ -4,7 +4,7 @@
 
 .enseignant-stages {
   padding: 20px 0;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -102,7 +102,7 @@
   align-items: center;
   padding: 14px 20px;
   border-bottom: 1px solid #F0F4F8;
-  background: #FAFCFE;
+  background: #F8FAFC;
   gap: 16px;
   flex-wrap: wrap;
 }
@@ -348,7 +348,7 @@
   padding: 14px 20px;
   border-top: 1px solid #F0F4F8;
   flex-wrap: wrap;
-  background: #FAFCFE;
+  background: #F8FAFC;
 }
 
 .page-btn {

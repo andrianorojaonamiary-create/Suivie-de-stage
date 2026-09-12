@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
   FaBuilding, FaUsers,FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 
@@ -8,13 +8,13 @@ import EntrepriseForm from './components/EntrepriseForm';
 import EntrepriseDetail from './components/EntrepriseDetail';
 import EntrepriseDelete from './components/EntrepriseDelete';
 import companiesApi from '../../api/companiesApi';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEntreprises() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDomaine, setFilterDomaine] = useState('Tous');
   const [filterVille, setFilterVille] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -85,8 +85,18 @@ function AdminEntreprises() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const domaineOptions = ['Tous', 'Technologies', 'Banque', 'Télécom', 'Énergie', 'Services'];
-  const villeOptions = ['Tous', 'Antananarivo'];
+  const domaineOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Technologies', label: 'Technologies' },
+    { value: 'Banque', label: 'Banque' },
+    { value: 'Télécom', label: 'Télécom' },
+    { value: 'Énergie', label: 'Énergie' },
+    { value: 'Services', label: 'Services' }
+  ];
+  const villeOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Antananarivo', label: 'Antananarivo' }
+  ];
 
   const resetForm = () => {
     setFormData({
@@ -99,25 +109,6 @@ function AdminEntreprises() {
       latitude: '',
       longitude: ''
     });
-  };
-
-  const handleAdd = async () => {
-    try {
-      await companiesApi.create({
-        nom: formData.nom,
-        secteur: formData.domaine,
-        adresse: formData.adresse,
-        ville: formData.ville || 'Antananarivo',
-        email: formData.email,
-        telephone: formData.telephone
-      });
-      await loadCompanies();
-    } catch {
-      const newEntreprise = { id: entreprises.length + 1, ...formData, stagiaires: 0 };
-      setEntreprises([...entreprises, newEntreprise]);
-    }
-    setShowAddModal(false);
-    resetForm();
   };
 
   const handleEdit = async () => {
@@ -173,12 +164,9 @@ function AdminEntreprises() {
     <div className="admin-entreprises-page">
       <div className="admin-entreprises-header">
         <div>
-          <h1><FaBuilding /> Gestion des entreprises</h1>
+          <h1>Gestion des entreprises</h1>
           <p className="admin-entreprises-subtitle">Gérez les entreprises partenaires</p>
         </div>
-        <button className="admin-entreprises-btn-primary" onClick={() => setShowAddModal(true)}>
-          <FaPlus /> Ajouter une entreprise
-        </button>
       </div>
 
       <div className="admin-entreprises-stats">
@@ -205,12 +193,18 @@ function AdminEntreprises() {
       <div className="admin-entreprises-filters">
         <div className="admin-entreprises-filter-group">
           <label><FaFilter /> Filtres</label>
-          <select value={filterDomaine} onChange={(e) => setFilterDomaine(e.target.value)} className="admin-entreprises-filter-select">
-            {domaineOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          <select value={filterVille} onChange={(e) => setFilterVille(e.target.value)} className="admin-entreprises-filter-select">
-            {villeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+          <SelectPersonnalise
+            value={filterDomaine}
+            onChange={setFilterDomaine}
+            options={domaineOptions}
+            className="admin-entreprises-filter-select"
+          />
+          <SelectPersonnalise
+            value={filterVille}
+            onChange={setFilterVille}
+            options={villeOptions}
+            className="admin-entreprises-filter-select"
+          />
         </div>
         <div className="admin-entreprises-filter-group admin-entreprises-search-group">
           <FaSearch className="admin-entreprises-search-icon" />
@@ -284,19 +278,6 @@ function AdminEntreprises() {
           </div>
         )}
       </div>
-
-      {showAddModal && (
-        <EntrepriseForm
-          title="Ajouter une entreprise"
-          submitLabel="Ajouter"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleAdd}
-          onCancel={() => { setShowAddModal(false); resetForm(); }}
-          domaineOptions={domaineOptions}
-          villeOptions={villeOptions}
-        />
-      )}
 
       {showEditModal && (
         <EntrepriseForm

@@ -1,5 +1,7 @@
 // src/pages/admin/components/EtudiantForm.jsx
 import { FaTimes } from 'react-icons/fa';
+import SelectPersonnalise from '../../../components/Common/SelectPersonnalise';
+import { sanitizePhone } from '../../../utils/phone';
 
 function EtudiantForm({ 
   formData, 
@@ -63,58 +65,52 @@ function EtudiantForm({
             <div className="form-group">
               <label>Téléphone</label>
               <input 
-                type="text" 
+                type="tel" 
                 value={formData.telephone} 
-                onChange={(e) => setFormData({...formData, telephone: e.target.value})} 
+                onChange={(e) => setFormData({...formData, telephone: sanitizePhone(e.target.value)})} 
                 placeholder="+261 34 XX XXX XX"
+                maxLength={14}
+                inputMode="tel"
               />
             </div>
             <div className="form-group">
               <label>Filière</label>
-              <select 
-                value={formData.filiere} 
-                onChange={(e) => setFormData({...formData, filiere: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {filiereOptions.filter(f => f !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.filiere}
+                onChange={(v) => setFormData({...formData, filiere: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={filiereOptions.filter(f => f.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Promotion</label>
-              <select 
-                value={formData.promotion} 
-                onChange={(e) => setFormData({...formData, promotion: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {promotionOptions.filter(p => p !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.promotion}
+                onChange={(v) => setFormData({...formData, promotion: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={promotionOptions.filter(p => p.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Niveau</label>
-              <select 
-                value={formData.niveau} 
-                onChange={(e) => setFormData({...formData, niveau: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {niveauOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.niveau}
+                onChange={(v) => setFormData({...formData, niveau: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={niveauOptions}
+              />
             </div>
             <div className="form-group">
               <label>Statut</label>
-              <select 
-                value={formData.statut} 
-                onChange={(e) => setFormData({...formData, statut: e.target.value})}
-              >
-                {statutOptions.map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.statut}
+                onChange={(v) => setFormData({...formData, statut: v})}
+                className="form-control"
+                options={statutOptions}
+              />
             </div>
           </div>
         </div>

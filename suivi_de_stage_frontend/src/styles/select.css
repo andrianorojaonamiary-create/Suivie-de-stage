@@ -1,0 +1,285 @@
+/* ============================================================
+   SELECT PERSONNALISÉ
+   ============================================================ */
+
+.select-personnalise {
+  position: relative;
+  width: 100%;
+  min-width: 150px;
+  font-family: inherit;
+}
+
+.select-personnalise-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  margin-bottom: 4px;
+}
+
+/* ===== HEADER ===== */
+.select-personnalise-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 38px;
+  user-select: none;
+}
+
+.select-personnalise-header:hover {
+  border-color: #6BA9E6;
+}
+
+.select-personnalise-header.open {
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.10);
+}
+
+.select-personnalise-header.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Neutralise les styles de <select> natif portés par les classes de filtres
+   (border/padding/shadow hérités des anciens selects sur le conteneur) */
+.select-personnalise.map-filter-select,
+.select-personnalise.eval-filter-select,
+.select-personnalise.suivi-filter-select,
+.select-personnalise.rapports-filter-select,
+.select-personnalise.filter-select,
+.select-personnalise.filter-select-inline,
+.select-personnalise.form-control,
+.select-personnalise.admin-etudiants-filter-select,
+.select-personnalise.admin-stages-filter-select,
+.select-personnalise.admin-entreprises-filter-select,
+.select-personnalise.admin-encadreurs-filter-select,
+.select-personnalise.admin-eval-filter-select,
+.select-personnalise.admin-diplome-filter-select,
+.select-personnalise.admin-stats-filter-select {
+  border: none;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  height: auto;
+}
+
+/* Quand le composant est à l'intérieur d'un .filter-group (enseignant/encadreur/rapports),
+   le border du .filter-group sert de bordure visible → on retire le border du header */
+.filter-group .select-personnalise-header {
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  min-height: unset;
+}
+
+.select-personnalise-value {
+  font-size: 13px;
+  color: #162449;
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.select-personnalise-value.placeholder {
+  color: #A0B8D0;
+}
+
+.select-personnalise-icon {
+  font-size: 12px;
+  color: #6BA9E6;
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+
+.select-personnalise-icon.rotate {
+  transform: rotate(180deg);
+}
+
+/* ============================================================
+   DROPDOWN
+   ============================================================ */
+.select-personnalise-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 1000;
+  list-style: none;
+  padding: 6px 8px;
+  margin: 0;
+  animation: dropdownSlide 0.2s ease;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== ITEMS DU DROPDOWN ===== */
+.select-personnalise-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-size: 13px;
+  color: #162449;
+  border-bottom: 1px solid #F8FAFC;
+  border-radius: 6px;
+}
+
+.select-personnalise-item:last-child {
+  border-bottom: none;
+}
+
+/* Hover - fond gris clair + radius */
+.select-personnalise-item:hover {
+  background: #F3F4F6;
+  border-radius: 6px;
+}
+
+/* Option active/sélectionnée - fond bleu foncé + radius */
+.select-personnalise-item.active {
+  background: #162449 !important;
+  color: white !important;
+  border-radius: 6px;
+}
+
+.select-personnalise-item.active .select-personnalise-item-label {
+  color: white;
+}
+
+.select-personnalise-item.active .select-personnalise-item-icon {
+  color: white;
+}
+
+.select-personnalise-item.active .select-personnalise-item-check {
+  color: white;
+}
+
+/* Icône dans l'option */
+.select-personnalise-item-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  color: #6BA9E6;
+}
+
+.select-personnalise-item.active .select-personnalise-item-icon {
+  color: white;
+}
+
+.select-personnalise-item-label {
+  flex: 1;
+}
+
+/* Check pour l'option active */
+.select-personnalise-item-check {
+  color: #6BA9E6;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+/* ===== SCROLLBAR ===== */
+.select-personnalise-dropdown::-webkit-scrollbar {
+  width: 4px;
+}
+.select-personnalise-dropdown::-webkit-scrollbar-track {
+  background: #F5F8FC;
+  border-radius: 4px;
+}
+.select-personnalise-dropdown::-webkit-scrollbar-thumb {
+  background: #E1ECFE;
+  border-radius: 4px;
+}
+.select-personnalise-dropdown::-webkit-scrollbar-thumb:hover {
+  background: #6BA9E6;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .select-personnalise {
+    min-width: unset;
+  }
+  
+  .select-personnalise-header {
+    padding: 6px 12px;
+    min-height: 34px;
+  }
+  
+  .select-personnalise-value {
+    font-size: 12px;
+  }
+  
+  .select-personnalise-item {
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: 4px;
+  }
+  
+  .select-personnalise-item:hover {
+    border-radius: 4px;
+  }
+  
+  .select-personnalise-item.active {
+    border-radius: 4px;
+  }
+  
+  .select-personnalise-dropdown {
+    max-height: 180px;
+    padding: 4px 6px;
+  }
+}
+
+@media (max-width: 480px) {
+  .select-personnalise-header {
+    padding: 5px 10px;
+    min-height: 30px;
+  }
+  
+  .select-personnalise-value {
+    font-size: 11px;
+  }
+  
+  .select-personnalise-item {
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 3px;
+  }
+  
+  .select-personnalise-item:hover {
+    border-radius: 3px;
+  }
+  
+  .select-personnalise-item.active {
+    border-radius: 3px;
+  }
+  
+  .select-personnalise-dropdown {
+    padding: 3px 4px;
+  }
+}

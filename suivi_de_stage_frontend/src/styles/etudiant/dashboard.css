@@ -31,27 +31,6 @@
   margin: 4px 0 0 0;
 }
 
-.btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background: #6BA9E6;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.btn-primary:hover {
-  background: #162449;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(107, 169, 230, 0.3);
-}
 
 /* ============================================================
    LIGNE 1 : STAGE + LOCALISATION
@@ -836,16 +815,6 @@
   background: #6BA9E6;
 }
 
-.step-horizontal-line.active {
-  background: linear-gradient(90deg, #22C55E, #6BA9E6);
-  background-size: 200% 100%;
-  animation: gradientMove 1.5s ease-in-out infinite;
-}
-
-@keyframes gradientMove {
-  0% { background-position: 0% 0%; }
-  100% { background-position: 100% 0%; }
-}
 
 /* ============================================================
    RESPONSIVE

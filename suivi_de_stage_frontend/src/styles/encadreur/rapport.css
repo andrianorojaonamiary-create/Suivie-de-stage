@@ -122,7 +122,7 @@
   border-bottom: 1px solid #F0F4F8;
   flex-wrap: wrap;
   gap: 12px;
-  background: #FAFCFE;
+  background: #F8FAFC;
 }
 
 .rapports-page .toolbar-filters {
@@ -334,6 +334,7 @@
 .rapports-page .badge-valide { background: #E8F5E9; color: #27AE60; }
 .rapports-page .badge-en-cours { background: #E1ECFE; color: #162449; }
 .rapports-page .badge-en-attente { background: #FFF3E0; color: #F39C12; }
+.rapports-page .badge-refuse { background: #FDE8E8; color: #E74C3C; }
 
 .rapports-page .action-buttons {
   display: flex;
@@ -363,6 +364,8 @@
 
 .rapports-page .action-btn.view:hover { color: #6BA9E6; }
 .rapports-page .action-btn.download:hover { color: #F39C12; }
+.rapports-page .action-btn.validate:hover { color: #27AE60; }
+.rapports-page .action-btn.reject:hover { color: #E74C3C; }
 
 .rapports-page .pagination {
   display: flex;
@@ -372,7 +375,7 @@
   padding: 14px 20px;
   border-top: 1px solid #F0F4F8;
   flex-wrap: wrap;
-  background: #FAFCFE;
+  background: #F8FAFC;
 }
 
 .rapports-page .page-btn {

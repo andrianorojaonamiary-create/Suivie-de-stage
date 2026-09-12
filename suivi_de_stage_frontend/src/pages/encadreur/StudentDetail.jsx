@@ -197,7 +197,7 @@ function EncadreurStudentDetail() {
           <button className="btn-back-header" onClick={() => navigate('/encadreur/etudiants')}>
             <FaArrowLeft /> Retour
           </button>
-          <h1><FaUserGraduate /> {student.nom}</h1>
+          <h1>{student.nom}</h1>
           <p className="text-muted">{student.matricule} · {student.filiere} · {student.niveau}</p>
         </div>
       </div>

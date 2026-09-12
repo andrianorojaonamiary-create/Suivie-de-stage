@@ -15,7 +15,7 @@ function EtudiantDelete({ etudiant, onConfirm, onCancel }) {
         </div>
         <div className="modal-body">
           <p>Êtes-vous sûr de vouloir supprimer l'étudiant <strong>{etudiant.prenom} {etudiant.nom}</strong> ?</p>
-          <p className="text-warning">⚠️ Cette action est irréversible.</p>
+          <p className="text-warning">Cette action est irréversible.</p>
         </div>
         <div className="modal-footer">
           <button className="btn-secondary" onClick={onCancel}>Annuler</button>

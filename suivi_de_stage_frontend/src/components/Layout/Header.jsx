@@ -1,13 +1,11 @@
-import { useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FaSignOutAlt, FaBell, FaSearch, FaTimes, FaBars } from 'react-icons/fa';
+import { FaSignOutAlt, FaBell, FaBars } from 'react-icons/fa';
 
-function Header({ mobileOpen, onToggleMobileMenu, onMobileMenuToggle }) {
+function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const [searchTerm, setSearchTerm] = useState('');
   const handleToggle = onToggleMobileMenu || onMobileMenuToggle;
 
   const unreadNotifications = 3;
@@ -89,45 +87,12 @@ function Header({ mobileOpen, onToggleMobileMenu, onMobileMenuToggle }) {
         </button>
 
         <div className="header-title-group">
-          <h1 className="header-title">{getPageTitle()}</h1>
-          <span className="header-breadcrumb">EMIT Stage Manager &gt; {getPageTitle()}</span>
+          <h1 className="header-title">EMIT Stage Manager</h1>
+          <span className="header-breadcrumb"><span className="header-breadcrumb-arrow">&gt; </span>{getPageTitle()}</span>
         </div>
       </div>
 
       <div className="header-right">
-        {/* Barre de recherche */}
-        <div className="header-search">
-          <FaSearch className="header-search-icon" />
-          <input 
-            type="text" 
-            placeholder="Rechercher..." 
-            className="header-search-input"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          {searchTerm && (
-            <button 
-              type="button"
-              className="header-search-clear"
-              onClick={() => setSearchTerm('')}
-              style={{
-                position: 'absolute',
-                right: '12px',
-                background: 'none',
-                border: 'none',
-                color: '#6BA9E6',
-                cursor: 'pointer',
-                fontSize: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                padding: 0
-              }}
-            >
-              <FaTimes />
-            </button>
-          )}
-        </div>
-
         {/* Bouton Notifications */}
         <button 
           className="header-notif-btn" 

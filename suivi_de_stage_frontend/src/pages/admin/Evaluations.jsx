@@ -8,6 +8,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
 import { evaluationsApi, internshipsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEvaluations() {
   // ===== ÉTATS =====
@@ -172,10 +173,20 @@ function AdminEvaluations() {
   };
 
   // ===== TYPES D'ÉVALUATION =====
-  const typeOptions = ['Tous', 'Maître de stage', 'Tuteur pédagogique', 'Entreprise'];
+  const typeOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Maître de stage', label: 'Maître de stage' },
+    { value: 'Tuteur pédagogique', label: 'Tuteur pédagogique' },
+    { value: 'Entreprise', label: 'Entreprise' }
+  ];
 
   // ===== STATUTS =====
-  const statusOptions = ['Tous', 'Validé', 'En attente', 'En révision'];
+  const statusOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Validé', label: 'Validé' },
+    { value: 'En attente', label: 'En attente' },
+    { value: 'En révision', label: 'En révision' }
+  ];
 
   // ===== BADGES =====
   const getStatusBadge = (status) => {
@@ -270,7 +281,7 @@ function AdminEvaluations() {
       {/* ===== HEADER ===== */}
       <div className="admin-eval-header">
         <div>
-          <h1><FaStar /> Évaluations</h1>
+          <h1>Évaluations</h1>
           <p className="admin-eval-subtitle">Consultez les évaluations des stages</p>
         </div>
         <div className="admin-eval-actions">
@@ -384,12 +395,18 @@ function AdminEvaluations() {
       <div className="admin-eval-filters">
         <div className="admin-eval-filter-group">
           <label><FaFilter /> Filtres</label>
-          <select value={filterType} onChange={(e) => setFilterType(e.target.value)} className="admin-eval-filter-select">
-            {typeOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} className="admin-eval-filter-select">
-            {statusOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+          <SelectPersonnalise
+            value={filterType}
+            onChange={setFilterType}
+            options={typeOptions}
+            className="admin-eval-filter-select"
+          />
+          <SelectPersonnalise
+            value={filterStatus}
+            onChange={setFilterStatus}
+            options={statusOptions}
+            className="admin-eval-filter-select"
+          />
         </div>
         <div className="admin-eval-filter-group admin-eval-search-group">
           <FaSearch className="admin-eval-search-icon" />
@@ -433,9 +450,7 @@ function AdminEvaluations() {
                   <td>{evalItem.date}</td>
                   <td>
                     {evalItem.note ? (
-                      <span className="admin-eval-note">
-                        {evalItem.note}/20 {getStars(evalItem.note)}
-                      </span>
+                      <span className="admin-eval-note">{evalItem.note}/20</span>
                     ) : (
                       <span className="admin-eval-note-empty">—</span>
                     )}

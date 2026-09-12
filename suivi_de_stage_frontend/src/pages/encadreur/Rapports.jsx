@@ -3,8 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaFileAlt, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
   FaCheckCircle, FaClock, FaEye, FaDownload, 
-  FaFilePdf, FaFileWord, FaArrowLeft, FaTimes
+  FaFilePdf, FaFileWord, FaArrowLeft, FaCheck, FaTimes,
+  FaTimesCircle, FaComment, FaBuilding, FaCalendarAlt
 } from 'react-icons/fa';
+import { toast } from 'react-toastify';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function EncadreurRapports() {
   const { studentId } = useParams();
@@ -13,12 +16,16 @@ function EncadreurRapports() {
   const [selectedStatus, setSelectedStatus] = useState('tous');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [showValidateModal, setShowValidateModal] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [selectedRapport, setSelectedRapport] = useState(null);
+  const [commentaire, setCommentaire] = useState('');
 
-  const allRapports = [
+  const [allRapports, setAllRapports] = useState([
     { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
     { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
     { id: 3, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', titre: 'Rapport de prise en main', fileName: null, date: '—', statut: 'À déposer', size: '—' }
-  ];
+  ]);
 
   const rapports = studentId 
     ? allRapports.filter(r => r.etudiantId === parseInt(studentId))
@@ -85,11 +92,52 @@ function EncadreurRapports() {
     }
   };
 
+  const openValidateModal = (rapport) => {
+    setSelectedRapport(rapport);
+    setCommentaire('');
+    setShowValidateModal(true);
+  };
+
+  const openRejectModal = (rapport) => {
+    setSelectedRapport(rapport);
+    setCommentaire('');
+    setShowRejectModal(true);
+  };
+
+  const closeModal = (type) => {
+    if (type === 'validate') setShowValidateModal(false);
+    else setShowRejectModal(false);
+    setSelectedRapport(null);
+    setCommentaire('');
+  };
+
+  const confirmValidate = () => {
+    setAllRapports(prev => prev.map(r =>
+      r.id === selectedRapport.id ? { ...r, statut: 'Validé' } : r
+    ));
+    toast.success(`Rapport "${selectedRapport.titre}" validé avec succès !`);
+    setShowValidateModal(false);
+    setSelectedRapport(null);
+    setCommentaire('');
+  };
+
+  const confirmReject = () => {
+    if (!commentaire.trim()) return;
+    setAllRapports(prev => prev.map(r =>
+      r.id === selectedRapport.id ? { ...r, statut: 'Refusé', raison: commentaire } : r
+    ));
+    toast.success(`Rapport "${selectedRapport.titre}" refusé`);
+    setShowRejectModal(false);
+    setSelectedRapport(null);
+    setCommentaire('');
+  };
+
   const getStatusBadge = (statut) => {
     const badges = {
       'Validé': 'badge-valide',
       'En révision': 'badge-en-cours',
-      'À déposer': 'badge-en-attente'
+      'À déposer': 'badge-en-attente',
+      'Refusé': 'badge-refuse'
     };
     return <span className={`badge ${badges[statut] || 'badge-en-attente'}`}>{statut}</span>;
   };
@@ -111,7 +159,7 @@ function EncadreurRapports() {
               <FaArrowLeft /> Retour
             </button>
           )}
-          <h1><FaFileAlt /> Rapports</h1>
+          <h1>Rapports</h1>
           <p className="text-muted">
             {studentId ? `Rapports de ${studentName}` : 'Gérer les rapports des étudiants'}
           </p>
@@ -155,15 +203,17 @@ function EncadreurRapports() {
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedStatus} 
-                  onChange={(e) => setSelectedStatus(e.target.value)}
-                >
-                  <option value="tous">Tous les statuts</option>
-                  <option value="Validé">Validé</option>
-                  <option value="En révision">En révision</option>
-                  <option value="À déposer">À déposer</option>
-                </select>
+                <SelectPersonnalise
+                  value={selectedStatus}
+                  onChange={setSelectedStatus}
+                  options={[
+                    { value: 'tous', label: 'Tous les statuts' },
+                    { value: 'Validé', label: 'Validé' },
+                    { value: 'En révision', label: 'En révision' },
+                    { value: 'À déposer', label: 'À déposer' },
+                    { value: 'Refusé', label: 'Refusé' }
+                  ]}
+                />
               </div>
             </div>
           </div>
@@ -252,6 +302,24 @@ function EncadreurRapports() {
                             </button>
                           </>
                         )}
+                        {rapport.statut === 'En révision' && (
+                          <>
+                            <button 
+                              className="action-btn validate" 
+                              onClick={() => openValidateModal(rapport)}
+                              title="Valider"
+                            >
+                              <FaCheck />
+                            </button>
+                            <button 
+                              className="action-btn reject" 
+                              onClick={() => openRejectModal(rapport)}
+                              title="Refuser"
+                            >
+                              <FaTimes />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -292,6 +360,81 @@ function EncadreurRapports() {
           </>
         )}
       </div>
+
+      {/* ===== MODAL VALIDATION ===== */}
+      {showValidateModal && selectedRapport && (
+        <div className="modal-overlay" onClick={() => closeModal('validate')}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2><FaCheckCircle className="modal-icon-validate" /> Valider le rapport</h2>
+              <button className="modal-close" onClick={() => closeModal('validate')}><FaTimes /></button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-question">
+                Voulez-vous <strong>valider</strong> le rapport <strong>{selectedRapport.titre}</strong> de <strong>{selectedRapport.etudiant}</strong> ?
+              </p>
+              <div className="stage-summary">
+                <div className="summary-item"><FaFileAlt /> {selectedRapport.titre}</div>
+                <div className="summary-item"><FaBuilding /> {selectedRapport.entreprise}</div>
+                <div className="summary-item"><FaCalendarAlt /> {selectedRapport.date}</div>
+              </div>
+              <div className="comment-section">
+                <label><FaComment /> Commentaire (optionnel)</label>
+                <textarea
+                  className="comment-textarea"
+                  placeholder="Ajouter un commentaire (optionnel)..."
+                  value={commentaire}
+                  onChange={(e) => setCommentaire(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => closeModal('validate')}>Annuler</button>
+              <button className="btn-modal-confirm btn-validate" onClick={confirmValidate}>
+                <FaCheckCircle /> Valider
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ===== MODAL REFUS ===== */}
+      {showRejectModal && selectedRapport && (
+        <div className="modal-overlay" onClick={() => closeModal('reject')}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2><FaTimesCircle className="modal-icon-reject" /> Refuser le rapport</h2>
+              <button className="modal-close" onClick={() => closeModal('reject')}><FaTimes /></button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-question">
+                Voulez-vous <strong className="text-danger">refuser</strong> le rapport <strong>{selectedRapport.titre}</strong> de <strong>{selectedRapport.etudiant}</strong> ?
+              </p>
+              <div className="stage-summary">
+                <div className="summary-item"><FaFileAlt /> {selectedRapport.titre}</div>
+                <div className="summary-item"><FaBuilding /> {selectedRapport.entreprise}</div>
+                <div className="summary-item"><FaCalendarAlt /> {selectedRapport.date}</div>
+              </div>
+              <div className="comment-section">
+                <label><FaComment /> Commentaire (obligatoire)</label>
+                <textarea
+                  className={`comment-textarea ${!commentaire.trim() ? 'error' : ''}`}
+                  placeholder="Justifiez votre refus..."
+                  value={commentaire}
+                  onChange={(e) => setCommentaire(e.target.value)}
+                />
+                {!commentaire.trim() && <span className="error-message">Un commentaire est obligatoire pour refuser</span>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => closeModal('reject')}>Annuler</button>
+              <button className="btn-modal-confirm btn-reject" onClick={confirmReject} disabled={!commentaire.trim()}>
+                <FaTimesCircle /> Refuser
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

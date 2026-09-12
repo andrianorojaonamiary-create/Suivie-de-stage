@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaPlus, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -9,13 +9,13 @@ import EtudiantForm from './components/EtudiantForm';
 import EtudiantDetail from './components/EtudiantDetail';
 import EtudiantDelete from './components/EtudiantDelete';
 import studentsApi from '../../api/studentsApi';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEtudiants() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterFiliere, setFilterFiliere] = useState('Tous');
   const [filterPromotion, setFilterPromotion] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -92,10 +92,20 @@ function AdminEtudiants() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
-  const filiereOptions = ['Tous', 'Génie Informatique', 'Management', 'Relations publiques & Multimédia'];
-  const promotionOptions = ['Tous', '2024', '2025', '2026'];
-  const niveauOptions = ['L1', 'L2', 'L3', 'M1', 'M2'];
-  const statutOptions = ['Actif', 'Diplômé'];
+  const filiereOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: 'Génie Informatique', label: 'Génie Informatique' },
+    { value: 'Management', label: 'Management' },
+    { value: 'Relations publiques & Multimédia', label: 'Relations publiques & Multimédia' }
+  ];
+  const promotionOptions = [
+    { value: 'Tous', label: 'Tous' },
+    { value: '2024', label: '2024' },
+    { value: '2025', label: '2025' },
+    { value: '2026', label: '2026' }
+  ];
+  const niveauOptions = [{ value: 'L1', label: 'L1' }, { value: 'L2', label: 'L2' }, { value: 'L3', label: 'L3' }, { value: 'M1', label: 'M1' }, { value: 'M2', label: 'M2' }];
+  const statutOptions = [{ value: 'Actif', label: 'Actif' }, { value: 'Diplômé', label: 'Diplômé' }];
 
   const getStatusBadge = (statut) => {
     return statut === 'Actif' ? 'badge-actif' : 'badge-diplome';
@@ -113,22 +123,6 @@ function AdminEtudiants() {
       niveau: '',
       statut: 'Actif'
     });
-  };
-
-  const handleAdd = async () => {
-    try {
-      await studentsApi.create({
-        matricule: formData.matricule,
-        niveau: formData.niveau || 'L3',
-        parcours: 'IG_DEV'
-      });
-      await loadStudents();
-    } catch {
-      const newEtudiant = { id: etudiants.length + 1, ...formData, stage: '—', entreprise: '—' };
-      setEtudiants([...etudiants, newEtudiant]);
-    }
-    setShowAddModal(false);
-    resetForm();
   };
 
   const handleEdit = async () => {
@@ -181,12 +175,9 @@ function AdminEtudiants() {
       {/* ===== HEADER ===== */}
       <div className="admin-etudiants-header">
         <div>
-          <h1><FaUserGraduate /> Gestion des étudiants</h1>
+          <h1>Gestion des étudiants</h1>
           <p className="admin-etudiants-subtitle">Gérez les étudiants et leurs informations</p>
         </div>
-        <button className="admin-etudiants-btn-primary" onClick={() => setShowAddModal(true)}>
-          <FaPlus /> Ajouter un étudiant
-        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -233,12 +224,18 @@ function AdminEtudiants() {
       <div className="admin-etudiants-filters">
         <div className="admin-etudiants-filter-group">
           <label><FaFilter /> Filtres</label>
-          <select value={filterFiliere} onChange={(e) => setFilterFiliere(e.target.value)} className="admin-etudiants-filter-select">
-            {filiereOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
-          <select value={filterPromotion} onChange={(e) => setFilterPromotion(e.target.value)} className="admin-etudiants-filter-select">
-            {promotionOptions.map(opt => <option key={opt} value={opt}>{opt}</option>)}
-          </select>
+          <SelectPersonnalise
+            value={filterFiliere}
+            onChange={setFilterFiliere}
+            options={filiereOptions}
+            className="admin-etudiants-filter-select"
+          />
+          <SelectPersonnalise
+            value={filterPromotion}
+            onChange={setFilterPromotion}
+            options={promotionOptions}
+            className="admin-etudiants-filter-select"
+          />
         </div>
         <div className="admin-etudiants-filter-group admin-etudiants-search-group">
           <FaSearch className="admin-etudiants-search-icon" />
@@ -329,21 +326,6 @@ function AdminEtudiants() {
       </div>
 
       {/* ===== MODALES (COMPOSANTS EXTERNES) ===== */}
-      {showAddModal && (
-        <EtudiantForm
-          title="Ajouter un étudiant"
-          submitLabel="Ajouter"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleAdd}
-          onCancel={() => { setShowAddModal(false); resetForm(); }}
-          filiereOptions={filiereOptions}
-          promotionOptions={promotionOptions}
-          niveauOptions={niveauOptions}
-          statutOptions={statutOptions}
-        />
-      )}
-
       {showEditModal && (
         <EtudiantForm
           title="Modifier l'étudiant"

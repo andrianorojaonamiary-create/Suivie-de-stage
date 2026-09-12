@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { 
+import {
   FaUserCircle, FaEnvelope, FaPhone, FaBuilding, 
   FaLock, FaSave, FaUser, FaBook, FaGraduationCap, FaBriefcase,
   FaIdCard, FaMapMarkerAlt, FaGlobe,FaChalkboardTeacher ,FaShieldAlt
 } from 'react-icons/fa';
+import { sanitizePhone } from '../utils/phone';
 
 function Profil() {
   const { user, updateProfile } = useAuth();
@@ -92,7 +93,7 @@ function Profil() {
       { name: 'nom', label: 'Nom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
       { name: 'prenom', label: 'Prénom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
       { name: 'email', label: 'Email', icon: <FaEnvelope style={{ color: '#A0B8D0' }} />, type: 'email' },
-      { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel' },
+      { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel', maxLength: 14, inputMode: 'tel' },
     );
 
     if (role === 'ROLE_ADMIN') {
@@ -128,7 +129,8 @@ function Profil() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setProfile(prev => ({ ...prev, [name]: value }));
+    const nextValue = name === 'telephone' ? sanitizePhone(value) : value;
+    setProfile(prev => ({ ...prev, [name]: nextValue }));
   };
 
   const handlePasswordChange = (e) => {
@@ -208,6 +210,8 @@ function Profil() {
                   onChange={handleChange}
                   className="profil-input"
                   placeholder={field.label}
+                  maxLength={field.maxLength}
+                  inputMode={field.inputMode}
                 />
               </div>
             ))}

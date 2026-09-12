@@ -1,5 +1,7 @@
 // src/pages/admin/components/EncadreurForm.jsx
 import { FaTimes } from 'react-icons/fa';
+import SelectPersonnalise from '../../../components/Common/SelectPersonnalise';
+import { sanitizePhone } from '../../../utils/phone';
 
 function EncadreurForm({ 
   formData, 
@@ -50,36 +52,32 @@ function EncadreurForm({
             <div className="form-group">
               <label>Téléphone</label>
               <input 
-                type="text" 
+                type="tel" 
                 value={formData.telephone} 
-                onChange={(e) => setFormData({...formData, telephone: e.target.value})} 
+                onChange={(e) => setFormData({...formData, telephone: sanitizePhone(e.target.value)})} 
                 placeholder="+261 34 XX XXX XX" 
+                maxLength={14}
+                inputMode="tel"
               />
             </div>
             <div className="form-group">
               <label>Type d'encadreur</label>
-              <select 
-                value={formData.type} 
-                onChange={(e) => setFormData({...formData, type: e.target.value})}
-              >
-                {typeOptions.filter(t => t !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>
-                    {opt === 'professionnel' ? 'Encadreur professionnel' : 'Tuteur pédagogique'}
-                  </option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.type}
+                onChange={(v) => setFormData({...formData, type: v})}
+                className="form-control"
+                options={typeOptions.filter(t => t.value !== 'Tous')}
+              />
             </div>
             <div className="form-group">
               <label>Fonction</label>
-              <select 
-                value={formData.fonction} 
-                onChange={(e) => setFormData({...formData, fonction: e.target.value})}
-              >
-                <option value="">Sélectionner</option>
-                {fonctionOptions.filter(f => f !== 'Tous').map(opt => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
-              </select>
+              <SelectPersonnalise
+                value={formData.fonction}
+                onChange={(v) => setFormData({...formData, fonction: v})}
+                placeholder="Sélectionner"
+                className="form-control"
+                options={fonctionOptions.filter(f => f.value !== 'Tous')}
+              />
             </div>
             <div className="form-group" style={{ gridColumn: 'span 2' }}>
               <label>Entreprise / Établissement</label>

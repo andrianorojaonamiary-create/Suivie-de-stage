@@ -128,7 +128,7 @@ function EncadreurStageDetail() {
           <button className="btn-back-header" onClick={() => navigate(-1)}>
             <FaArrowLeft /> Retour
           </button>
-          <h1><FaBuilding /> {stage.titre}</h1>
+          <h1>{stage.titre}</h1>
           <p className="text-muted"><FaUserGraduate /> {stage.etudiant} · {stage.entreprise}</p>
         </div>
       </div>

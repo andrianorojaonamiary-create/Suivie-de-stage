@@ -4,7 +4,7 @@
 
 .etudiant-avenir {
   padding: 20px 0;
-  max-width: 1000px;
+  max-width: 1200px;
   margin: 0 auto;
 }
 
@@ -430,6 +430,27 @@
 
 .form-control[type="date"] {
   min-height: 44px;
+}
+
+/* ============================================================
+   SÉLECT DANS LES FORMULAIRES AVENIR
+   (le wrapper .form-control ne doit pas ajouter sa propre bordure)
+   ============================================================ */
+.etudiant-avenir .select-personnalise.form-control {
+  border: none;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  height: auto;
+}
+
+.etudiant-avenir .select-personnalise.form-control .select-personnalise-header {
+  border: 1.5px solid #E1ECFE;
+  border-radius: 10px;
+  min-height: 44px;
+  padding: 10px 14px;
+  background: white;
 }
 
 /* ============================================================

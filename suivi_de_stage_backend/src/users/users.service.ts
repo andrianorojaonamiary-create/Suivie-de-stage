@@ -83,6 +83,7 @@ export class UsersService {
     return this.usersRepository
       .createQueryBuilder('user')
       .addSelect('user.motDePasse')
+      .addSelect('user.passwordResetToken')
       .where('LOWER(user.email) = LOWER(:email)', { email })
       .getOne();
   }
@@ -90,6 +91,20 @@ export class UsersService {
   async findActiveById(id: string) {
     return this.usersRepository.findOne({
       where: { id, actif: true },
+    });
+  }
+
+  async setPasswordResetToken(id: string, tokenHash: string, expiresAt: Date) {
+    await this.usersRepository.update(id, {
+      passwordResetToken: tokenHash,
+      passwordResetExpiresAt: expiresAt,
+    });
+  }
+
+  async clearPasswordResetToken(id: string) {
+    await this.usersRepository.update(id, {
+      passwordResetToken: null,
+      passwordResetExpiresAt: null,
     });
   }
 

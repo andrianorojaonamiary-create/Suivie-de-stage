@@ -7,6 +7,7 @@ import {
   FaTimes, FaGraduationCap
 } from 'react-icons/fa';
 import { studentsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function EnseignantEtudiants() {
   const navigate = useNavigate();
@@ -73,8 +74,8 @@ function EnseignantEtudiants() {
     aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
   };
 
-  const filieres = ['tous', ...new Set(students.map(s => s.filiere))];
-  const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'];
+  const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));
+  const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'].map(v => ({ value: v, label: v === 'tous' ? 'Tous niveaux' : v }));
 
   const filteredStudents = students.filter(s => {
     if (selectedFiliere !== 'tous' && s.filiere !== selectedFiliere) return false;
@@ -159,7 +160,7 @@ function EnseignantEtudiants() {
       {/* ===== EN-TÊTE ===== */}
       <div className="page-header">
         <div>
-          <h1><FaUsers /> Mes étudiants</h1>
+          <h1>Mes étudiants</h1>
           <p className="text-muted">{students.length} étudiants suivis</p>
         </div>
       </div>
@@ -204,27 +205,21 @@ function EnseignantEtudiants() {
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaFilter className="filter-icon" />
-                <select 
-                  value={selectedFiliere} 
-                  onChange={(e) => handleFilterChange('filiere', e.target.value)}
-                >
-                  {filieres.map(opt => (
-                    <option key={opt} value={opt}>{opt === 'tous' ? 'Toutes filières' : opt}</option>
-                  ))}
-                </select>
+                <SelectPersonnalise
+                  value={selectedFiliere}
+                  onChange={(v) => handleFilterChange('filiere', v)}
+                  options={filieres}
+                />
               </div>
             </div>
             <div className="filter-wrapper">
               <div className="filter-group">
                 <FaGraduationCap className="filter-icon" />
-                <select 
-                  value={selectedNiveau} 
-                  onChange={(e) => handleFilterChange('niveau', e.target.value)}
-                >
-                  {niveaux.map(opt => (
-                    <option key={opt} value={opt}>{opt === 'tous' ? 'Tous niveaux' : opt}</option>
-                  ))}
-                </select>
+                <SelectPersonnalise
+                  value={selectedNiveau}
+                  onChange={(v) => handleFilterChange('niveau', v)}
+                  options={niveaux}
+                />
               </div>
             </div>
           </div>
