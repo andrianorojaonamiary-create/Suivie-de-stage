@@ -3,7 +3,8 @@ import { useAuth } from '../hooks/useAuth';
 import {
   FaUserCircle, FaEnvelope, FaPhone, FaBuilding, 
   FaLock, FaSave, FaUser, FaBook, FaGraduationCap, FaBriefcase,
-  FaIdCard, FaMapMarkerAlt, FaGlobe,FaChalkboardTeacher ,FaShieldAlt
+  FaIdCard, FaMapMarkerAlt, FaGlobe,FaChalkboardTeacher ,FaShieldAlt, FaTimes,
+  FaEye, FaEyeSlash
 } from 'react-icons/fa';
 import { sanitizePhone } from '../utils/phone';
 
@@ -57,6 +58,10 @@ function Profil() {
 
   const [profile, setProfile] = useState(getProfileData());
   const [showPassForm, setShowPassForm] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [passwords, setPasswords] = useState({
     current: '',
     new: '',
@@ -153,11 +158,11 @@ function Profil() {
 
   const handlePasswordUpdate = async () => {
     if (!passwords.new) {
-      alert('Veuillez saisir un nouveau mot de passe');
+      setErrorMessage('Veuillez saisir un nouveau mot de passe');
       return;
     }
     if (passwords.new !== passwords.confirm) {
-      alert('Les mots de passe ne correspondent pas');
+      setErrorMessage('Les mots de passe ne correspondent pas');
       return;
     }
     try {
@@ -242,36 +247,66 @@ function Profil() {
             <div className="profil-password-form">
               <div className="profil-form-group">
                 <label>Mot de passe actuel</label>
-                <input
-                  type="password"
-                  name="current"
-                  placeholder="••••••••"
-                  value={passwords.current}
-                  onChange={handlePasswordChange}
-                  className="profil-input"
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showCurrent ? 'text' : 'password'}
+                    name="current"
+                    placeholder="••••••••"
+                    value={passwords.current}
+                    onChange={handlePasswordChange}
+                    className="profil-input"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowCurrent(!showCurrent)}
+                    aria-label="Afficher le mot de passe actuel"
+                  >
+                    {showCurrent ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
               <div className="profil-form-group">
                 <label>Nouveau mot de passe</label>
-                <input
-                  type="password"
-                  name="new"
-                  placeholder="••••••••"
-                  value={passwords.new}
-                  onChange={handlePasswordChange}
-                  className="profil-input"
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showNew ? 'text' : 'password'}
+                    name="new"
+                    placeholder="••••••••"
+                    value={passwords.new}
+                    onChange={handlePasswordChange}
+                    className="profil-input"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowNew(!showNew)}
+                    aria-label="Afficher le nouveau mot de passe"
+                  >
+                    {showNew ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
               <div className="profil-form-group">
                 <label>Confirmer le nouveau mot de passe</label>
-                <input
-                  type="password"
-                  name="confirm"
-                  placeholder="••••••••"
-                  value={passwords.confirm}
-                  onChange={handlePasswordChange}
-                  className="profil-input"
-                />
+                <div className="password-input-wrapper">
+                  <input
+                    type={showConfirm ? 'text' : 'password'}
+                    name="confirm"
+                    placeholder="••••••••"
+                    value={passwords.confirm}
+                    onChange={handlePasswordChange}
+                    className="profil-input"
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle"
+                    onClick={() => setShowConfirm(!showConfirm)}
+                    aria-label="Afficher le mot de passe de confirmation"
+                  >
+                    {showConfirm ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
               </div>
               <div className="profil-password-actions">
                 <button className="profil-save-btn" onClick={handlePasswordUpdate}>
@@ -285,6 +320,25 @@ function Profil() {
           )}
         </div>
       </div>
+
+      {errorMessage && (
+        <div className="modal-overlay" onClick={() => setErrorMessage('')}>
+          <div className="modal-content modal-delete" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3><FaLock /> Mise à jour du mot de passe</h3>
+              <button className="modal-close" onClick={() => setErrorMessage('')}><FaTimes /></button>
+            </div>
+            <div className="modal-body">
+              <p style={{ margin: 0, color: '#6c7a8a', fontSize: '15px' }}>{errorMessage}</p>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={() => setErrorMessage('')}>
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

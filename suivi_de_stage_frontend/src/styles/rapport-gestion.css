@@ -349,6 +349,69 @@
   margin: 0;
 }
 
+/* ===== TABLEAU (Admin) ===== */
+.rapports-admin .admin-rapports-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+}
+
+.rapports-admin .admin-rapports-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.rapports-admin .admin-rapports-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #F5F8FC;
+  background: #FAFCFE;
+}
+
+.rapports-admin .admin-rapports-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #162449;
+  border-bottom: 1px solid #F5F8FC;
+  vertical-align: middle;
+}
+
+.rapports-admin .admin-rapports-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.rapports-admin .admin-rapports-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rapports-admin .admin-rapports-titre {
+  font-weight: 500;
+  color: #162449;
+}
+
+.rapports-admin .admin-rapports-date {
+  font-size: 13px;
+  color: #6c7a8a;
+}
+
+.rapports-admin .admin-rapports-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.rapports-admin .admin-rapports-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: #6c7a8a;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */

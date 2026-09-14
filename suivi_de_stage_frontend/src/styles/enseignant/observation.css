@@ -158,6 +158,10 @@
   border-color: #6BA9E6;
 }
 
+.observations-page .filter-group .select-personnalise {
+  min-width: 220px;
+}
+
 .observations-page .filter-icon {
   color: #A0B8D0;
   font-size: 13px;
@@ -202,7 +206,7 @@
   font-size: 14px;
   color: #162449;
   background: white;
-  width: 220px;
+  width: 300px;
   height: 38px;
   transition: border-color 0.2s;
 }
@@ -328,27 +332,23 @@
 .observations-page .action-btn {
   width: 32px;
   height: 32px;
-  border: 1px solid #FFFFFF;
+  border: 1px solid #E1ECFE;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.25s ease;
-  background: transparent;
+  transition: all 0.2s;
+  background: white;
   color: #A0B8D0;
 }
 
 .observations-page .action-btn:hover {
-  transform: scale(1.1);
-  background: #E9ECEF;
-  border-color: #4B5563;
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
 }
-
-.observations-page .action-btn.view:hover { color: #6BA9E6; }
-.observations-page .action-btn.edit:hover { color: #FFD700; }
-.observations-page .action-btn.delete:hover { color: #E74C3C; }
 
 /* ===== FORMULAIRE ===== */
 .form-group {

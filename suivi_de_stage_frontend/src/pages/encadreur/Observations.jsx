@@ -224,7 +224,7 @@ function EncadreurObservations() {
               <thead>
                 <tr>
                   {!studentId && <th>Étudiant</th>}
-                  <th><FaBuilding /> Stage</th>
+                  <th> Stage</th>
                   <th>Observation</th>
                   <th>Date</th>
                   <th className="actions-header">Actions</th>

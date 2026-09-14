@@ -220,12 +220,10 @@
   background: white;
   border-radius: 12px;
   border: 1px solid #E1ECFE;
-  overflow-x: auto;
   box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
 }
 .admin-stages-table {
   width: 100%;
-  min-width: max-content;
   border-collapse: collapse;
 }
 .admin-stages-table thead th {

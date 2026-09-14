@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import { 
-   FaDownload, FaEye, FaFilter, 
-  FaUsers, FaBuilding, FaCheck, FaTimes, FaTrash
-} from 'react-icons/fa';
+import { FaEye, FaFilter, FaUsers, FaBuilding } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminRapports() {
@@ -98,37 +95,40 @@ function AdminRapports() {
         </div>
       </div>
 
-      {/* ===== LISTE ===== */}
-      <div className="reports-list">
-        {filteredRapports.map((report) => (
-          <div key={report.id} className="report-card">
-            <div className="report-col-file">
-              <div className="report-info">
-                <span className="report-title">{report.titre}</span>
-                <span className="report-meta">
-                  {report.etudiant} · {report.stage} · {report.entreprise}
-                </span>
-              </div>
-            </div>
-            <div className="report-col-date">
-              <span className="report-date">{report.date}</span>
-            </div>
-            <div className="report-col-status">
-              <span className={getStatusBadge(report.statut)}>{report.statut}</span>
-            </div>
-            <div className="report-col-actions">
-              <button className="btn-action-icon"><FaEye /></button>
-              <button className="btn-action-icon"><FaDownload /></button>
-              {report.statut === 'En révision' && (
-                <>
-                  <button className="btn-action-icon btn-success"><FaCheck /></button>
-                  <button className="btn-action-icon btn-danger"><FaTimes /></button>
-                </>
-              )}
-              <button className="btn-action-icon btn-danger"><FaTrash /></button>
-            </div>
-          </div>
-        ))}
+      {/* ===== TABLEAU ===== */}
+      <div className="admin-rapports-table-container">
+        <table className="admin-rapports-table">
+          <thead>
+            <tr>
+              <th>Titre</th>
+              <th>Étudiant</th>
+              <th>Entreprise</th>
+              <th>Date</th>
+              <th>Statut</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredRapports.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="admin-rapports-empty">Aucun rapport trouvé</td>
+              </tr>
+            ) : (
+              filteredRapports.map((report) => (
+                <tr key={report.id}>
+                  <td className="admin-rapports-titre">{report.titre}</td>
+                  <td>{report.etudiant}</td>
+                  <td>{report.entreprise}</td>
+                  <td><span className="admin-rapports-date">{report.date}</span></td>
+                  <td><span className={getStatusBadge(report.statut)}>{report.statut}</span></td>
+                  <td className="admin-rapports-actions">
+                    <button className="btn-action-icon"><FaEye /></button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -146,6 +146,9 @@ function CarteStages() {
               <div key={status} className="legend-item">
                 <span className="legend-dot" style={{ backgroundColor: color }} />
                 <span className="legend-label">{status}</span>
+                <span className="legend-count">
+                  {stageMarkers.filter(m => m.status === status).length}
+                </span>
               </div>
             ))}
           </div>

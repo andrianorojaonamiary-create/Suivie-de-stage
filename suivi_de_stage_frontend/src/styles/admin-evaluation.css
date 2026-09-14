@@ -112,14 +112,6 @@
   transition: all 0.3s ease;
 }
 
-.admin-eval-page .admin-eval-stat-card-featured {
-  border: 2px solid #162449;
-}
-
-.admin-eval-page .admin-eval-stat-card-featured .admin-eval-stat-icon-wrapper {
-  background: #162449 !important;
-}
-
 .admin-eval-page .admin-eval-stat-content {
   display: flex;
   flex-direction: column;
@@ -298,13 +290,11 @@
   background: white;
   border-radius: 12px;
   border: 1px solid #E1ECFE;
-  overflow-x: auto;
   box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
 }
 
 .admin-eval-page .admin-eval-table {
   width: 100%;
-  min-width: max-content;
   border-collapse: collapse;
 }
 
@@ -322,7 +312,7 @@
 
 .admin-eval-page .admin-eval-table tbody td {
   padding: 12px 16px;
-  font-size: 14px;
+  font-size: 13px;
   color: #162449;
   border-bottom: 1px solid #F5F8FC;
   vertical-align: middle;

@@ -219,7 +219,7 @@ function Statistiques() {
             onClick={handleExportPDF}
             disabled={isExporting}
           >
-            <FaDownload /> {isExporting ? 'Exportation...' : 'Exporter'}
+            <FaDownload /> {isExporting ? 'Exportation...' : 'Exporter PDF'}
           </button>
         </div>
       </div>

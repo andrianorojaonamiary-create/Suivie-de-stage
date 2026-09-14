@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
-  FaArrowLeft, FaUserGraduate, FaEnvelope,  
-  FaFileAlt, FaStar, FaBriefcase, FaInfoCircle,
-  FaFilePdf,FaDownload, FaEye, FaUserTie
+  FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
+  FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
 } from 'react-icons/fa';
 
 function EnseignantStudentDetail() {
@@ -12,9 +11,13 @@ function EnseignantStudentDetail() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
+  const [rapports, setRapports] = useState([
+    { id: 1, titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
+    { id: 2, titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
+    { id: 3, titre: 'Rapport final', fileName: null, date: '—', statut: 'À déposer', size: '—' }
+  ]);
 
   useEffect(() => {
-    // Simulation de chargement des données
     setTimeout(() => {
       const students = {
         1: {
@@ -102,9 +105,22 @@ function EnseignantStudentDetail() {
     return <span className={badge.className}>{badge.label}</span>;
   };
 
+  const handleValiderRapport = (id) => {
+    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
+  };
+
+  const handleRefuserRapport = (id) => {
+    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'À corriger' } : r));
+  };
+
+  const evaluations = [
+    { id: 1, type: 'Tuteur pédagogique', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux et impliqué.' },
+    { id: 2, type: 'Maître de stage', date: '20 Mai 2024', statut: 'Validé', note: '17.0', commentaire: 'Très impliqué dans les projets.' },
+    { id: 3, type: 'Entreprise', date: '25 Mai 2024', statut: 'À faire', note: null, commentaire: 'En attente d\'évaluation' }
+  ];
+
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
-    { id: 'stage', label: 'Stage', icon: <FaBriefcase /> },
     { id: 'evaluations', label: 'Évaluations', icon: <FaStar /> },
     { id: 'rapports', label: 'Rapports', icon: <FaFileAlt /> }
   ];
@@ -133,34 +149,10 @@ function EnseignantStudentDetail() {
 
   return (
     <div className="student-detail-page">
-      {/* ===== HEADER ===== */}
-      <div className="page-header">
-        <div>
-          <button className="btn-back-header" onClick={() => navigate('/enseignant/etudiants')}>
-            <FaArrowLeft /> Retour
-          </button>
-          <h1>{student.nom}</h1>
-          <p className="text-muted">{student.matricule} · {student.filiere} · {student.niveau}</p>
-        </div>
-      </div>
+      <button className="btn-back-header" onClick={() => navigate('/enseignant/etudiants')}>
+        <FaArrowLeft /> Retour à la liste
+      </button>
 
-      {/* ===== STATUT ===== */}
-      <div className="student-detail-status">
-        <div className="status-item">
-          <span className="status-label">Stage</span>
-          {getStatusBadge(student.stage.statut)}
-        </div>
-        <div className="status-item">
-          <span className="status-label">Évaluation</span>
-          {getEvalBadge(student.evaluation)}
-        </div>
-        <div className="status-item">
-          <span className="status-label">Progression</span>
-          <span className="progress-text">{student.stage.progression}%</span>
-        </div>
-      </div>
-
-      {/* ===== TABS ===== */}
       <div className="detail-tabs">
         {tabs.map(tab => (
           <button
@@ -173,234 +165,168 @@ function EnseignantStudentDetail() {
         ))}
       </div>
 
-      {/* ===== CONTENU ===== */}
       <div className="detail-content">
-        {/* ===== TAB INFORMATIONS ===== */}
         {activeTab === 'info' && (
-          <div className="detail-info-grid">
-            <div className="info-card">
-              <div className="info-card-header"><FaUserGraduate /> Identité</div>
-              <div className="info-card-body">
-                <div className="info-row">
-                  <span className="info-label">Nom complet</span>
-                  <span className="info-value"><strong>{student.nom}</strong></span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Matricule</span>
-                  <span className="info-value">{student.matricule}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Filière</span>
-                  <span className="info-value">{student.filiere}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Niveau</span>
-                  <span className="info-value">{student.niveau}</span>
-                </div>
-              </div>
+          <div className="info-fields-grid">
+            <div className="info-field info-field-full">
+              <span className="info-field-label">Nom</span>
+              <span className="info-field-box">{student.nom}</span>
             </div>
-
-            <div className="info-card">
-              <div className="info-card-header"><FaEnvelope /> Contact</div>
-              <div className="info-card-body">
-                <div className="info-row">
-                  <span className="info-label">Email</span>
-                  <span className="info-value">{student.email}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Téléphone</span>
-                  <span className="info-value">{student.telephone || 'Non renseigné'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Ville</span>
-                  <span className="info-value">{student.ville || 'Non renseignée'}</span>
-                </div>
-              </div>
+            <div className="info-field">
+              <span className="info-field-label">Matricule</span>
+              <span className="info-field-box">{student.matricule}</span>
             </div>
-
-            <div className="info-card">
-              <div className="info-card-header"><FaUserTie /> Encadrement</div>
-              <div className="info-card-body">
-                <div className="info-row">
-                  <span className="info-label">Encadreur</span>
-                  <span className="info-value">{student.encadreur || 'Non renseigné'}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Tuteur pédagogique</span>
-                  <span className="info-value">{student.tuteur || 'Non renseigné'}</span>
-                </div>
-              </div>
+            <div className="info-field">
+              <span className="info-field-label">Filière</span>
+              <span className="info-field-box">{student.filiere}</span>
             </div>
-          </div>
-        )}
-
-        {/* ===== TAB STAGE ===== */}
-        {activeTab === 'stage' && (
-          <div className="detail-stage">
-            <div className="info-card full-width">
-              <div className="info-card-header"><FaBriefcase /> Détails du stage</div>
-              <div className="info-card-body">
-                <div className="info-row">
-                  <span className="info-label">Titre</span>
-                  <span className="info-value"><strong>{student.stage.titre}</strong></span>
+            <div className="info-field">
+              <span className="info-field-label">Niveau</span>
+              <span className="info-field-box">{student.niveau}</span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Email</span>
+              <span className="info-field-box">{student.email}</span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Téléphone</span>
+              <span className="info-field-box">{student.telephone || 'Non renseigné'}</span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Ville</span>
+              <span className="info-field-box">{student.ville || 'Non renseignée'}</span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Encadreur</span>
+              <span className="info-field-box">{student.encadreur || 'Non renseigné'}</span>
+            </div>
+            <div className="info-field-divider" />
+            <div className="info-field info-field-full">
+              <span className="info-field-label">Stage</span>
+              <span className="info-field-box"><strong>{student.stage.titre}</strong></span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Entreprise</span>
+              <span className="info-field-box">{student.stage.entreprise}</span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Période</span>
+              <span className="info-field-box">{formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}</span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Progression</span>
+              <span className="info-field-box">
+                <div className="inline-progress">
+                  <div className="inline-progress-bar">
+                    <div className="inline-progress-fill" style={{ width: `${student.stage.progression}%` }} />
+                  </div>
+                  <span>{student.stage.progression}%</span>
                 </div>
-                <div className="info-row">
-                  <span className="info-label">Entreprise</span>
-                  <span className="info-value">{student.stage.entreprise}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Période</span>
-                  <span className="info-value">{formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Progression</span>
-                  <span className="info-value">
-                    <div className="progress-bar">
-                      <div className="progress-fill" style={{ width: `${student.stage.progression}%` }} />
-                    </div>
-                    <span className="progress-text">{student.stage.progression}%</span>
-                  </span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Statut</span>
-                  <span className="info-value">{getStatusBadge(student.stage.statut)}</span>
-                </div>
-                <div className="info-row">
-                  <span className="info-label">Description</span>
-                  <span className="info-value description-text">{student.stage.description || 'Non renseignée'}</span>
-                </div>
-              </div>
+              </span>
+            </div>
+            <div className="info-field">
+              <span className="info-field-label">Statut</span>
+              <span className="info-field-box">{getStatusBadge(student.stage.statut)}</span>
+            </div>
+            <div className="info-field info-field-full">
+              <span className="info-field-label">Description</span>
+              <span className="info-field-box info-field-desc">{student.stage.description || 'Non renseignée'}</span>
             </div>
           </div>
         )}
 
-        {/* ===== TAB ÉVALUATIONS ===== */}
         {activeTab === 'evaluations' && (
-          <div className="detail-evaluations">
-            <div className="info-card full-width">
-              <div className="info-card-header"><FaStar /> Évaluations</div>
-              <div className="info-card-body">
-                <div className="eval-list">
-                  <div className="eval-item">
-                    <div className="eval-item-header">
-                      <span className="eval-type">Tuteur pédagogique</span>
-                      <span className="eval-date">15 Mai 2024</span>
-                      <span className="badge badge-valide">Validé</span>
-                    </div>
-                    <div className="eval-item-body">
-                      <div className="eval-note">
-                        <span className="eval-note-label">Note</span>
-                        <span className="eval-note-value">16.5 / 20</span>
-                        <span className="eval-stars">★★★★☆</span>
-                      </div>
-                      <div className="eval-comment">
-                        <span className="eval-comment-label">Commentaire</span>
-                        <p>Bon travail, étudiant sérieux et impliqué.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="eval-item">
-                    <div className="eval-item-header">
-                      <span className="eval-type">Maître de stage</span>
-                      <span className="eval-date">20 Mai 2024</span>
-                      <span className="badge badge-valide">Validé</span>
-                    </div>
-                    <div className="eval-item-body">
-                      <div className="eval-note">
-                        <span className="eval-note-label">Note</span>
-                        <span className="eval-note-value">17.0 / 20</span>
-                        <span className="eval-stars">★★★★☆</span>
-                      </div>
-                      <div className="eval-comment">
-                        <span className="eval-comment-label">Commentaire</span>
-                        <p>Très impliqué dans les projets.</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="eval-item">
-                    <div className="eval-item-header">
-                      <span className="eval-type">Entreprise</span>
-                      <span className="eval-date">25 Mai 2024</span>
-                      <span className="badge badge-en-attente">À faire</span>
-                    </div>
-                    <div className="eval-item-body">
-                      <div className="eval-note">
-                        <span className="eval-note-label">Note</span>
-                        <span className="eval-note-value">—</span>
-                      </div>
-                      <div className="eval-comment">
-                        <span className="eval-comment-label">Commentaire</span>
-                        <p>En attente d'évaluation</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+          <div className="eval-table-wrap">
+            <table className="eval-table">
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Note</th>
+                  <th>Date</th>
+                  <th>Statut</th>
+                  <th>Commentaire</th>
+                </tr>
+              </thead>
+              <tbody>
+                {evaluations.map((evalItem) => (
+                  <tr key={evalItem.id}>
+<td className="eval-table-type" data-label="Type">{evalItem.type}</td>
+                      <td data-label="Note">
+                        {evalItem.note ? (
+                          <span className="eval-table-note">
+                            {evalItem.note} / 20
+                          </span>
+                        ) : (
+                          <span className="eval-table-empty">—</span>
+                        )}
+                      </td>
+                      <td className="eval-table-date" data-label="Date">{evalItem.date}</td>
+                      <td data-label="Statut">
+                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
+                          {evalItem.statut}
+                        </span>
+                      </td>
+                      <td className="eval-table-comment" data-label="Commentaire">
+                        {evalItem.commentaire || <span className="eval-table-empty">—</span>}
+                      </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 
-        {/* ===== TAB RAPPORTS ===== */}
         {activeTab === 'rapports' && (
           <div className="detail-rapports">
-            <div className="info-card full-width">
-              <div className="info-card-header"><FaFileAlt /> Rapports</div>
-              <div className="info-card-body">
-                <div className="rapport-list">
-                  <div className="rapport-item">
-                    <div className="rapport-item-left">
-                      <div className="rapport-icon"><FaFilePdf style={{ color: '#E74C3C' }} /></div>
-                      <div className="rapport-info">
-                        <span className="rapport-title">Rapport de prise en main</span>
-                        <span className="rapport-meta">rapport_prise_en_main.pdf · 1.2 MB</span>
+            {rapports.length === 0 ? (
+              <p className="detail-empty">Aucun rapport disponible</p>
+            ) : (
+              <div className="rapport-list">
+                {rapports.map((rapport) => (
+                  <div key={rapport.id} className="report-card">
+                    <div className="report-col-file">
+                      <div
+                        className="report-icon-wrapper"
+                        style={{
+                          backgroundColor:
+                            rapport.statut === 'Validé' ? '#D1FAE5' :
+                            rapport.statut === 'En révision' ? '#E1ECFE' :
+                            rapport.statut === 'À corriger' ? '#FEE2E2' : '#F8FAFC'
+                        }}
+                      >
+                        {rapport.fileName ? <FaFilePdf style={{ color: '#E74C3C' }} /> : <FaFileAlt style={{ color: '#A0B8D0' }} />}
+                      </div>
+                      <div className="report-info">
+                        <span className="report-title">{rapport.titre}</span>
+                        {rapport.fileName && <span className="report-filename">{rapport.fileName}</span>}
+                        <span className="report-meta">{rapport.size}</span>
                       </div>
                     </div>
-                    <div className="rapport-item-right">
-                      <span className="rapport-date">20 Mar 2024</span>
-                      <span className="badge badge-valide">Validé</span>
-                      <div className="rapport-actions">
-                        <button className="btn-action-icon" title="Voir"><FaEye /></button>
-                        <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
-                      </div>
+                    <div className="report-col-date">
+                      <span className="report-date">{rapport.date}</span>
+                    </div>
+                    <div className="report-col-status">
+                      <span className={`badge ${rapport.statut === 'Validé' ? 'badge-valide' : rapport.statut === 'En révision' ? 'badge-en-cours' : rapport.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>{rapport.statut}</span>
+                      {rapport.commentaire && <span className="report-comment">{rapport.commentaire}</span>}
+                    </div>
+                    <div className="report-col-actions">
+                      {rapport.fileName && (
+                        <>
+                          <button className="btn-action-icon" title="Voir"><FaEye /></button>
+                          <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
+                          {rapport.statut !== 'Validé' && (
+                            <>
+                              <button className="btn-action-icon" title="Valider" onClick={() => handleValiderRapport(rapport.id)}><FaCheck /></button>
+                              <button className="btn-action-icon" title="Refuser" onClick={() => handleRefuserRapport(rapport.id)}><FaTimes /></button>
+                            </>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
-
-                  <div className="rapport-item">
-                    <div className="rapport-item-left">
-                      <div className="rapport-icon"><FaFilePdf style={{ color: '#E74C3C' }} /></div>
-                      <div className="rapport-info">
-                        <span className="rapport-title">Rapport intermédiaire</span>
-                        <span className="rapport-meta">rapport_intermediaire.pdf · 2.4 MB</span>
-                      </div>
-                    </div>
-                    <div className="rapport-item-right">
-                      <span className="rapport-date">15 Mai 2024</span>
-                      <span className="badge badge-en-cours">En révision</span>
-                      <div className="rapport-actions">
-                        <button className="btn-action-icon" title="Voir"><FaEye /></button>
-                        <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="rapport-item">
-                    <div className="rapport-item-left">
-                      <div className="rapport-icon"><FaFileAlt style={{ color: '#A0B8D0' }} /></div>
-                      <div className="rapport-info">
-                        <span className="rapport-title">Rapport final</span>
-                        <span className="rapport-meta">Fichier non déposé · —</span>
-                      </div>
-                    </div>
-                    <div className="rapport-item-right">
-                      <span className="rapport-date">—</span>
-                      <span className="badge badge-en-attente">À déposer</span>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         )}
       </div>

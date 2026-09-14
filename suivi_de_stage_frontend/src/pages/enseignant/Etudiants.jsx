@@ -295,7 +295,7 @@ function EnseignantEtudiants() {
                       <div className="action-buttons">
                         {/* ===== BOUTON VOIR DÉTAILS ===== */}
                         <button 
-                          className="action-btn view" 
+                          className="btn-action-icon"
                           onClick={() => goToStudentDetail(student.id)}
                           title="Voir les détails"
                         >
@@ -304,7 +304,7 @@ function EnseignantEtudiants() {
                         
                         {/* ===== BOUTON ÉVALUER ===== */}
                         <button 
-                          className="action-btn eval" 
+                          className="btn-action-icon"
                           onClick={() => goToEvaluations(student.id)}
                           title="Évaluer"
                         >
@@ -313,7 +313,7 @@ function EnseignantEtudiants() {
                         
                         {/* ===== BOUTON VOIR RAPPORTS ===== */}
                         <button 
-                          className="action-btn report" 
+                          className="btn-action-icon"
                           onClick={() => goToRapports(student.id)}
                           title="Voir les rapports"
                         >

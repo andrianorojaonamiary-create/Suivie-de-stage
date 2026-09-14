@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { 
   FaClipboardList, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
-  FaUserGraduate, FaBuilding, FaCalendarAlt, FaClock,
-  FaCheckCircle, FaEye, FaTimes, 
+  FaClock, FaCheckCircle, FaEye, FaTimes, 
 } from 'react-icons/fa';
 import ViewModal from './components/ViewModal';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
@@ -229,10 +228,10 @@ function EncadreurStages() {
             <table className="stages-table">
               <thead>
                 <tr>
-                  <th><FaUserGraduate /> Étudiant</th>
-                  <th><FaClipboardList /> Stage</th>
-                  <th><FaBuilding /> Entreprise</th>
-                  <th><FaCalendarAlt /> Période</th>
+                  <th>Étudiant</th>
+                  <th>tage</th>
+                  <th>Entreprise</th>
+                  <th>Période</th>
                   <th>Statut</th>
                   <th className="actions-header">Actions</th>
                 </tr>

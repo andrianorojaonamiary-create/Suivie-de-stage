@@ -200,11 +200,9 @@
   background: white;
   border-radius: 12px;
   border: 1px solid #E1ECFE;
-  overflow-x: auto;
 }
 .admin-entreprises-table {
   width: 100%;
-  min-width: max-content;
   border-collapse: collapse;
 }
 .admin-entreprises-table thead th {

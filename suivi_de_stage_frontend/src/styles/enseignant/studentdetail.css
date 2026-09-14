@@ -8,48 +8,21 @@
   margin: 0 auto;
 }
 
-/* ===== HEADER ===== */
-.student-detail-page .page-header {
-  margin-bottom: 24px;
-}
-
-.student-detail-page .page-header > div {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
-}
-
-.student-detail-page .page-header h1 {
-  font-size: 24px;
-  color: #162449;
-  margin: 0;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.student-detail-page .page-header .text-muted {
-  color: #6c7a8a;
-  font-size: 14px;
-  margin: 0;
-}
-
+/* ===== BOUTON RETOUR ===== */
 .student-detail-page .btn-back-header {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: #FAFBFF;
+  padding: 8px 16px;
+  background: white;
   border: 1px solid #E1ECFE;
-  border-radius: 8px;
+  border-radius: 10px;
   color: #162449;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
-  width: fit-content;
+  margin-bottom: 20px;
 }
 
 .student-detail-page .btn-back-header:hover {
@@ -57,33 +30,12 @@
   border-color: #6BA9E6;
 }
 
-/* ===== STATUT ===== */
-.student-detail-status {
-  display: flex;
-  gap: 24px;
-  padding: 16px 20px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E8EEF4;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
-
-.status-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #6c7a8a;
-}
-
+/* ============================================================
+   BADGES DE STATUT / ÉVALUATION
+   ============================================================ */
 .status-badge {
   display: inline-block;
-  padding: 3px 12px;
+  padding: 4px 12px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
@@ -97,7 +49,7 @@
 
 .eval-badge {
   display: inline-block;
-  padding: 3px 12px;
+  padding: 4px 12px;
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
@@ -107,30 +59,37 @@
 .eval-a-faire { background: #FFF3E0; color: #F39C12; }
 .eval-corriger { background: #FDE8E8; color: #E74C3C; }
 
-.progress-text {
-  font-size: 14px;
+.badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 11px;
   font-weight: 600;
-  color: #6BA9E6;
 }
+
+.badge-valide { background: #E8F5E9; color: #27AE60; }
+.badge-en-cours { background: #E1ECFE; color: #162449; }
+.badge-en-attente { background: #FFF3E0; color: #F39C12; }
+.badge-refuse { background: #FDE8E8; color: #E74C3C; }
 
 /* ===== TABS ===== */
 .detail-tabs {
   display: flex;
-  gap: 0;
+  gap: 4px;
   background: white;
-  border-radius: 12px 12px 0 0;
   border: 1px solid #E8EEF4;
   border-bottom: none;
-  overflow: hidden;
+  border-radius: 12px 12px 0 0;
+  padding: 6px 8px 0;
 }
 
 .detail-tab {
-  padding: 12px 24px;
+  padding: 12px 22px;
   background: none;
   border: none;
   border-bottom: 3px solid transparent;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #6c7a8a;
   cursor: pointer;
   transition: all 0.2s;
@@ -147,7 +106,6 @@
 .detail-tab.active {
   color: #6BA9E6;
   border-bottom-color: #6BA9E6;
-  background: #F8FAFC;
 }
 
 .detail-tab svg {
@@ -157,277 +115,275 @@
 /* ===== CONTENU ===== */
 .detail-content {
   background: white;
-  border-radius: 0 0 12px 12px;
   border: 1px solid #E8EEF4;
   border-top: none;
+  border-radius: 0 0 12px 12px;
   padding: 24px;
   min-height: 300px;
 }
 
-/* ===== INFO GRID ===== */
-.detail-info-grid {
+/* ===== INFO - GRILLE DE CHAMPS ===== */
+.info-fields-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 18px 20px;
 }
 
-.info-card {
-  background: #F8FAFC;
-  border-radius: 10px;
-  border: 1px solid #E8EEF4;
-  overflow: hidden;
+.info-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
-.info-card.full-width {
+.info-field-full {
   grid-column: 1 / -1;
 }
 
-.info-card-header {
-  padding: 10px 16px;
-  background: white;
-  border-bottom: 1px solid #E8EEF4;
-  font-size: 13px;
+.info-field-divider {
+  grid-column: 1 / -1;
+  height: 1px;
+  background: #E1ECFE;
+  margin: 8px 0;
+}
+
+.info-field-label {
+  font-size: 12px;
   font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.info-field-box {
+  display: block;
+  padding: 12px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E8EEF4;
+  border-radius: 10px;
+  font-size: 14px;
   color: #162449;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+.info-field-desc {
+  background: #FAFBFF;
+  border-color: #E1ECFE;
+  color: #475569;
+}
+
+.inline-progress {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.info-card-header svg {
+.inline-progress span {
+  font-weight: 600;
   color: #6BA9E6;
-}
-
-.info-card-body {
-  padding: 12px 16px;
-}
-
-.info-row {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 0;
-  border-bottom: 1px solid #F0F4F8;
-}
-
-.info-row:last-child {
-  border-bottom: none;
-}
-
-.info-label {
   font-size: 13px;
-  color: #6c7a8a;
+  white-space: nowrap;
 }
 
-.info-value {
-  font-size: 13px;
-  color: #162449;
-  text-align: right;
-}
-
-.info-value .description-text {
-  text-align: left;
-  color: #475569;
-  line-height: 1.6;
-  margin-top: 4px;
-}
-
-/* ===== PROGRESS BAR ===== */
-.progress-bar {
-  display: inline-block;
-  width: 100px;
-  height: 6px;
+.inline-progress-bar {
+  width: 120px;
+  height: 8px;
   background: #F0F4F8;
   border-radius: 4px;
   overflow: hidden;
-  margin-right: 8px;
 }
 
-.progress-fill {
+.inline-progress-fill {
   height: 100%;
-  background: #6BA9E6;
   border-radius: 4px;
+  background: linear-gradient(90deg, #6BA9E6, #162449);
   transition: width 0.5s ease;
 }
 
-/* ===== ÉVALUATIONS ===== */
-.eval-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+/* ===== ÉVALUATIONS - TABLEAU ===== */
+.eval-table-wrap {
+  overflow-x: auto;
 }
 
-.eval-item {
-  border: 1px solid #E8EEF4;
-  border-radius: 8px;
-  overflow: hidden;
+.eval-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
 }
 
-.eval-item-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+.eval-table thead th {
+  text-align: left;
+  padding: 12px 16px;
   background: #F8FAFC;
-  border-bottom: 1px solid #E8EEF4;
-  flex-wrap: wrap;
+  border-bottom: 2px solid #E1ECFE;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #6c7a8a;
+  white-space: nowrap;
 }
 
-.eval-type {
+.eval-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #F0F4F8;
+  vertical-align: middle;
+}
+
+.eval-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.eval-table tbody tr:hover {
+  background: #FAFBFF;
+}
+
+.eval-table-type {
   font-weight: 600;
   color: #162449;
-  font-size: 13px;
+  white-space: nowrap;
 }
 
-.eval-date {
-  font-size: 12px;
-  color: #6c7a8a;
-}
-
-.eval-item-body {
-  padding: 12px 14px;
-}
-
-.eval-note {
+.eval-table-note {
   display: flex;
   align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.eval-note-label {
-  font-size: 12px;
-  color: #6c7a8a;
-}
-
-.eval-note-value {
-  font-size: 18px;
-  font-weight: 700;
-  color: #6BA9E6;
-}
-
-.eval-stars {
-  color: #FFD700;
-  font-size: 14px;
-  letter-spacing: 1px;
-}
-
-.eval-comment {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #F0F4F8;
-}
-
-.eval-comment-label {
-  font-size: 11px;
+  gap: 8px;
   font-weight: 600;
-  color: #6c7a8a;
-  display: block;
-  margin-bottom: 2px;
+  color: #162449;
+  white-space: nowrap;
 }
 
-.eval-comment p {
-  font-size: 13px;
+.eval-table-date {
+  color: #6c7a8a;
+  white-space: nowrap;
+}
+
+.eval-table-comment {
   color: #475569;
-  margin: 0;
+  max-width: 280px;
+  line-height: 1.5;
+}
+
+.eval-table-empty {
+  color: #A0B8D0;
 }
 
 /* ===== RAPPORTS ===== */
 .rapport-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.rapport-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 14px;
-  border: 1px solid #E8EEF4;
-  border-radius: 8px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.rapport-item-left {
-  display: flex;
-  align-items: center;
   gap: 10px;
-  flex: 2;
+}
+
+.report-card {
+  display: grid;
+  grid-template-columns: 1fr 120px 140px 160px;
+  gap: 12px;
+  align-items: center;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  padding: 14px 18px;
+  transition: all 0.2s;
+}
+
+.report-card:hover {
+  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
+  border-color: #6BA9E6;
+}
+
+.report-col-file {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   min-width: 0;
 }
 
-.rapport-icon {
-  font-size: 20px;
+.report-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
   flex-shrink: 0;
 }
 
-.rapport-info {
+.report-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
-.rapport-title {
-  font-weight: 500;
+.report-title {
+  font-size: 14px;
+  font-weight: 600;
   color: #162449;
-  font-size: 13px;
 }
 
-.rapport-meta {
-  font-size: 11px;
-  color: #6c7a8a;
-}
-
-.rapport-item-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.rapport-date {
+.report-filename {
   font-size: 12px;
   color: #6c7a8a;
+  word-break: break-all;
 }
 
-.rapport-actions {
+.report-meta {
+  font-size: 11px;
+  color: #A0B8D0;
+  margin-top: 2px;
+}
+
+.report-col-date {
+  text-align: left;
+}
+
+.report-date {
+  font-size: 13px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+.report-col-status {
   display: flex;
+  flex-direction: column;
   gap: 4px;
+  align-items: flex-start;
+}
+
+.report-comment {
+  font-size: 11px;
+  color: #A0B8D0;
+}
+
+.report-col-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: flex-end;
 }
 
 .btn-action-icon {
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 6px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 13px;
   cursor: pointer;
   transition: all 0.2s;
-  background: transparent;
+  background: white;
   color: #A0B8D0;
 }
 
 .btn-action-icon:hover {
-  background: #FAFBFF;
-  color: #6BA9E6;
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
 }
-
-.badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.badge-valide { background: #E8F5E9; color: #27AE60; }
-.badge-en-cours { background: #E1ECFE; color: #162449; }
-.badge-en-attente { background: #FFF3E0; color: #F39C12; }
-.badge-refuse { background: #FDE8E8; color: #E74C3C; }
 
 /* ============================================================
    LOADING & NOT FOUND
@@ -469,14 +425,29 @@
   color: #6c7a8a;
 }
 
+.btn-back-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #6BA9E6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back-detail:hover {
+  background: #162449;
+}
+
 /* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {
-  .detail-info-grid {
-    grid-template-columns: 1fr;
-  }
-
   .detail-tabs {
     flex-wrap: wrap;
   }
@@ -488,48 +459,54 @@
     font-size: 13px;
   }
 
-  .student-detail-status {
-    flex-direction: column;
+  .info-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .eval-table thead {
+    display: none;
+  }
+
+  .eval-table,
+  .eval-table tbody,
+  .eval-table tr,
+  .eval-table td {
+    display: block;
+  }
+
+  .eval-table tr {
+    border: 1px solid #E8EEF4;
+    border-radius: 10px;
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+
+  .eval-table td {
+    padding: 4px 0;
+    border: none;
+  }
+
+  .eval-table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    color: #6c7a8a;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .report-card {
+    grid-template-columns: 1fr;
     gap: 8px;
   }
 
-  .info-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-  }
-
-  .info-value {
-    text-align: left;
-  }
-
-  .rapport-item {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .rapport-item-right {
-    padding-left: 44px;
-  }
-
-  .eval-item-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-
-  .eval-note {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .report-col-actions {
+    justify-content: flex-start;
   }
 }
 
 @media (max-width: 480px) {
-  .student-detail-page .page-header h1 {
-    font-size: 20px;
-  }
-
   .detail-tab {
     font-size: 12px;
     padding: 8px 10px;
@@ -543,20 +520,12 @@
     padding: 16px;
   }
 
-  .info-card-header {
+  .info-field-label,
+  .info-field-box {
     font-size: 12px;
   }
 
-  .info-label,
-  .info-value {
-    font-size: 12px;
-  }
-
-  .eval-note-value {
-    font-size: 16px;
-  }
-
-  .eval-stars {
+  .eval-table td {
     font-size: 12px;
   }
 }
