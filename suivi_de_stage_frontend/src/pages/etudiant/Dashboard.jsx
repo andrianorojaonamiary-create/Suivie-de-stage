@@ -5,78 +5,64 @@ import {
   FaArrowRight, FaClock, 
   FaChartLine,
   FaFilePdf, FaFileWord, FaFile, FaBell,
-  FaMapPin, FaEye, FaExclamationTriangle,
-  FaCheck
+  FaMapPin, FaEye, FaPlus
 } from 'react-icons/fa';
 import mapImage from '../../assets/map.jpg';
 import { internshipsApi, notificationsApi } from '../../api';
+import { mapInternship, getStatutBadge } from '../../utils/internshipMapping';
 
 function EtudiantDashboard() {
-  const [progress, setProgress] = useState(45);
+  const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
 
   // ===== INFORMATIONS DU STAGE =====
   const [stageInfo, setStageInfo] = useState({
-    id: 1,
-    titre: "Développement Web",
-    entreprise: 'ABC Informatique',
-    ville: 'Antananarivo',
-    adresse: 'Lot III A 15 bis, Andrainjato',
-    dateDebut: '03 Août 2026',
-    dateFin: '03 Octobre 2026',
-    statut: 'En cours',
-    duree: '2 mois',
-    joursEcoules: 20
+    id: null,
+    titre: '',
+    entreprise: '',
+    ville: '',
+    adresse: '',
+    dateDebut: '',
+    dateFin: '',
+    statut: '',
+    duree: '',
+    joursEcoules: 0
   });
 
   // ===== RAPPORTS =====
-  const [reports, setReports] = useState([
-    { name: "Rapport de prise en main", fileName: "rapport_prise_en_main.pdf", date: "20 Mar 2024", status: "Validé" },
-    { name: "Rapport intermédiaire", fileName: null, date: "—", status: "À déposer" },
-    { name: "Rapport final", fileName: null, date: "—", status: "À venir" },
-  ]);
+  const [reports, setReports] = useState([]);
 
   // ===== NOTIFICATIONS =====
-  const [recentNotifications, setRecentNotifications] = useState([
-    { text: "Rappel : Déposer la convention", detail: "Il vous reste 5 jours", date: "22/08/2026", icon: <FaBell />, color: '#F59E0B', bg: '#FEF3C7' },
-    { text: "Nouvelle activité demandée", detail: "Ajouter le rapport d'avancement", date: "21/08/2026", icon: <FaExclamationTriangle />, color: '#EF4444', bg: '#FEE2E2' },
-    { text: "Document validé", detail: "Votre plan de travail a été validé", date: "20/08/2026", icon: <FaCheck />, color: '#22C55E', bg: '#D1FAE5' },
-  ]);
+  const [recentNotifications, setRecentNotifications] = useState([]);
 
   // ===== ÉTAPES =====
-  const [steps, setSteps] = useState([
-    { label: "Convention Validée", done: true },
-    { label: "Stage validé", done: true },
-    { label: "Stage commencé", done: true },
-    { label: "Stage en cours", done: true },
-    { label: "Rapport à déposer", done: false },
-    { label: "Évaluation", done: false },
-    { label: "Stage terminé", done: false },
-  ]);
+  const [steps, setSteps] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const stagesRes = await internshipsApi.getAll();
-        const stagesList = Array.isArray(stagesRes) ? stagesRes : stagesRes?.items || [];
+        const stagesList = stagesRes?.data || (Array.isArray(stagesRes) ? stagesRes : []);
         if (stagesList.length > 0) {
-          const current = stagesList[0];
+          const current = mapInternship(stagesList[0]);
           setStageInfo({
             id: current.id,
-            titre: current.title || 'Mon Stage',
-            entreprise: current.company?.name || current.companyName || 'Entreprise',
-            ville: current.city || current.company?.city || 'Antananarivo',
-            adresse: current.address || current.company?.address || '',
-            dateDebut: current.startDate ? new Date(current.startDate).toLocaleDateString('fr-FR') : 'Date début',
-            dateFin: current.endDate ? new Date(current.endDate).toLocaleDateString('fr-FR') : 'Date fin',
-            statut: current.status === 'en_cours' ? 'En cours' : current.status === 'termine' ? 'Terminé' : 'À venir',
-            duree: current.duration || '3 mois',
-            joursEcoules: current.elapsedDays || 30
+            titre: current.titre,
+            entreprise: current.entreprise,
+            ville: current.ville,
+            adresse: current.adresse,
+            dateDebut: current.dateDebut
+              ? new Date(current.dateDebut).toLocaleDateString('fr-FR')
+              : 'Date début',
+            dateFin: current.dateFin
+              ? new Date(current.dateFin).toLocaleDateString('fr-FR')
+              : 'Date fin',
+            statut: current.statut,
+            duree: current.duree || '3 mois',
+            joursEcoules: current.joursEcoules || 0
           });
-          if (current.progressPercentage) {
-            setProgress(current.progressPercentage);
-          }
+          setProgress(current.progression || 0);
         }
 
         const notifsRes = await notificationsApi.getAll();
@@ -138,7 +124,7 @@ function EtudiantDashboard() {
             <FaClock />
           </div>
           <div className="stat-content">
-            <span className="stat-value">42</span>
+            <span className="stat-value">0</span>
             <span className="stat-label">Jours restants</span>
           </div>
         </div>
@@ -147,7 +133,7 @@ function EtudiantDashboard() {
             <FaFileAlt />
           </div>
           <div className="stat-content">
-            <span className="stat-value">1 / 3</span>
+            <span className="stat-value">{reports.filter(r => r.status === 'Validé').length} / 3</span>
             <span className="stat-label">Rapports déposés</span>
           </div>
         </div>
@@ -156,7 +142,7 @@ function EtudiantDashboard() {
             <FaChartLine />
           </div>
           <div className="stat-content">
-            <span className="stat-value">75%</span>
+            <span className="stat-value">{progress}%</span>
             <span className="stat-label">Objectif atteint</span>
           </div>
         </div>
@@ -177,40 +163,52 @@ function EtudiantDashboard() {
         <div className="dashboard-stage">
           <div className="stage-header">
             <h3>Mon stage actuel</h3>
-            <span className="badge-en-cours">En cours</span>
+            {stageInfo.statut && <span className={getStatutBadge(stageInfo.statut)}>{stageInfo.statut}</span>}
           </div>
           <div className="stage-content">
-            <div className="stage-layout">
-              {/* L'icône FaBuilding a été supprimée */}
-              <div className="stage-info">
-                <h2>{stageInfo.titre}</h2>
-                <p className="stage-company">{stageInfo.entreprise}</p>
-                <div className="stage-dates">
-                  <span><FaCalendarAlt /> {stageInfo.dateDebut}</span>
-                  <span>→</span>
-                  <span><FaCalendarAlt /> {stageInfo.dateFin}</span>
+            {stageInfo.id ? (
+              <>
+                <div className="stage-layout">
+                  <div className="stage-info">
+                    <h2>{stageInfo.titre}</h2>
+                    <p className="stage-company">{stageInfo.entreprise}</p>
+                    <div className="stage-dates">
+                      <span><FaCalendarAlt /> {stageInfo.dateDebut}</span>
+                      <span>→</span>
+                      <span><FaCalendarAlt /> {stageInfo.dateFin}</span>
+                    </div>
+                    <div className="stage-info-row">
+                      <span>Durée : {stageInfo.duree}</span>
+                      <span>|</span>
+                      <span>{stageInfo.joursEcoules} jours écoulés</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="stage-info-row">
-                  <span>Durée : {stageInfo.duree}</span>
-                  <span>|</span>
-                  <span>{stageInfo.joursEcoules} jours écoulés</span>
+                <div className="stage-progress">
+                  <div className="progress-header">
+                    <span className="progress-label">Progression du stage</span>
+                    <span className="progress-value">{progress}%</span>
+                  </div>
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+                  </div>
                 </div>
+                <div className="stage-actions">
+                  <Link to={`/etudiant/stage/${stageInfo.id}`} className="btn-voir-stage">
+                    <FaEye /> Voir mon stage
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div className="stage-empty">
+                <div className="empty-icon"><FaFileAlt /></div>
+                <p>Aucun stage en cours</p>
+                <span className="empty-sub">Ajoutez votre stage pour démarrer le suivi.</span>
+                <Link to="/etudiant/ajouter-stage" className="btn-voir-stage">
+                  <FaPlus /> Ajouter un stage
+                </Link>
               </div>
-            </div>
-            <div className="stage-progress">
-              <div className="progress-header">
-                <span className="progress-label">Progression du stage</span>
-                <span className="progress-value">{progress}%</span>
-              </div>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-            <div className="stage-actions">
-              <Link to="/etudiant/stage/1" className="btn-voir-stage">
-                <FaEye /> Voir mon stage
-              </Link>
-            </div>
+            )}
           </div>
         </div>
 

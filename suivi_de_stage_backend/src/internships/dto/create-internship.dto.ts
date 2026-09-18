@@ -15,14 +15,26 @@ const trim = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim() : value;
 
 export class CreateInternshipDto {
+  @IsOptional()
   @IsUUID()
-  studentId: string;
+  studentId?: string;
 
   @IsUUID()
   companyId: string;
 
+  @IsOptional()
   @IsUUID()
-  supervisorId: string;
+  supervisorId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  tuteurId?: string;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 200)
+  encadreurProfessionnelNom?: string;
 
   @Transform(trim)
   @IsString()

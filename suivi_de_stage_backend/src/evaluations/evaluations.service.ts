@@ -13,7 +13,6 @@ import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { FindEvaluationsDto } from './dto/find-evaluations.dto';
 import { UpdateEvaluationDto } from './dto/update-evaluation.dto';
 import { Evaluation } from './entities/evaluation.entity';
-import { EvaluatorType } from './enums/evaluator-type.enum';
 import { NotificationsService } from '../notifications/notifications.service';
 
 interface AuthenticatedUser {
@@ -35,17 +34,13 @@ export class EvaluationsService {
   async create(dto: CreateEvaluationDto, actor: AuthenticatedUser) {
     const stage = await this.findStage(dto.stageId);
     const evaluator = await this.usersService.findActiveById(dto.evaluateurId);
-    const expectedRole =
-      dto.typeEvaluateur === EvaluatorType.ENCADREUR
-        ? Role.ENCADREUR
-        : Role.ENTREPRISE;
-    if (!evaluator || evaluator.role !== expectedRole) {
+    if (!evaluator || evaluator.role !== Role.ENCADREUR) {
       throw new NotFoundException('Évaluateur introuvable ou type incorrect.');
     }
     if (actor.role !== Role.ADMINISTRATEUR && dto.evaluateurId !== actor.id) {
       throw new ForbiddenException('Vous ne pouvez évaluer qu’en votre nom.');
     }
-    this.ensureEvaluatorOnStage(stage, evaluator.id, dto.typeEvaluateur);
+    this.ensureEvaluatorOnStage(stage, evaluator.id);
     const evaluation = this.evaluationsRepository.create({
       ...dto,
       stageId: dto.stageId,
@@ -170,15 +165,8 @@ export class EvaluationsService {
     return evaluation;
   }
 
-  private ensureEvaluatorOnStage(
-    stage: Internship,
-    evaluatorId: string,
-    type: EvaluatorType,
-  ) {
-    const assignedId =
-      type === EvaluatorType.ENCADREUR
-        ? stage.supervisor.user?.id
-        : stage.company.user?.id;
+  private ensureEvaluatorOnStage(stage: Internship, evaluatorId: string) {
+    const assignedId = stage.supervisor?.user?.id;
     if (assignedId !== evaluatorId)
       throw new ForbiddenException('Vous n’êtes pas affecté à ce stage.');
   }
@@ -187,8 +175,8 @@ export class EvaluationsService {
     const allowed =
       actor.role === Role.ADMINISTRATEUR ||
       (actor.role === Role.ETUDIANT && stage.student.user?.id === actor.id) ||
-      (actor.role === Role.ENTREPRISE && stage.company.user?.id === actor.id) ||
-      (actor.role === Role.ENCADREUR && stage.supervisor.user?.id === actor.id);
+      (actor.role === Role.ENCADREUR &&
+        stage.supervisor?.user?.id === actor.id);
     if (!allowed)
       throw new ForbiddenException(
         'Vous ne pouvez pas consulter cette évaluation.',

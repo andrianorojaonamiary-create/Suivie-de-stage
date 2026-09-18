@@ -5,15 +5,21 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Role } from '../users/enums/role.enum';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
+import { Student } from '../students/entities/student.entity';
+import { StudentLevel } from '../students/enums/student-level.enum';
+import { Supervisor } from '../supervisors/entities/supervisor.entity';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
+import { RegisterDto, PUBLIC_REGISTRATION_ROLES } from './dto/register.dto';
 
 const RESET_TOKEN_TTL_MS = 15 * 60 * 1000;
 
@@ -30,18 +36,89 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
+    @InjectRepository(Student)
+    private readonly studentsRepository: Repository<Student>,
+    @InjectRepository(Supervisor)
+    private readonly supervisorsRepository: Repository<Supervisor>,
   ) {}
 
   async register(registerDto: RegisterDto) {
+    const role = registerDto.role ?? Role.ETUDIANT;
+
+    if (!PUBLIC_REGISTRATION_ROLES.includes(role)) {
+      throw new BadRequestException(
+        'Ce rôle ne peut pas être créé lors d’une inscription publique.',
+      );
+    }
+
     const createUserDto: CreateUserDto = {
       nom: registerDto.nom,
       prenom: registerDto.prenom,
       email: registerDto.email,
       motDePasse: registerDto.motDePasse,
-      role: Role.ETUDIANT,
+      role,
+      ...(role === Role.ENSEIGNANT
+        ? {
+            ...(registerDto.matricule
+              ? { matricule: registerDto.matricule }
+              : {}),
+            ...(registerDto.grade ? { grade: registerDto.grade } : {}),
+            ...(registerDto.departement
+              ? { departement: registerDto.departement }
+              : {}),
+            ...(registerDto.specialite
+              ? { specialite: registerDto.specialite }
+              : {}),
+            ...(registerDto.telephone
+              ? { telephone: registerDto.telephone }
+              : {}),
+          }
+        : {}),
     };
     const user = await this.usersService.create(createUserDto);
+
+    try {
+      if (role === Role.ETUDIANT) {
+        await this.createStudentProfile(user.id, registerDto);
+      } else if (role === Role.ENCADREUR) {
+        await this.createSupervisorProfile(user.id, registerDto);
+      }
+    } catch (error) {
+      await this.usersService.remove(user.id);
+      throw error;
+    }
+
     return this.issueToken(user);
+  }
+
+  private async createStudentProfile(
+    userId: string,
+    dto: RegisterDto,
+  ): Promise<void> {
+    const student = this.studentsRepository.create({
+      userId,
+      matricule: dto.matricule,
+      formation: dto.formation,
+      niveau: dto.niveau ?? StudentLevel.L1,
+      promotion: dto.promotion ?? String(new Date().getFullYear()),
+      telephone: dto.telephone ?? null,
+      adresse: dto.adresse ?? null,
+    });
+    await this.studentsRepository.save(student);
+  }
+
+  private async createSupervisorProfile(
+    userId: string,
+    dto: RegisterDto,
+  ): Promise<void> {
+    const supervisor = this.supervisorsRepository.create({
+      userId,
+      fonction: dto.fonction,
+      specialite: dto.specialite,
+      telephone: dto.telephone ?? null,
+      entreprise: dto.entreprise ?? null,
+    });
+    await this.supervisorsRepository.save(supervisor);
   }
 
   async login(loginDto: LoginDto) {
@@ -130,6 +207,24 @@ export class AuthService {
     await this.usersService.clearPasswordResetToken(user.id);
 
     return { message: 'Mot de passe réinitialisé avec succès.' };
+  }
+
+  async changePassword(userId: string, dto: ChangePasswordDto) {
+    const user = await this.usersService.findByIdWithPassword(userId);
+
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur introuvable.');
+    }
+
+    if (!(await compare(dto.ancienMotDePasse, user.motDePasse))) {
+      throw new BadRequestException('Le mot de passe actuel est incorrect.');
+    }
+
+    await this.usersService.update(userId, {
+      motDePasse: dto.nouveauMotDePasse,
+    });
+
+    return { message: 'Mot de passe modifié avec succès.' };
   }
 
   private async issueToken(user: { id: string; email: string; role: Role }) {

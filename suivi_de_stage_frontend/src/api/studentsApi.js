@@ -3,9 +3,13 @@ import apiClient, { unwrap } from './apiClient';
 export const studentsApi = {
   /**
    * Récupérer la liste des étudiants (Admin, Enseignant)
-   * @param {Object} [params] - { search, filiere, niveau, promotion, page, limit }
+   * @param {Object} [params] - { search, formation, niveau, promotion, page, limit }
    */
-  getAll: (params) => unwrap(apiClient.get('/students', { params })),
+  getAll: (params) =>
+    unwrap(apiClient.get('/students', { params })).then((res) => ({
+      items: res?.data ?? [],
+      meta: res?.meta ?? { page: 1, limit: 10, total: 0, totalPages: 0 },
+    })),
 
   /**
    * Récupérer la fiche d'un étudiant par son ID

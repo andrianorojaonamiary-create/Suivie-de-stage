@@ -4,6 +4,7 @@ import {
   FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
   FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
 } from 'react-icons/fa';
+import { studentsApi } from '../../api';
 
 function EncadreurStudentDetail() {
   const { studentId } = useParams();
@@ -11,148 +12,32 @@ function EncadreurStudentDetail() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
-  const [rapports, setRapports] = useState([
-    { id: 1, titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' }
-  ]);
+  const [rapports, setRapports] = useState([]);
 
   useEffect(() => {
-    setTimeout(() => {
-      const students = {
-        1: {
-          id: 1,
-          nom: 'Rakoto Miora',
-          prenom: 'Miora',
-          matricule: 'ETU-2024-0421',
-          email: 'miora.rakoto@emit.mg',
-          telephone: '+261 34 12 345 01',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 1,
-            titre: "Développement d'une plateforme web de gestion RH",
-            entreprise: 'TechMada SARL',
-            statut: 'En cours',
-            dateDebut: '2024-03-01',
-            dateFin: '2024-09-15',
-            progression: 65,
-            description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js."
-          },
-          evaluation: 'Validé',
-          rapports: 2,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        2: {
-          id: 2,
-          nom: 'Ramanantsoa Tojo',
-          prenom: 'Tojo',
-          matricule: 'ETU-2024-0423',
-          email: 'tojo.ramanantsoa@emit.mg',
-          telephone: '+261 34 12 345 03',
-          filiere: 'Sécurité Info.',
-          niveau: 'Master 1',
-          ville: 'Antananarivo',
-          stage: {
-            id: 2,
-            titre: "Migration et sécurisation du système d'information",
-            entreprise: 'BNI Madagascar',
-            statut: 'En attente',
-            dateDebut: '2024-05-01',
-            dateFin: '2024-11-01',
-            progression: 15,
-            description: "Migration du système d'information vers une architecture sécurisée."
-          },
-          evaluation: 'À faire',
-          rapports: 0,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        3: {
-          id: 3,
-          nom: 'Razafindramary Fy',
-          prenom: 'Fy',
-          matricule: 'ETU-2024-0427',
-          email: 'fy.razafindramary@emit.mg',
-          telephone: '+261 34 12 345 07',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 3,
-            titre: "Application de gestion des rendez-vous",
-            entreprise: 'Santé Plus',
-            statut: 'En cours',
-            dateDebut: '2024-08-01',
-            dateFin: '2025-01-15',
-            progression: 5,
-            description: "Application mobile de gestion des rendez-vous médicaux avec React Native."
-          },
-          evaluation: 'À faire',
-          rapports: 0,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        4: {
-          id: 4,
-          nom: 'Rajaonarivelo Ando',
-          prenom: 'Ando',
-          matricule: 'ETU-2024-0426',
-          email: 'ando.rajaonarivelo@emit.mg',
-          telephone: '+261 34 12 345 06',
-          filiere: 'Réseaux',
-          niveau: 'Licence 1',
-          ville: 'Antananarivo',
-          stage: {
-            id: 4,
-            titre: "Système de gestion de stock",
-            entreprise: 'DistriTech',
-            statut: 'Refusé',
-            dateDebut: '2024-07-01',
-            dateFin: '2024-12-31',
-            progression: 20,
-            description: "Développement d'un système de gestion de stock pour entreprise de distribution."
-          },
-          evaluation: 'À corriger',
-          rapports: 1,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Dr. Ranaivo'
-        }
-      };
-
-      setStudent(students[studentId] || null);
-      setLoading(false);
-    }, 500);
+    const fetchStudent = async () => {
+      try {
+        setLoading(true);
+        const data = await studentsApi.getById(studentId);
+        setStudent({
+          id: data.id,
+          nom: `${data.user?.prenom || ''} ${data.user?.nom || ''}`.trim() || 'Étudiant',
+          matricule: data.matricule || '—',
+          filiere: data.formation || 'Non renseigné',
+          niveau: data.niveau || 'Non renseigné',
+          email: data.user?.email || '—',
+          telephone: data.telephone || '—',
+          adresse: data.adresse || 'Non renseignée',
+          statut: data.statutAcademique || 'ACTIF',
+        });
+      } catch (err) {
+        console.error('Erreur chargement étudiant:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (studentId) fetchStudent();
   }, [studentId]);
-
-  const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
-  };
-
-  const getStatusBadge = (statut) => {
-    const badges = {
-      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
-      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
-      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
-      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
-    };
-    const badge = badges[statut] || badges['En attente'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
-
-  const getEvalBadge = (evalStatus) => {
-    const badges = {
-      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
-      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
-      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
-    };
-    const badge = badges[evalStatus] || badges['À faire'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
 
   const handleValiderRapport = (id) => {
     setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
@@ -162,10 +47,7 @@ function EncadreurStudentDetail() {
     setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'À corriger' } : r));
   };
 
-  const evaluations = [
-    { id: 1, type: 'Maître de stage', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux' },
-    { id: 2, type: 'Entreprise', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null }
-  ];
+  const evaluations = [];
 
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
@@ -241,44 +123,20 @@ function EncadreurStudentDetail() {
               <span className="info-field-box">{student.telephone || 'Non renseigné'}</span>
             </div>
             <div className="info-field">
-              <span className="info-field-label">Ville</span>
-              <span className="info-field-box">{student.ville || 'Non renseignée'}</span>
+              <span className="info-field-label">Adresse</span>
+              <span className="info-field-box">{student.adresse || 'Non renseignée'}</span>
             </div>
             <div className="info-field">
-              <span className="info-field-label">Tuteur pédagogique</span>
-              <span className="info-field-box">{student.tuteur || 'Non renseigné'}</span>
-            </div>
-            <div className="info-field-divider" />
-            <div className="info-field info-field-full">
-              <span className="info-field-label">Stage</span>
-              <span className="info-field-box"><strong>{student.stage.titre}</strong></span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Entreprise</span>
-              <span className="info-field-box">{student.stage.entreprise}</span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Période</span>
-              <span className="info-field-box">{formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}</span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Progression</span>
-              <span className="info-field-box">
-                <div className="inline-progress">
-                  <div className="inline-progress-bar">
-                    <div className="inline-progress-fill" style={{ width: `${student.stage.progression}%` }} />
-                  </div>
-                  <span>{student.stage.progression}%</span>
-                </div>
-              </span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Statut</span>
-              <span className="info-field-box">{getStatusBadge(student.stage.statut)}</span>
+              <span className="info-field-label">Statut académique</span>
+              <span className="info-field-box">{student.statut}</span>
             </div>
             <div className="info-field info-field-full">
-              <span className="info-field-label">Description</span>
-              <span className="info-field-box info-field-desc">{student.stage.description || 'Non renseignée'}</span>
+              <span className="info-field-label">Formation</span>
+              <span className="info-field-box">{student.filiere}</span>
+            </div>
+            <div className="info-field info-field-full">
+              <span className="info-field-label">Informations de stage</span>
+              <span className="info-field-box info-field-desc">Les informations du stage ne sont pas disponibles via cette vue.</span>
             </div>
           </div>
         )}

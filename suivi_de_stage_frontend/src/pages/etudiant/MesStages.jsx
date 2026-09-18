@@ -2,24 +2,12 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FaPlus, FaEye, FaEdit, FaTrash, FaBuilding, FaCalendarAlt, FaMapMarkerAlt } from 'react-icons/fa';
 import { internshipsApi } from '../../api';
+import { toast } from 'react-toastify';
+import { mapInternshipList, getStatutBadge } from '../../utils/internshipMapping';
 
 function MesStages() {
   const navigate = useNavigate();
-  const [stages, setStages] = useState([
-    {
-      id: 1,
-      titre: 'Développement plateforme web RH',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      adresse: 'Lot II M 77, Antananarivo',
-      dateDebut: '2024-03-01',
-      dateFin: '2024-09-15',
-      statut: 'En cours',
-      tuteur: 'Prof. Andrianivo',
-      encadreur: 'M. Rakotomalala',
-      description: 'Développement d\'une plateforme web de gestion des ressources humaines.'
-    }
-  ]);
+  const [stages, setStages] = useState([]);
 
   const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -29,23 +17,8 @@ function MesStages() {
     try {
       setLoading(true);
       const res = await internshipsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
-      if (list.length > 0) {
-        const mapped = list.map(item => ({
-          id: item.id,
-          titre: item.title || item.subject || 'Stage sans titre',
-          entreprise: item.company?.name || item.companyName || 'Entreprise',
-          ville: item.city || item.company?.city || 'Antananarivo',
-          adresse: item.address || item.company?.address || '',
-          dateDebut: item.startDate || null,
-          dateFin: item.endDate || null,
-          statut: item.status === 'en_cours' ? 'En cours' : item.status === 'termine' ? 'Terminé' : 'En attente',
-          tuteur: item.tuteurPedagogique ? `${item.tuteurPedagogique.firstName || ''} ${item.tuteurPedagogique.lastName || ''}`.trim() : 'Non renseigné',
-          encadreur: item.supervisor ? `${item.supervisor.firstName || ''} ${item.supervisor.lastName || ''}`.trim() : 'Non renseigné',
-          description: item.description || ''
-        }));
-        setStages(mapped);
-      }
+      const list = res?.data || (Array.isArray(res) ? res : []);
+      setStages(mapInternshipList(list));
     } catch (err) {
       console.error('Erreur chargement mes stages:', err);
     } finally {
@@ -57,16 +30,7 @@ function MesStages() {
     fetchStages();
   }, []);
 
-  const getStatusBadge = (statut) => {
-    const classes = {
-      'En cours': 'badge-en-cours',
-      'En attente': 'badge-en-attente',
-      'Terminé': 'badge-termine',
-      'Validé': 'badge-valide',
-      'Refusé': 'badge-refuse',
-    };
-    return classes[statut] || 'badge-en-attente';
-  };
+  const getStatusBadge = (statut) => getStatutBadge(statut);
 
   // ===== VOIR =====
   const handleView = (id) => {
@@ -90,10 +54,10 @@ function MesStages() {
         await internshipsApi.delete(stageToDelete);
       }
       setStages(stages.filter(s => s.id !== stageToDelete));
-      alert('Stage supprimé avec succès !');
+      toast.success('Stage supprimé avec succès !');
     } catch (err) {
       console.error('Erreur suppression stage:', err);
-      alert('Erreur lors de la suppression du stage');
+      toast.error('Erreur lors de la suppression du stage');
     } finally {
       setShowDeleteModal(false);
       setStageToDelete(null);

@@ -7,6 +7,7 @@ import {
   FaClock, FaInfoCircle, FaArrowLeft
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
 
 function EncadreurObservations() {
   const { studentId } = useParams();
@@ -22,10 +23,7 @@ function EncadreurObservations() {
   const [selectedObs, setSelectedObs] = useState(null);
   const [obsToDelete, setObsToDelete] = useState(null);
 
-  const [observations, setObservations] = useState([
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', date: '15 Mai 2024', contenu: "L'étudiant progresse bien, bon investissement dans le projet.", auteur: 'M. Rakotomalala' },
-    { id: 2, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', date: '10 Mai 2024', contenu: 'Difficultés rencontrées sur la partie technique, besoin d\'accompagnement.', auteur: 'M. Rakotomalala' }
-  ]);
+  const [observations, setObservations] = useState([]);
 
   const allObservations = observations;
   const filteredObs = studentId 
@@ -91,13 +89,13 @@ function EncadreurObservations() {
       etudiant: formData.etudiant,
       etudiantId: 1,
       stage: 'Stage en cours',
-      entreprise: 'Entreprise',
+      entreprise: '',
       date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
       contenu: formData.contenu,
-      auteur: 'M. Rakotomalala'
+      auteur: ''
     };
     setObservations([newObservation, ...observations]);
-    alert('Observation ajoutée avec succès !');
+    toast.success('Observation ajoutée avec succès !');
     setShowAddModal(false);
     setFormData({ etudiant: '', contenu: '' });
   };
@@ -117,7 +115,7 @@ function EncadreurObservations() {
       o.id === selectedObs.id ? { ...o, etudiant: formData.etudiant, contenu: formData.contenu } : o
     );
     setObservations(updated);
-    alert('Observation modifiée avec succès !');
+    toast.success('Observation modifiée avec succès !');
     setShowEditModal(false);
     setSelectedObs(null);
     setFormData({ etudiant: '', contenu: '' });

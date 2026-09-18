@@ -3,6 +3,7 @@ import {
   IsEmail,
   IsEnum,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Length,
   MinLength,
@@ -37,4 +38,34 @@ export class CreateUserDto {
 
   @IsEnum(Role)
   role: Role;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 50)
+  matricule?: string;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 100)
+  grade?: string;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 100)
+  departement?: string;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 150)
+  specialite?: string;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(5, 30)
+  telephone?: string;
 }

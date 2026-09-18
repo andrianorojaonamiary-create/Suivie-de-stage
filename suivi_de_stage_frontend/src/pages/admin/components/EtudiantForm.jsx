@@ -74,10 +74,10 @@ function EtudiantForm({
               />
             </div>
             <div className="form-group">
-              <label>Filière</label>
+              <label>Formation</label>
               <SelectPersonnalise
-                value={formData.filiere}
-                onChange={(v) => setFormData({...formData, filiere: v})}
+                value={formData.formation}
+                onChange={(v) => setFormData({...formData, formation: v})}
                 placeholder="Sélectionner"
                 className="form-control"
                 options={filiereOptions.filter(f => f.value !== 'Tous')}
@@ -106,8 +106,8 @@ function EtudiantForm({
             <div className="form-group">
               <label>Statut</label>
               <SelectPersonnalise
-                value={formData.statut}
-                onChange={(v) => setFormData({...formData, statut: v})}
+                value={formData.statutAcademique}
+                onChange={(v) => setFormData({...formData, statutAcademique: v})}
                 className="form-control"
                 options={statutOptions}
               />

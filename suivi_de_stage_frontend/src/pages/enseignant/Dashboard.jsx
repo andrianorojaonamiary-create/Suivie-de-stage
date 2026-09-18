@@ -74,34 +74,18 @@ function EnseignantDashboard() {
   const { user } = useAuth();
 
   const [stats, setStats] = useState({
-    etudiants: 18,
-    etudiantsChange: '+2 ce mois',
-    stagesEnCours: 18,
-    stagesActifs: '100%',
-    evaluationsEnAttente: 7,
-    rapportsRecus: 11,
-    rapportsTotal: 18
+    etudiants: 0,
+    etudiantsChange: '',
+    stagesEnCours: 0,
+    stagesActifs: '0%',
+    evaluationsEnAttente: 0,
+    rapportsRecus: 0,
+    rapportsTotal: 0
   });
 
-  const [stageStatusData, setStageStatusData] = useState([
-    { name: 'En cours', value: 14, color: '#162449' },
-    { name: 'Visite à venir', value: 2, color: '#F39C12' },
-    { name: 'Rapport en attente', value: 1, color: '#E74C3C' },
-    { name: 'Terminés', value: 1, color: '#27AE60' },
-  ]);
+  const [stageStatusData, setStageStatusData] = useState([]);
 
-  const [recentActivities, setRecentActivities] = useState([
-    { 
-      id: 1, icon: <FaFileAlt />, text: 'Rapport de Jean R. validé', 
-      detail: 'Développement d\'une application web', time: 'Il y a 2h',
-      color: '#6BA9E6', bg: '#E1ECFE'
-    },
-    { 
-      id: 2, icon: <FaBell />, text: 'Nouvel étudiant assigné', 
-      detail: 'Andrianirina T. vous a été assigné', time: 'Il y a 5h',
-      color: '#27AE60', bg: '#D1FAE5'
-    }
-  ]);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -160,17 +144,12 @@ function EnseignantDashboard() {
   }, []);
 
   const localisation = {
-    localises: 12,
+    localises: 0,
     total: stats.stagesEnCours,
-    lieux: 8
+    lieux: 0
   };
 
-  const filiereData = [
-    { name: 'DA2I', value: 8, color: '#162449' },
-    { name: 'ICM', value: 5, color: '#6BA9E6' },
-    { name: 'AES', value: 3, color: '#F39C12' },
-    { name: 'CIGSI', value: 2, color: '#27AE60' },
-  ];
+  const filiereData = [];
 
   const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
 

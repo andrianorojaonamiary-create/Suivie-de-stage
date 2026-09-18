@@ -1,58 +1,27 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { 
-  FaCheckCircle, FaCircle, FaCalendarAlt, FaClock, 
-  FaStar, FaComment, FaUserTie, FaArrowRight,
+import { useEffect, useState } from 'react';
+import {
+  FaCheckCircle, FaCircle, FaCalendarAlt, FaClock,
+  FaComment, FaUserTie,
   FaBuilding, FaUserGraduate, FaBriefcase, FaInfoCircle,
   FaFilePdf, FaFileWord, FaFile, FaCheck,
   FaFilter
 } from 'react-icons/fa';
 import { internshipsApi, trackingApi } from '../../api';
+import { mapInternshipList, getStatutBadge } from '../../utils/internshipMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function SuiviStage() {
   const [loading, setLoading] = useState(true);
   // ===== STAGES DE L'ÉTUDIANT =====
-  const [stages, setStages] = useState([
-    {
-      id: 1,
-      titre: "Développement d'une application web",
-      entreprise: 'ABC Informatique',
-      dateDebut: '03 Août 2026',
-      dateFin: '03 Octobre 2026',
-      statut: 'En cours',
-      duree: '2 mois',
-      joursRestants: 22,
-      joursTotal: 62,
-      joursEcoules: 20,
-      description: "Développement d'une application web de gestion des ressources humaines avec React et Node.js.",
-      progression: 32
-    }
-  ]);
+  const [stages, setStages] = useState([]);
 
   useEffect(() => {
     const fetchSuivi = async () => {
       try {
         setLoading(true);
         const res = await internshipsApi.getAll();
-        const list = Array.isArray(res) ? res : res?.items || [];
-        if (list.length > 0) {
-          const mapped = list.map(item => ({
-            id: item.id,
-            titre: item.title || item.subject || 'Stage',
-            entreprise: item.company?.name || item.companyName || 'Entreprise',
-            dateDebut: item.startDate ? new Date(item.startDate).toLocaleDateString('fr-FR') : 'Date début',
-            dateFin: item.endDate ? new Date(item.endDate).toLocaleDateString('fr-FR') : 'Date fin',
-            statut: item.status === 'en_cours' ? 'En cours' : item.status === 'termine' ? 'Terminé' : 'En attente',
-            duree: item.duration || '3 mois',
-            joursRestants: item.remainingDays || 30,
-            joursTotal: item.totalDays || 90,
-            joursEcoules: item.elapsedDays || 30,
-            description: item.description || '',
-            progression: item.progressPercentage || 50
-          }));
-          setStages(mapped);
-        }
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        setStages(mapInternshipList(list));
       } catch (err) {
         console.error('Erreur chargement suivi stage:', err);
       } finally {
@@ -70,81 +39,56 @@ function SuiviStage() {
     if (selectedStageId === 'all') {
       return stages;
     }
-    return stages.filter(s => s.id === parseInt(selectedStageId));
+    return stages.filter(s => s.id === selectedStageId);
   };
 
   const filteredStages = getFilteredStages();
   const selectedStage = filteredStages.length > 0 ? filteredStages[0] : stages[0];
 
-  // ===== INFOS TUTEUR / ENCADREUR =====
-  const getStageInfo = (stageId) => {
-    const infos = {
-      1: {
-        tuteur: {
-          nom: 'RAKOTONDRASOA Mamy',
-          role: 'Enseignant à l\'EMIT',
-          email: 'm.rakotondrasoa@emit.mg'
-        },
-        encadreur: {
-          nom: 'RABEMANANTSOA Nivo',
-          role: 'Responsable technique',
-          entreprise: 'ABC Informatique'
+  // ===== OBSERVATIONS =====
+  const [observations, setObservations] = useState([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchObservations = async () => {
+      const stage = getFilteredStages()[0] || stages[0];
+      if (!stage) return;
+      try {
+        const res = await trackingApi.getByInternship(stage.id);
+        if (!cancelled) {
+          setObservations(res?.data || (Array.isArray(res) ? res : []) || []);
         }
+      } catch (err) {
+        console.error('Erreur chargement observations:', err);
+        if (!cancelled) setObservations([]);
       }
     };
-    return infos[stageId] || infos[1];
+    fetchObservations();
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedStageId, stages]);
+
+  // ===== INFOS TUTEUR / ENCADREUR =====
+  const stageInfo = {
+    tuteur: {
+      nom: 'Non renseigné',
+      role: '',
+      email: ''
+    },
+    encadreur: {
+      nom: selectedStage?.encadreur || 'Non renseigné',
+      role: '',
+      entreprise: selectedStage?.entreprise || ''
+    }
   };
-  const stageInfo = getStageInfo(selectedStage?.id || 1);
 
   // ===== ÉTAPES =====
-  const milestones = [
-    { label: "Convention signée", done: true, date: "28/07/2026" },
-    { label: "Stage validé", done: true, date: "01/08/2026" },
-    { label: "Stage commencé", done: true, date: "03/08/2026" },
-    { label: "Stage en cours", done: true, date: "En progression" },
-    { label: "Visite de stage", done: false, date: "À venir" },
-    { label: "Rapport à déposer", done: false, date: "À venir" },
-    { label: "Évaluation", done: false, date: "À venir" },
-    { label: "Stage terminé", done: false, date: "À venir" },
-  ];
+  const milestones = [];
 
   // ===== DOCUMENTS =====
-  const documents = [
-    { name: "Convention de stage", type: "pdf", date: "28/07/2026", status: "Validé" },
-    { name: "Plan de travail", type: "word", date: "03/08/2026", status: "Validé" },
-    { name: "Rapport de stage (brouillon)", type: "word", date: "20/08/2026", status: "En cours" },
-    { name: "Fichiers du projet", type: "pdf", date: "21/08/2026", status: "Validé" },
-    { name: "Attestation de stage", type: "pdf", date: "Non encore déposé", status: "À déposer" },
-  ];
+  const documents = [];
 
-  // ===== OBSERVATIONS =====
-  const observations = [
-    {
-      id: 1,
-      auteur: 'M. Rakotomalala',
-      role: 'Maître de stage',
-      date: '15 Mar 2024',
-      contenu: 'Bon début de stage, Miora s\'est bien intégré dans l\'équipe. Il a rapidement pris en main les outils de développement.'
-    },
-    {
-      id: 2,
-      auteur: 'Prof. Andrianivo',
-      role: 'Tuteur pédagogique',
-      date: '20 Mar 2024',
-      contenu: 'La première semaine s\'est bien passée. L\'étudiant a déjà commencé à travailler sur le projet principal.'
-    }
-  ];
-
-  const getStatusBadge = (status) => {
-    const classes = {
-      'Validé': 'badge-valide',
-      'En attente': 'badge-en-attente',
-      'À venir': 'badge-termine',
-      'En cours': 'badge-en-cours',
-      'À déposer': 'badge-en-attente',
-    };
-    return classes[status] || 'badge-en-attente';
-  };
+  const getStatusBadge = (status) => getStatutBadge(status);
 
   const getFileIcon = (type) => {
     switch(type) {
@@ -153,6 +97,20 @@ function SuiviStage() {
       default: return <FaFile />;
     }
   };
+
+  if (!selectedStage) {
+    return (
+      <div className="etudiant-suivi">
+        <div className="eval-page-header">
+          <h1 className="eval-page-title">Suivi de stage</h1>
+          <p className="eval-page-subtitle">Suivez l'avancement et les activités de votre stage.</p>
+        </div>
+        <div className="empty-state">
+          <p>Aucun stage enregistré pour le moment.</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="etudiant-suivi">
@@ -294,6 +252,9 @@ function SuiviStage() {
         <div className="suivi-card steps-card">
           <h3><FaCheckCircle /> Étapes de suivi du stage</h3>
           <div className="steps-list">
+            {milestones.length === 0 && (
+              <p className="empty-section-message">Aucune étape de suivi n'est disponible pour ce stage pour le moment.</p>
+            )}
             {milestones.map((step, index) => (
               <div key={index} className={`step-item ${step.done ? 'done' : ''}`}>
                 <div className="step-number">{index + 1}</div>
@@ -313,6 +274,9 @@ function SuiviStage() {
         <div className="suivi-card documents-card">
           <h3><FaFile /> Documents du stage</h3>
           <div className="documents-list">
+            {documents.length === 0 && (
+              <p className="empty-section-message">Aucun document n'est disponible pour ce stage pour le moment.</p>
+            )}
             {documents.map((doc, index) => (
               <div key={index} className="document-item">
                 <div className="document-left">
@@ -335,14 +299,19 @@ function SuiviStage() {
       <div className="suivi-card observations-card">
         <h3><FaComment /> Observations</h3>
         <div className="observations-list">
+          {observations.length === 0 && (
+            <p className="empty-section-message">Aucune observation pour ce stage pour le moment.</p>
+          )}
           {observations.map((obs) => (
             <div key={obs.id} className="observation-item">
               <div className="observation-header">
                 <span className="observation-auteur">
-                  <FaUserTie /> {obs.auteur}
-                  <span className="observation-role">({obs.role})</span>
+                  <FaUserTie /> {`${obs.auteur?.prenom || ''} ${obs.auteur?.nom || ''}`.trim() || 'Utilisateur'}
+                  {obs.type && <span className="observation-role">({obs.type})</span>}
                 </span>
-                <span className="observation-date">{obs.date}</span>
+                <span className="observation-date">
+                  {obs.date ? new Date(obs.date).toLocaleDateString('fr-FR') : ''}
+                </span>
               </div>
               <p className="observation-contenu">{obs.contenu}</p>
             </div>

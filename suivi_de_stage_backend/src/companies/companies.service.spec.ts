@@ -23,7 +23,7 @@ describe('CompaniesService', () => {
   it('allows an administrator to create a company profile', async () => {
     usersService.findActiveById.mockResolvedValue({
       id: 'user-id',
-      role: Role.ENTREPRISE,
+      role: Role.ENCADREUR,
     });
     await expect(
       service.create(
@@ -41,6 +41,26 @@ describe('CompaniesService', () => {
     ).resolves.toMatchObject({ id: 'company-id' });
   });
 
+  it('allows an encadreur to create his own company profile', async () => {
+    usersService.findActiveById.mockResolvedValue({
+      id: 'encadreur-id',
+      role: Role.ENCADREUR,
+    });
+    await expect(
+      service.create(
+        {
+          nom: 'Acme',
+          secteurActivite: 'IT',
+          adresse: 'Address',
+          ville: 'Fianarantsoa',
+          email: 'contact@acme.test',
+        },
+        { id: 'encadreur-id', role: Role.ENCADREUR },
+      ),
+    ).resolves.toMatchObject({ id: 'company-id' });
+    expect(usersService.findActiveById).toHaveBeenCalledWith('encadreur-id');
+  });
+
   it('rejects company creation by a student', async () => {
     await expect(
       service.create({ userId: 'user-id' } as never, {
@@ -54,7 +74,7 @@ describe('CompaniesService', () => {
     await expect(
       service.deactivate('company-id', {
         id: 'company-user',
-        role: Role.ENTREPRISE,
+        role: Role.ENCADREUR,
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
     companiesRepository.findOne.mockResolvedValue({

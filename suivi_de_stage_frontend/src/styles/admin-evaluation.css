@@ -450,13 +450,14 @@
 .admin-eval-page .admin-eval-btn-view {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: #E1ECFE;
-  color: #6BA9E6;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 7px 14px;
+  background: white;
+  color: #A0B8D0;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -464,6 +465,7 @@
 
 .admin-eval-page .admin-eval-btn-view:hover {
   background: #6BA9E6;
+  border-color: #6BA9E6;
   color: white;
 }
 

@@ -31,7 +31,7 @@ export class InternshipsController {
   constructor(private readonly internshipsService: InternshipsService) {}
 
   @Post()
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT)
   create(
     @Body() dto: CreateInternshipDto,
     @Req() request: AuthenticatedRequest,
@@ -56,7 +56,7 @@ export class InternshipsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENTREPRISE)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENSEIGNANT, Role.ETUDIANT)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateInternshipDto,
@@ -66,7 +66,7 @@ export class InternshipsController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT)
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,

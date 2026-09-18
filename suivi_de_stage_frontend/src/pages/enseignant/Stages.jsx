@@ -1,168 +1,55 @@
-import { useState, useEffect } from 'react';
-import { toast } from 'react-toastify';
-import { 
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import {
   FaFileAlt,
-  FaCheck, FaTimes, FaEye, FaClock, FaFilter, 
-  FaSearch, FaChevronLeft, FaChevronRight
-} from 'react-icons/fa';
-import { internshipsApi } from '../../api';
-import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+  FaCheck,
+  FaTimes,
+  FaEye,
+  FaClock,
+  FaFilter,
+  FaSearch,
+  FaChevronLeft,
+  FaChevronRight,
+} from "react-icons/fa";
+import { internshipsApi } from "../../api";
+import {
+  mapInternshipList,
+  STATUT_LABELS,
+} from "../../utils/internshipMapping";
+import SelectPersonnalise from "../../components/Common/SelectPersonnalise";
 
 // Composants Modals
-import ViewModal from './components/ViewModal';
-import ValidateModal from './components/ValidateModal';
-import RejectModal from './components/RejectModal';
+import ViewModal from "./components/ViewModal";
+import ValidateModal from "./components/ValidateModal";
+import RejectModal from "./components/RejectModal";
 
 function StagesEnseignant() {
   const [loading, setLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('en_attente');
-  const [searchTerm, setSearchTerm] = useState('');
-  
+  const [selectedStatus, setSelectedStatus] = useState("EN_ATTENTE");
+  const [searchTerm, setSearchTerm] = useState("");
+
   // ===== MODALS =====
   const [modalValidateOpen, setModalValidateOpen] = useState(false);
   const [modalRejectOpen, setModalRejectOpen] = useState(false);
   const [modalViewOpen, setModalViewOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
-  const [commentaire, setCommentaire] = useState('');
-  
+  const [commentaire, setCommentaire] = useState("");
+
   // ===== PAGINATION =====
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
   // ===== DONNÉES API =====
-  const [stages, setStages] = useState([
-    {
-      id: 1,
-      titre: "Développement d'une plateforme web de gestion RH",
-      etudiant: 'Miora Rakoto',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      dateDebut: '2024-03-01',
-      dateFin: '2024-09-15',
-      statutValidation: 'en_attente',
-      description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js.",
-      commentaireValidation: null,
-      encadreur: 'M. Rakotomalala',
-      tuteur: 'Prof. Andrianivo',
-      progression: 65
-    },
-    {
-      id: 2,
-      titre: "Application mobile de gestion des comptes",
-      etudiant: 'Hery Rakotondrabe',
-      entreprise: 'Airtel Madagascar',
-      ville: 'Antananarivo',
-      dateDebut: '2024-04-01',
-      dateFin: '2024-10-01',
-      statutValidation: 'en_attente',
-      description: "Développement d'une application mobile de gestion des comptes clients sous Android.",
-      commentaireValidation: null,
-      encadreur: 'Mme. Ralava',
-      tuteur: 'Dr. Ranaivo',
-      progression: 30
-    },
-    {
-      id: 3,
-      titre: "Migration et sécurisation du système d'information",
-      etudiant: 'Ramanantsoa Tojo',
-      entreprise: 'BNI Madagascar',
-      ville: 'Antananarivo',
-      dateDebut: '2024-05-01',
-      dateFin: '2024-11-01',
-      statutValidation: 'en_attente',
-      description: "Migration du système d'information vers une architecture sécurisée avec chiffrement des données.",
-      commentaireValidation: null,
-      encadreur: 'M. Randrianarison',
-      tuteur: 'Prof. Andrianivo',
-      progression: 15
-    },
-    {
-      id: 4,
-      titre: "Analyse de données pour la relation client",
-      etudiant: 'Andriantsoa Fanja',
-      entreprise: 'Airtel Madagascar',
-      ville: 'Antananarivo',
-      dateDebut: '2024-06-01',
-      dateFin: '2024-12-01',
-      statutValidation: 'en_attente',
-      description: "Analyse des données clients pour améliorer la relation client avec Python et Power BI.",
-      commentaireValidation: null,
-      encadreur: 'Mme. Ralava',
-      tuteur: 'Dr. Ranaivo',
-      progression: 10
-    },
-    {
-      id: 5,
-      titre: "Développement d'une plateforme de e-learning",
-      etudiant: 'Rakotondrabe Hery',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      dateDebut: '2024-02-01',
-      dateFin: '2024-08-01',
-      statutValidation: 'valide',
-      description: "Développement d'une plateforme de e-learning pour les employés avec Moodle.",
-      commentaireValidation: 'Stage conforme aux attentes, bon travail',
-      encadreur: 'M. Rakotomalala',
-      tuteur: 'Prof. Andrianivo',
-      progression: 100
-    },
-    {
-      id: 6,
-      titre: "Système de gestion de stock",
-      etudiant: 'Rajaonarivelo Ando',
-      entreprise: 'DistriTech',
-      ville: 'Antananarivo',
-      dateDebut: '2024-07-01',
-      dateFin: '2024-12-31',
-      statutValidation: 'refuse',
-      description: "Développement d'un système de gestion de stock pour entreprise de distribution.",
-      commentaireValidation: 'Sujet déjà traité par un autre stagiaire',
-      encadreur: 'M. Randrianarison',
-      tuteur: 'Dr. Ranaivo',
-      progression: 20
-    },
-    {
-      id: 7,
-      titre: "Application de gestion des rendez-vous",
-      etudiant: 'Razafindramary Fy',
-      entreprise: 'Santé Plus',
-      ville: 'Antananarivo',
-      dateDebut: '2024-08-01',
-      dateFin: '2025-01-15',
-      statutValidation: 'en_attente',
-      description: "Application mobile de gestion des rendez-vous médicaux avec React Native.",
-      commentaireValidation: null,
-      encadreur: 'Mme. Ralava',
-      tuteur: 'Prof. Andrianivo',
-      progression: 5
-    }
-  ]);
+  const [stages, setStages] = useState([]);
 
   useEffect(() => {
     const fetchStages = async () => {
       try {
         const res = await internshipsApi.getAll();
-        const list = Array.isArray(res) ? res : res?.items || [];
-        if (list.length > 0) {
-          const mapped = list.map(item => ({
-            id: item.id,
-            titre: item.title || item.subject || 'Stage',
-            etudiant: item.student ? `${item.student.lastName || ''} ${item.student.firstName || ''}`.trim() : 'Étudiant',
-            entreprise: item.company?.name || item.companyName || 'Entreprise',
-            ville: item.city || item.location || 'Antananarivo',
-            dateDebut: item.startDate || null,
-            dateFin: item.endDate || null,
-            statutValidation: item.validationStatus || item.status || 'en_attente',
-            description: item.description || '',
-            commentaireValidation: item.validationComment || null,
-            encadreur: item.supervisor ? `${item.supervisor.lastName || ''} ${item.supervisor.firstName || ''}`.trim() : '—',
-            tuteur: item.teacher ? `${item.teacher.lastName || ''} ${item.teacher.firstName || ''}`.trim() : '—',
-            progression: item.progressPercentage || 0
-          }));
-          setStages(mapped);
-        }
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        setStages(mapInternshipList(list));
       } catch (err) {
-        console.error('Erreur chargement stages enseignant:', err);
+        console.error("Erreur chargement stages enseignant:", err);
       }
     };
     fetchStages();
@@ -170,21 +57,24 @@ function StagesEnseignant() {
 
   // ===== STATISTIQUES =====
   const stats = {
-    enAttente: stages.filter(s => s.statutValidation === 'en_attente').length,
-    valides: stages.filter(s => s.statutValidation === 'valide').length,
-    refuses: stages.filter(s => s.statutValidation === 'refuse').length,
-    total: stages.length
+    enAttente: stages.filter((s) => s.statutApi === "EN_ATTENTE").length,
+    valides: stages.filter((s) => s.statutApi === "EN_COURS").length,
+    refuses: stages.filter((s) => s.statutApi === "REFUSE").length,
+    total: stages.length,
   };
 
   // ===== FILTRAGE ET RECHERCHE =====
-  const filteredStages = stages.filter(s => {
-    if (selectedStatus !== 'tous' && s.statutValidation !== selectedStatus) return false;
-    
-    if (searchTerm.trim() !== '') {
+  const filteredStages = stages.filter((s) => {
+    if (selectedStatus !== "tous" && s.statutApi !== selectedStatus)
+      return false;
+
+    if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase().trim();
-      return s.etudiant.toLowerCase().includes(term) ||
-             s.titre.toLowerCase().includes(term) ||
-             s.entreprise.toLowerCase().includes(term);
+      return (
+        s.etudiant.toLowerCase().includes(term) ||
+        s.titre.toLowerCase().includes(term) ||
+        s.entreprise.toLowerCase().includes(term)
+      );
     }
     return true;
   });
@@ -192,7 +82,10 @@ function StagesEnseignant() {
   // ===== PAGINATION =====
   const totalPages = Math.ceil(filteredStages.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedStages = filteredStages.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedStages = filteredStages.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
 
   const handleFilterChange = (value) => {
     setSelectedStatus(value);
@@ -212,32 +105,42 @@ function StagesEnseignant() {
 
   // ===== FORMAT DATE =====
   const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
+    if (!dateStr) return "—";
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   // ===== BADGE STATUT =====
   const getStatusBadge = (statut) => {
     const badges = {
-      'valide': { className: 'status-badge status-valide', label: 'Validé' },
-      'refuse': { className: 'status-badge status-refuse', label: 'Refusé' },
-      'en_attente': { className: 'status-badge status-en-attente', label: 'En attente' }
+      EN_COURS: { className: "status-badge status-valide", label: "Validé" },
+      REFUSE: { className: "status-badge status-refuse", label: "Refusé" },
+      EN_ATTENTE: {
+        className: "status-badge status-en-attente",
+        label: "En attente",
+      },
     };
-    const badge = badges[statut] || badges.en_attente;
+    const badge = badges[statut] || {
+      className: "status-badge status-en-attente",
+      label: STATUT_LABELS[statut] || "En attente",
+    };
     return <span className={badge.className}>{badge.label}</span>;
   };
 
   // ===== ACTIONS =====
   const openValidateModal = (stage) => {
     setSelectedStage(stage);
-    setCommentaire('');
+    setCommentaire("");
     setModalValidateOpen(true);
   };
 
   const openRejectModal = (stage) => {
     setSelectedStage(stage);
-    setCommentaire('');
+    setCommentaire("");
     setModalRejectOpen(true);
   };
 
@@ -250,7 +153,7 @@ function StagesEnseignant() {
     if (!loading) {
       setModalValidateOpen(false);
       setSelectedStage(null);
-      setCommentaire('');
+      setCommentaire("");
     }
   };
 
@@ -258,7 +161,7 @@ function StagesEnseignant() {
     if (!loading) {
       setModalRejectOpen(false);
       setSelectedStage(null);
-      setCommentaire('');
+      setCommentaire("");
     }
   };
 
@@ -271,53 +174,71 @@ function StagesEnseignant() {
     setLoading(true);
     try {
       await internshipsApi.update(selectedStage.id, {
-        validationStatus: 'valide',
-        validationComment: commentaire
+        statut: "EN_COURS",
+        observations: commentaire,
       });
-      setStages(prev => prev.map(s =>
-        s.id === selectedStage.id ? { ...s, statutValidation: 'valide', commentaireValidation: commentaire } : s
-      ));
+      setStages((prev) =>
+        prev.map((s) =>
+          s.id === selectedStage.id
+            ? {
+                ...s,
+                statutApi: "EN_COURS",
+                statut: "Validé",
+                commentaireValidation: commentaire,
+              }
+            : s,
+        ),
+      );
       toast.success(`Stage "${selectedStage?.titre}" validé avec succès !`);
-    } catch (err) {
-      toast.error('Erreur lors de la validation');
+    } catch {
+      toast.error("Erreur lors de la validation");
     } finally {
       setLoading(false);
       setModalValidateOpen(false);
       setSelectedStage(null);
-      setCommentaire('');
+      setCommentaire("");
     }
   };
 
   const confirmReject = async () => {
-    if (!commentaire || commentaire.trim() === '') {
-      toast.warning('Veuillez ajouter un commentaire pour justifier le refus');
+    if (!commentaire || commentaire.trim() === "") {
+      toast.warning("Veuillez ajouter un commentaire pour justifier le refus");
       return;
     }
     setLoading(true);
     try {
       await internshipsApi.update(selectedStage.id, {
-        validationStatus: 'refuse',
-        validationComment: commentaire
+        statut: "REFUSE",
+        observations: commentaire,
       });
-      setStages(prev => prev.map(s =>
-        s.id === selectedStage.id ? { ...s, statutValidation: 'refuse', commentaireValidation: commentaire } : s
-      ));
+      setStages((prev) =>
+        prev.map((s) =>
+          s.id === selectedStage.id
+            ? {
+                ...s,
+                statutApi: "REFUSE",
+                statut: "Refusé",
+                commentaireValidation: commentaire,
+              }
+            : s,
+        ),
+      );
       toast.success(`Stage "${selectedStage?.titre}" refusé.`);
-    } catch (err) {
-      toast.error('Erreur lors du refus');
+    } catch {
+      toast.error("Erreur lors du refus");
     } finally {
       setLoading(false);
       setModalRejectOpen(false);
       setSelectedStage(null);
-      setCommentaire('');
+      setCommentaire("");
     }
   };
 
   const statusOptions = [
-    { value: 'en_attente', label: 'En attente' },
-    { value: 'valide', label: 'Validé' },
-    { value: 'refuse', label: 'Refusé' },
-    { value: 'tous', label: 'Tous' }
+    { value: "EN_ATTENTE", label: "En attente" },
+    { value: "EN_COURS", label: "Validé" },
+    { value: "REFUSE", label: "Refusé" },
+    { value: "tous", label: "Tous les statuts" },
   ];
 
   return (
@@ -326,35 +247,45 @@ function StagesEnseignant() {
       <div className="page-header">
         <div>
           <h1>Stages à valider</h1>
-          <p className="text-muted">Gérez les stages en attente de validation</p>
+          <p className="text-muted">
+            Gérez les stages en attente de validation
+          </p>
         </div>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
       <div className="stats-cards">
         <div className="stat-card">
-          <div className="stat-icon pending"><FaClock /></div>
+          <div className="stat-icon pending">
+            <FaClock />
+          </div>
           <div className="stat-info">
             <span className="stat-value">{stats.enAttente}</span>
             <span className="stat-label">En attente</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon validated"><FaCheck /></div>
+          <div className="stat-icon validated">
+            <FaCheck />
+          </div>
           <div className="stat-info">
             <span className="stat-value">{stats.valides}</span>
             <span className="stat-label">Validés</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon rejected"><FaTimes /></div>
+          <div className="stat-icon rejected">
+            <FaTimes />
+          </div>
           <div className="stat-info">
             <span className="stat-value">{stats.refuses}</span>
             <span className="stat-label">Refusés</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon total"><FaFileAlt /></div>
+          <div className="stat-icon total">
+            <FaFileAlt />
+          </div>
           <div className="stat-info">
             <span className="stat-value">{stats.total}</span>
             <span className="stat-label">Total</span>
@@ -378,7 +309,7 @@ function StagesEnseignant() {
               </div>
             </div>
           </div>
-          
+
           <div className="search-wrapper">
             <div className="search-group">
               <FaSearch className="search-icon" />
@@ -390,7 +321,10 @@ function StagesEnseignant() {
                 className="search-input"
               />
               {searchTerm && (
-                <button className="search-clear" onClick={() => setSearchTerm('')}>
+                <button
+                  className="search-clear"
+                  onClick={() => setSearchTerm("")}
+                >
                   ✕
                 </button>
               )}
@@ -437,23 +371,24 @@ function StagesEnseignant() {
                     </td>
                     <td>
                       <span className="date-text">
-                        {formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)}
+                        {formatDate(stage.dateDebut)} →{" "}
+                        {formatDate(stage.dateFin)}
                       </span>
                     </td>
-                    <td>{getStatusBadge(stage.statutValidation)}</td>
+                    <td>{getStatusBadge(stage.statutApi)}</td>
                     <td>
                       <div className="action-buttons">
-                        {stage.statutValidation === 'en_attente' && (
+                        {stage.statutApi === "EN_ATTENTE" && (
                           <>
-                            <button 
-                              className="action-btn validate" 
+                            <button
+                              className="action-btn validate"
                               onClick={() => openValidateModal(stage)}
                               title="Valider le stage"
                             >
                               <FaCheck />
                             </button>
-                            <button 
-                              className="action-btn reject" 
+                            <button
+                              className="action-btn reject"
                               onClick={() => openRejectModal(stage)}
                               title="Refuser le stage"
                             >
@@ -461,8 +396,8 @@ function StagesEnseignant() {
                             </button>
                           </>
                         )}
-                        <button 
-                          className="action-btn view" 
+                        <button
+                          className="action-btn view"
                           onClick={() => openViewModal(stage)}
                           title="Voir les détails du stage"
                         >
@@ -478,34 +413,35 @@ function StagesEnseignant() {
             {/* ===== PAGINATION ===== */}
             {totalPages > 1 && (
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
                 >
                   <FaChevronLeft />
                 </button>
-                
+
                 {[...Array(totalPages)].map((_, index) => (
                   <button
                     key={index}
-                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
+                    className={`page-btn ${currentPage === index + 1 ? "active" : ""}`}
                     onClick={() => goToPage(index + 1)}
                   >
                     {index + 1}
                   </button>
                 ))}
-                
-                <button 
+
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
                 >
                   <FaChevronRight />
                 </button>
-                
+
                 <span className="page-info">
-                  {filteredStages.length} stage{filteredStages.length > 1 ? 's' : ''}
+                  {filteredStages.length} stage
+                  {filteredStages.length > 1 ? "s" : ""}
                 </span>
               </div>
             )}

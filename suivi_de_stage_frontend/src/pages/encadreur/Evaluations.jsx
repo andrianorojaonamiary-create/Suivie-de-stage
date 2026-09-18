@@ -9,6 +9,7 @@ import {
   FaChartLine, FaBuilding,FaUserGraduate
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
 
 // ============================================================
 // MODAL DÉTAILS ÉVALUATION
@@ -295,12 +296,7 @@ function EncadreurEvaluations() {
   const [showEvalForm, setShowEvalForm] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
 
-  const allEvaluations = [
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Maître de stage', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail' },
-    { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Entreprise', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 3, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', type: 'Maître de stage', date: '10 Jun 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 4, etudiant: 'Razafindramary Fy', etudiantId: 3, stage: 'Gestion rendez-vous', entreprise: 'Santé Plus', type: 'Maître de stage', date: '15 Aoû 2024', statut: 'À faire', note: null, commentaire: null }
-  ];
+  const allEvaluations = [];
 
   const evaluations = studentId 
     ? allEvaluations.filter(e => e.etudiantId === parseInt(studentId))
@@ -369,7 +365,10 @@ function EncadreurEvaluations() {
   };
 
   const handleSaveEvaluation = (data) => {
-    alert(`Évaluation enregistrée avec succès !\nNote moyenne : ${data.moyenne}/20`);
+    toast.success(<>
+      <div>Évaluation enregistrée avec succès !</div>
+      <div>Note moyenne : {data.moyenne}/20</div>
+    </>);
     setShowEvalForm(false);
     setSelectedEvaluation(null);
   };

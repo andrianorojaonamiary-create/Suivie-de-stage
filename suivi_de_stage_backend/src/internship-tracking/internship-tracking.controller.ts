@@ -41,7 +41,7 @@ export class InternshipTrackingController {
   }
 
   @Get('internships/:internshipId')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENTREPRISE)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR)
   findAll(
     @Param('internshipId', new ParseUUIDPipe()) internshipId: string,
     @Query() dto: FindFollowUpsDto,

@@ -33,7 +33,7 @@ export class StudentsService {
     await this.validateAssignment(createStudentDto.encadreurId, Role.ENCADREUR);
     await this.validateAssignment(
       createStudentDto.entrepriseId,
-      Role.ENTREPRISE,
+      Role.ENCADREUR,
     );
 
     const student = this.studentsRepository.create({
@@ -98,7 +98,7 @@ export class StudentsService {
       if (updateStudentDto.entrepriseId !== undefined) {
         await this.validateAssignment(
           updateStudentDto.entrepriseId,
-          Role.ENTREPRISE,
+          Role.ENCADREUR,
         );
       }
       Object.assign(student, updateStudentDto);
@@ -134,10 +134,6 @@ export class StudentsService {
     } else if (actor.role === Role.ENCADREUR) {
       query.andWhere('student.encadreurId = :encadreurId', {
         encadreurId: actor.id,
-      });
-    } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('student.entrepriseId = :entrepriseId', {
-        entrepriseId: actor.id,
       });
     }
   }
@@ -212,8 +208,7 @@ export class StudentsService {
       actor.role === Role.ADMINISTRATEUR ||
       actor.role === Role.ENSEIGNANT ||
       (actor.role === Role.ETUDIANT && student.userId === actor.id) ||
-      (actor.role === Role.ENCADREUR && student.encadreurId === actor.id) ||
-      (actor.role === Role.ENTREPRISE && student.entrepriseId === actor.id);
+      (actor.role === Role.ENCADREUR && student.encadreurId === actor.id);
     if (!allowed) {
       throw new ForbiddenException(
         'Vous ne pouvez pas consulter cet étudiant.',

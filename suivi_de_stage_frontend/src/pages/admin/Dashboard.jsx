@@ -5,8 +5,7 @@ import {
 } from 'recharts';
 import {
   FaUsers, FaClock, FaPlayCircle, FaCheckCircle,
-  FaBuilding, FaArrowUp, FaArrowDown,
-  FaFileAlt, FaUserPlus
+  FaBuilding, FaArrowUp, FaArrowDown
 } from 'react-icons/fa';
 
 import { useState, useEffect } from 'react';
@@ -31,11 +30,11 @@ function AdminDashboard() {
     fetchStats();
   }, []);
 
-  const totalEtudiants = dashboardData?.totalEtudiants ?? 312;
-  const totalEnAttente = dashboardData?.totalEnAttente ?? 24;
-  const totalEnCours = dashboardData?.totalEnCours ?? 187;
-  const totalTermines = dashboardData?.totalTermines ?? 89;
-  const totalEntreprises = dashboardData?.totalEntreprises ?? 63;
+  const totalEtudiants = dashboardData?.totalEtudiants ?? 0;
+  const totalEnAttente = dashboardData?.totalEnAttente ?? 0;
+  const totalEnCours = dashboardData?.totalEnCours ?? 0;
+  const totalTermines = dashboardData?.totalTermines ?? 0;
+  const totalEntreprises = dashboardData?.totalEntreprises ?? 0;
 
   const kpis = [
     { label: 'Étudiants total', value: totalEtudiants, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
@@ -45,47 +44,15 @@ function AdminDashboard() {
     { label: 'Entreprises', value: totalEntreprises, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
   ];
 
-  const monthlyData = dashboardData?.monthlyData || [
-    { month: 'Jan', stages: 28, valides: 20, termines: 8 },
-    { month: 'Fév', stages: 35, valides: 28, termines: 12 },
-    { month: 'Mar', stages: 42, valides: 35, termines: 18 },
-    { month: 'Avr', stages: 38, valides: 30, termines: 22 },
-    { month: 'Mai', stages: 55, valides: 45, termines: 28 },
-    { month: 'Juin', stages: 62, valides: 54, termines: 35 },
-    { month: 'Juil', stages: 48, valides: 40, termines: 42 },
-    { month: 'Août', stages: 31, valides: 25, termines: 38 },
-  ];
+  const monthlyData = dashboardData?.monthlyData || [];
 
-  const statusData = dashboardData?.statusData || [
-    { name: 'En cours', value: totalEnCours, color: '#3B82F6' },
-    { name: 'En attente', value: totalEnAttente, color: '#F59E0B' },
-    { name: 'Terminés', value: totalTermines, color: '#1F2937' },
-    { name: 'Annulés', value: 12, color: '#EF4444' },
-  ];
+  const statusData = dashboardData?.statusData || [];
 
-  const cityData = dashboardData?.cityData || [
-    { city: 'Fianarantsoa', count: 87 },
-    { city: 'Antananarivo', count: 64 },
-    { city: 'Toamasina', count: 42 },
-    { city: 'Antsirabe', count: 31 },
-    { city: 'Mahajanga', count: 28 },
-    { city: 'Toliara', count: 19 },
-  ];
+  const cityData = dashboardData?.cityData || [];
 
-  const attentionStages = [
-    { student: 'Miora Rakoto', company: 'TechMada SARL', tutor: 'Prof. Andrianivo', start: '15 Mar 2024', end: '15 Sep 2024', status: 'En cours', issue: 'Rapport en retard' },
-    { student: 'Hery Rakotondrabe', company: 'Airtel Madagascar', tutor: 'Dr. Ranaivo', start: '01 Avr 2024', end: '01 Oct 2024', status: 'En attente', issue: 'Validation manquante' },
-    { student: 'Fanja Andriantsoa', company: 'BNI Madagascar', tutor: 'Prof. Razafindrakoto', start: '01 Mai 2024', end: '31 Aoû 2024', status: 'En cours', issue: 'Évaluation à planifier' },
-    { student: 'Tojo Ramanantsoa', company: 'JIRAMA', tutor: 'Dr. Rasoa', start: '15 Fév 2024', end: '15 Aoû 2024', status: 'En cours', issue: 'Fin de stage proche' },
-  ];
+  const attentionStages = [];
 
-  const recentActivities = [
-    { text: 'Miora Rakoto a déposé son rapport intermédiaire', time: 'Il y a 12 min', icon: <FaFileAlt />, color: '#162449', bg: '#E1ECFE' },
-    { text: 'Nouveau stage validé — TechMada SARL', time: 'Il y a 45 min', icon: <FaCheckCircle />, color: '#6BA9E6', bg: '#E1ECFE' },
-    { text: 'Hery Rakotondrabe a rejoint la plateforme', time: 'Il y a 2 h', icon: <FaUserPlus />, color: '#192543', bg: '#E1ECFE' },
-    { text: 'Rapport de Fanja en révision', time: 'Il y a 3 h', icon: <FaClock />, color: '#162449', bg: '#E1ECFE' },
-    { text: 'Nouvelle entreprise ajoutée — JIRAMA', time: 'Hier à 14:30', icon: <FaBuilding />, color: '#192543', bg: '#E1ECFE' },
-  ];
+  const recentActivities = [];
 
   const getStatusBadge = (status) => {
     const classes = {

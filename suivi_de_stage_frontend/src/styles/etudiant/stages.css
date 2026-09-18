@@ -13,7 +13,7 @@
   align-items: center;
   gap: 8px;
   background: white;
-  border: 1.5px solid #A0B8D0;
+  border: 1.5px solid #a0b8d0;
   color: #162449;
   font-size: 14px;
   font-weight: 600;
@@ -27,9 +27,9 @@
 }
 
 .btn-back:hover {
-  background: #E1ECFE;
+  background: #e1ecfe;
   color: #162449;
-  border-color: #6BA9E6;
+  border-color: #6ba9e6;
   transform: translateX(-3px);
 }
 
@@ -54,7 +54,7 @@
 .etudiant-form-page .form-card {
   background: white;
   border-radius: 16px;
-  border: 1px solid #E1ECFE;
+  border: 1px solid #e1ecfe;
   padding: 32px 36px;
   box-shadow: 0 2px 12px rgba(26, 58, 107, 0.04);
 }
@@ -63,7 +63,7 @@
 .form-section {
   margin-bottom: 28px;
   padding-bottom: 28px;
-  border-bottom: 1px solid #FAFBFF;
+  border-bottom: 1px solid #fafbff;
 }
 
 .form-section:last-of-type {
@@ -83,7 +83,7 @@
 }
 
 .form-section-title svg {
-  color: #6BA9E6;
+  color: #6ba9e6;
   font-size: 18px;
 }
 
@@ -110,7 +110,7 @@
 
 .form-group label svg {
   margin-right: 6px;
-  color: #A0B8D0;
+  color: #a0b8d0;
 }
 
 /* ===== INPUTS ===== */
@@ -119,7 +119,7 @@
 .form-group select {
   width: 100%;
   padding: 11px 15px;
-  border: 1.5px solid #E1ECFE;
+  border: 1.5px solid #e1ecfe;
   border-radius: 10px;
   font-size: 14px;
   color: #162449;
@@ -131,19 +131,114 @@
 .form-group input:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #6BA9E6;
+  border-color: #6ba9e6;
   box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
 }
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: #B0C4D8;
+  color: #b0c4d8;
 }
 
 .form-group textarea {
   resize: vertical;
   min-height: 80px;
 }
+
+/* Champs avec suggestions : centrés et alignés sur le thème étudiant. */
+.form-group .smart-select-input {
+  text-align: left;
+}
+
+.form-group .smart-select-input::placeholder {
+  text-align: left;
+}
+
+.suggestion-field { position: relative; }
+.suggestion-list {
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 5px);
+  width: 100%;
+  max-height: 210px;
+  overflow-y: auto;
+  padding: 5px;
+  border: 1px solid #c7ddf4;
+  border-radius: 9px;
+  background: #fff;
+  box-shadow: 0 8px 20px rgba(22, 36, 73, 0.15);
+}
+.suggestion-list button {
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #162449;
+  font-size: 12px;
+  line-height: 1.3;
+  text-align: center;
+  cursor: pointer;
+}
+.suggestion-list button:hover { background: #eaf4ff; color: #1f6fb2; }
+.suggestion-empty {
+  padding: 14px 12px;
+  color: #6b7b93;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+.suggestion-empty-sub {
+  display: block;
+  margin-top: 4px;
+  color: #9aa9bd;
+  font-size: 11px;
+}
+
+/* ===== ENCADREUR PRO : LISTE / NOM LIBRE ===== */
+.supervisor-mode-toggle {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.supervisor-mode-toggle label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #162449;
+  cursor: pointer;
+  margin: 0;
+}
+
+.supervisor-mode-toggle input[type="radio"] {
+  width: auto;
+  padding: 0;
+  margin: 0;
+  accent-color: #6ba9e6;
+}
+
+.form-group > label { position: relative; }
+.field-tooltip {
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  bottom: calc(100% + 8px);
+  display: none;
+  width: max-content;
+  max-width: 270px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  background: #162449;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.35;
+  box-shadow: 0 5px 14px rgba(22, 36, 73, 0.2);
+}
+.form-group > label:hover .field-tooltip { display: block; }
 
 /* ============================================================
    ADRESSE + GÉOCODAGE
@@ -163,7 +258,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: #6BA9E6;
+  background: #6ba9e6;
   color: white;
   border: none;
   border-radius: 10px;
@@ -189,20 +284,22 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .geocode-error {
   display: block;
   font-size: 12px;
-  color: #E74C3C;
+  color: #e74c3c;
   margin-top: 4px;
 }
 
 .geocode-success {
   display: block;
   font-size: 12px;
-  color: #27AE60;
+  color: #27ae60;
   margin-top: 4px;
 }
 
@@ -212,7 +309,7 @@
 .map-preview {
   border-radius: 10px;
   overflow: hidden;
-  border: 1px solid #E1ECFE;
+  border: 1px solid #e1ecfe;
   margin-top: 4px;
 }
 
@@ -224,7 +321,7 @@
   align-items: center;
   width: 100%;
   padding: 10px 14px;
-  border: 1.5px solid #E1ECFE;
+  border: 1.5px solid #e1ecfe;
   border-radius: 10px;
   background: white;
   transition: all 0.2s;
@@ -232,7 +329,7 @@
 }
 
 .file-input-wrapper:hover {
-  border-color: #6BA9E6;
+  border-color: #6ba9e6;
 }
 
 .file-input-wrapper input[type="file"] {
@@ -241,13 +338,13 @@
 
 .file-placeholder {
   font-size: 14px;
-  color: #B0C4D8;
+  color: #b0c4d8;
   flex: 1;
 }
 
 .file-selected-name {
   font-size: 14px;
-  color: #27AE60;
+  color: #27ae60;
   font-weight: 500;
   flex: 1;
 }
@@ -255,7 +352,7 @@
 .file-remove-btn {
   background: none;
   border: none;
-  color: #E74C3C;
+  color: #e74c3c;
   cursor: pointer;
   font-size: 16px;
   padding: 4px 8px;
@@ -263,14 +360,14 @@
 }
 
 .file-remove-btn:hover {
-  background: #FEE2E2;
+  background: #fee2e2;
 }
 
 .file-label-btn {
   display: inline-block;
   padding: 6px 16px;
-  background: #FAFBFF;
-  border: 1px solid #E1ECFE;
+  background: #fafbff;
+  border: 1px solid #e1ecfe;
   border-radius: 6px;
   font-size: 13px;
   color: #162449;
@@ -280,13 +377,13 @@
 }
 
 .file-label-btn:hover {
-  background: #E1ECFE;
+  background: #e1ecfe;
 }
 
 .form-hint {
   display: block;
   font-size: 11px;
-  color: #A0B8D0;
+  color: #a0b8d0;
   margin-top: 4px;
 }
 
@@ -298,7 +395,7 @@
   gap: 12px;
   margin-top: 8px;
   padding-top: 20px;
-  border-top: 1px solid #FAFBFF;
+  border-top: 1px solid #fafbff;
 }
 
 .btn-primary {
@@ -306,7 +403,7 @@
   align-items: center;
   gap: 8px;
   padding: 11px 24px;
-  background: #6BA9E6;
+  background: #6ba9e6;
   color: white;
   border: none;
   border-radius: 10px;
@@ -333,9 +430,9 @@
   align-items: center;
   gap: 8px;
   padding: 11px 24px;
-  background: #FAFBFF;
-  color: #E74C3C;
-  border: 1px solid #FEE2E2;
+  background: #fafbff;
+  color: #e74c3c;
+  border: 1px solid #fee2e2;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 500;
@@ -345,8 +442,8 @@
 }
 
 .btn-reset:hover {
-  background: #FEE2E2;
-  border-color: #E74C3C;
+  background: #fee2e2;
+  border-color: #e74c3c;
 }
 
 /* ============================================================

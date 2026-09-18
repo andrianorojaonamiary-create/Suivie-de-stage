@@ -19,35 +19,7 @@ function EnseignantObservations() {
   const [selectedObs, setSelectedObs] = useState(null);
   const [obsToDelete, setObsToDelete] = useState(null);
 
-  const [observations, setObservations] = useState([
-    {
-      id: 1,
-      etudiant: 'Rakoto Miora',
-      stage: 'Plateforme web RH',
-      entreprise: 'TechMada SARL',
-      date: '15 Mai 2024',
-      contenu: "L'étudiant progresse bien, bon investissement dans le projet.",
-      auteur: 'Prof. Andrianivo'
-    },
-    {
-      id: 2,
-      etudiant: 'Rakotondrabe Hery',
-      stage: 'App mobile comptes',
-      entreprise: 'Airtel Madagascar',
-      date: '10 Mai 2024',
-      contenu: 'Difficultés rencontrées sur la partie backend, besoin d\'accompagnement.',
-      auteur: 'Prof. Andrianivo'
-    },
-    {
-      id: 3,
-      etudiant: 'Ramanantsoa Tojo',
-      stage: 'Migration système',
-      entreprise: 'BNI Madagascar',
-      date: '05 Mai 2024',
-      contenu: 'Très bon travail, l\'étudiant est autonome et force de proposition.',
-      auteur: 'Prof. Andrianivo'
-    }
-  ]);
+  const [observations, setObservations] = useState([]);
 
   const [formData, setFormData] = useState({
     etudiant: '',

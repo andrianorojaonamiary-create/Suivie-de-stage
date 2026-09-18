@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye,
   FaUserTie, FaUsers, FaChalkboardTeacher, FaBriefcase,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 
-import EncadreurForm from './components/EncadreurForm';
 import EncadreurDetail from './components/EncadreurDetail';
-import EncadreurDelete from './components/EncadreurDelete';
 import supervisorsApi from '../../api/supervisorsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
@@ -16,21 +14,10 @@ function AdminEncadreurs() {
   const [filterType, setFilterType] = useState('Tous');
   const [filterFonction, setFilterFonction] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEncadreur, setSelectedEncadreur] = useState(null);
   const [loading, setLoading] = useState(true);
   const [encadreurs, setEncadreurs] = useState([]);
-  const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    type: 'professionnel',
-    fonction: '',
-    entreprise: ''
-  });
   const itemsPerPage = 5;
 
   const loadSupervisors = async () => {
@@ -93,7 +80,7 @@ function AdminEncadreurs() {
     { value: 'pedagogique', label: 'Tuteur pédagogique' }
   ];
   const fonctionOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Toutes les fonctions' },
     { value: 'Responsable technique', label: 'Responsable technique' },
     { value: 'Responsable projet', label: 'Responsable projet' },
     { value: 'Responsable RH', label: 'Responsable RH' },
@@ -107,58 +94,6 @@ function AdminEncadreurs() {
 
   const getTypeLabel = (type) => {
     return type === 'professionnel' ? 'Encadreur pro.' : 'Tuteur pédago.';
-  };
-
-  const resetForm = () => {
-    setFormData({
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      type: 'professionnel',
-      fonction: '',
-      entreprise: ''
-    });
-  };
-
-  const handleEdit = async () => {
-    try {
-      if (selectedEncadreur?.id) {
-        await supervisorsApi.update(selectedEncadreur.id, {
-          type: formData.type,
-          grade: formData.fonction
-        });
-        await loadSupervisors();
-      }
-    } catch {
-      setEncadreurs(encadreurs.map(e => e.id === selectedEncadreur?.id ? { ...e, ...formData } : e));
-    }
-    setShowEditModal(false);
-    resetForm();
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (selectedEncadreur?.id) {
-        await supervisorsApi.delete(selectedEncadreur.id);
-        await loadSupervisors();
-      }
-    } catch {
-      setEncadreurs(encadreurs.filter(e => e.id !== selectedEncadreur?.id));
-    }
-    setShowDeleteModal(false);
-    setSelectedEncadreur(null);
-  };
-
-  const openEditModal = (encadreur) => {
-    setSelectedEncadreur(encadreur);
-    setFormData(encadreur);
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (encadreur) => {
-    setSelectedEncadreur(encadreur);
-    setShowDeleteModal(true);
   };
 
   const openDetailModal = (encadreur) => {
@@ -294,9 +229,7 @@ function AdminEncadreurs() {
                   </td>
                   <td>
                     <div className="admin-encadreurs-actions">
-                      <button className="admin-encadreurs-btn-icon" onClick={() => openDetailModal(encadreur)} title="Voir"><FaEye /></button>
-                      <button className="admin-encadreurs-btn-icon" onClick={() => openEditModal(encadreur)} title="Modifier"><FaEdit /></button>
-                      <button className="admin-encadreurs-btn-icon danger" onClick={() => openDeleteModal(encadreur)} title="Supprimer"><FaTrash /></button>
+                      <button className="admin-encadreurs-btn-view" onClick={() => openDetailModal(encadreur)} title="Voir"><FaEye /> Voir</button>
                     </div>
                   </td>
                 </tr>
@@ -319,27 +252,6 @@ function AdminEncadreurs() {
       </div>
 
       {/* ===== MODALES ===== */}
-      {showEditModal && (
-        <EncadreurForm
-          title="Modifier l'encadreur"
-          submitLabel="Modifier"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
-          typeOptions={typeOptions}
-          fonctionOptions={fonctionOptions}
-        />
-      )}
-
-      {showDeleteModal && (
-        <EncadreurDelete
-          encadreur={selectedEncadreur}
-          onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setSelectedEncadreur(null); }}
-        />
-      )}
-
       {showDetailModal && (
         <EncadreurDetail
           encadreur={selectedEncadreur}

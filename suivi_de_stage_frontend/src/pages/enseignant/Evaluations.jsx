@@ -9,6 +9,7 @@ import {
 
 import EvaluationForm from './components/EvaluationForm';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
 
 // ============================================================
 // MODAL DÉTAILS ÉVALUATION
@@ -107,15 +108,8 @@ function EnseignantEvaluations() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
 
-  // ===== DONNÉES SIMULÉES =====
-  const allEvaluations = [
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, filiere: 'Génie Logiciel', stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Tuteur pédagogique', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail' },
-    { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, filiere: 'Génie Logiciel', stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Maître de stage', date: '20 Mai 2024', statut: 'Validé', note: '17.0', commentaire: 'Très impliqué' },
-    { id: 3, etudiant: 'Rakoto Miora', etudiantId: 1, filiere: 'Génie Logiciel', stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Entreprise', date: '25 Mai 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 4, etudiant: 'Rakotondrabe Hery', etudiantId: 2, filiere: 'Réseaux', stage: 'App mobile comptes', entreprise: 'Airtel Madagascar', type: 'Tuteur pédagogique', date: '01 Mai 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 5, etudiant: 'Rakotondrabe Hery', etudiantId: 2, filiere: 'Réseaux', stage: 'App mobile comptes', entreprise: 'Airtel Madagascar', type: 'Maître de stage', date: '05 Mai 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 6, etudiant: 'Ramanantsoa Tojo', etudiantId: 3, filiere: 'Sécurité Info.', stage: 'Migration système', entreprise: 'BNI Madagascar', type: 'Tuteur pédagogique', date: '10 Jun 2024', statut: 'À faire', note: null, commentaire: null }
-  ];
+  // ===== DONNÉES =====
+  const allEvaluations = [];
 
   // ===== FILTRER PAR ÉTUDIANT =====
   const evaluations = studentId 
@@ -194,7 +188,10 @@ function EnseignantEvaluations() {
   };
 
   const handleSaveEvaluation = (data) => {
-    alert(`Évaluation enregistrée avec succès !\nNote moyenne : ${data.moyenne}/20`);
+    toast.success(<>
+      <div>Évaluation enregistrée avec succès !</div>
+      <div>Note moyenne : {data.moyenne}/20</div>
+    </>);
     setShowEvaluationForm(false);
   };
 

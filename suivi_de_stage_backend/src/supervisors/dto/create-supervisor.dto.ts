@@ -23,4 +23,10 @@ export class CreateSupervisorDto {
   @IsString()
   @Length(5, 30)
   telephone?: string;
+
+  @Transform(trim)
+  @IsOptional()
+  @IsString()
+  @Length(2, 150)
+  entreprise?: string;
 }

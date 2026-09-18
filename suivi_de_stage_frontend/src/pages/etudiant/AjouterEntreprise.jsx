@@ -10,6 +10,7 @@ import { sanitizePhone } from '../../utils/phone';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from 'react-toastify';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -62,7 +63,7 @@ function AjouterEntreprise() {
     setGeocodeError('');
     
     try {
-      const result = await geocodeAddress(fullAddress);
+      const result = await geocodeAddress(fullAddress, { ville: formData.ville });
       if (result) {
         setLocationMap(result);
         setGeocodeError('');
@@ -91,9 +92,9 @@ function AjouterEntreprise() {
     setLoading(true);
     setTimeout(() => {
       if (isEditing) {
-        alert('Entreprise modifiée avec succès !');
+        toast.success('Entreprise modifiée avec succès !');
       } else {
-        alert('Entreprise ajoutée avec succès !');
+        toast.success('Entreprise ajoutée avec succès !');
       }
       setLoading(false);
       navigate('/etudiant/entreprise');
@@ -177,10 +178,17 @@ function AjouterEntreprise() {
                   name="adresse"
                   value={formData.adresse}
                   onChange={handleChange}
-                  placeholder="Lot II M 77, Antananarivo"
+                  placeholder="Rue de la Réunion, Antananarivo"
                   disabled={isViewMode}
                   className={isViewMode ? 'field-disabled' : ''}
                 />
+                {!isViewMode && (
+                  <small className="form-hint">
+                    Astuce : indiquez le nom de la rue ou du quartier, puis la
+                    ville (ex. : Rue de la Réunion, Antananarivo). Ajoutez
+                    « Madagascar » si besoin pour une meilleure localisation.
+                  </small>
+                )}
               </div>
             </div>
 

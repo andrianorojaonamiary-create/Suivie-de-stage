@@ -62,6 +62,14 @@ function RegisterForm({ onSwitchToLogin }) {
     { value: 'M2', label: 'M2' },
   ];
 
+  const promotionOptions = [2026, 2025, 2024].map((y) => ({ value: String(y), label: String(y) }));
+
+  const gradeOptions = [
+    { value: 'Professeur', label: 'Professeur' },
+    { value: 'Docteur', label: 'Docteur' },
+    { value: 'Autre', label: 'Autre (précisez)' },
+  ];
+
   const licenceFilieres = ['DA2I', 'CM', 'RCPO', 'AES', 'CIGSI'];
   const masterFilieres = ['M2I', 'SIGS', 'SDIA', 'IGTI', 'MD', 'CMN', 'RPC'];
 
@@ -86,19 +94,21 @@ function RegisterForm({ onSwitchToLogin }) {
         ...common,
         { name: 'matricule', label: 'Numéro étudiant', placeholder: '100I00', required: true },
         { name: 'niveau', label: 'Niveau', type: 'select', placeholder: 'Sélectionner le niveau', required: true, options: () => niveauOptions },
-        { name: 'filiere', label: 'Filière', type: 'select', placeholder: 'Sélectionner la filière', required: true, options: () => filiereOptionsByNiveau[formData.niveau] || [] },
+        { name: 'formation', label: 'Filière', type: 'select', placeholder: 'Sélectionner la filière', required: true, options: () => filiereOptionsByNiveau[formData.niveau] || [] },
+        { name: 'promotion', label: 'Promotion', type: 'select', placeholder: 'Sélectionner la promotion', required: true, options: () => promotionOptions },
       ],
       'ROLE_ENSEIGNANT': [
         ...common,
-        { name: 'grade', label: 'Grade', placeholder: 'Professeur / Dr.', required: true },
+        { name: 'matricule', label: 'Matricule (enseignant)', placeholder: 'Ex : ENS001', required: true },
+        { name: 'grade', label: 'Grade', type: 'select', placeholder: 'Sélectionner le grade', required: true, options: () => gradeOptions },
         { name: 'departement', label: 'Département', placeholder: 'Informatique', required: true },
         { name: 'specialite', label: 'Spécialité', placeholder: 'Génie logiciel', required: true },
       ],
       'ROLE_ENCADREUR': [
         ...common,
-        { name: 'entreprise', label: "Nom de l'entreprise", placeholder: 'TechMada SARL', required: true },
-        { name: 'poste', label: 'Fonction', placeholder: 'Directeur technique', required: true },
-        { name: 'adresse', label: "Adresse de l'entreprise", placeholder: 'Lot II M 77, Antananarivo' },
+        { name: 'fonction', label: 'Fonction', placeholder: 'Maître de stage', required: true },
+        { name: 'specialite', label: 'Spécialité', placeholder: 'Génie logiciel', required: true },
+        { name: 'entreprise', label: "Nom de l'entreprise", placeholder: 'TechMada SARL' },
       ],
     };
 
@@ -123,13 +133,13 @@ function RegisterForm({ onSwitchToLogin }) {
   const handleSelectChange = (name, value) => {
     setFormData(prev => {
       if (name === 'niveau') {
-        const currentFiliere = prev.filiere;
+        const currentFiliere = prev.formation;
         const nextFilieres = filiereOptionsByNiveau[value] || [];
         const filiereStillValid = nextFilieres.some(f => f.value === currentFiliere);
         return {
           ...prev,
           niveau: value,
-          filiere: filiereStillValid ? prev.filiere : '',
+          formation: filiereStillValid ? prev.formation : '',
         };
       }
       return { ...prev, [name]: value };
@@ -141,6 +151,10 @@ function RegisterForm({ onSwitchToLogin }) {
     const missingField = fields.find((field) => field.required && !formData[field.name]?.trim());
     if (missingField) {
       setError(`Le champ « ${missingField.label} » est obligatoire.`);
+      return;
+    }
+    if (formData.grade === 'Autre' && (!formData.gradeAutre || !formData.gradeAutre.trim())) {
+      setError('Veuillez préciser votre grade.');
       return;
     }
     if (!formData.password || formData.password.length < 8) {
@@ -185,10 +199,17 @@ function RegisterForm({ onSwitchToLogin }) {
     }
 
     try {
-      const userData = { ...formData, role: selectedRole };
-      await register(userData);
-      setSuccess('Inscription réussie ! Redirection...');
-      setTimeout(() => navigate('/login'), 2000);
+      const gradeFinal =
+        selectedRole === 'ROLE_ENSEIGNANT' && formData.grade === 'Autre'
+          ? formData.gradeAutre
+          : formData.grade;
+      const userData = { ...formData, role: selectedRole, grade: gradeFinal };
+      const user = await register(userData);
+      if (user.role === 'ROLE_ETUDIANT') navigate('/etudiant/dashboard');
+      else if (user.role === 'ROLE_ENSEIGNANT') navigate('/enseignant/dashboard');
+      else if (user.role === 'ROLE_ENCADREUR') navigate('/encadreur/dashboard');
+      else if (user.role === 'ROLE_ADMIN' || user.role === 'ROLE_ADMINISTRATEUR') navigate('/admin/dashboard');
+      else navigate('/dashboard');
     } catch (err) {
       setError(getApiErrorMessage(err, "Erreur lors de l'inscription"));
     } finally {
@@ -291,6 +312,19 @@ function RegisterForm({ onSwitchToLogin }) {
                     required={field.required}
                   />
                 )}
+                {field.name === 'grade' && formData.grade === 'Autre' && (
+                  <>
+                    <label>Préciser le grade <span className="required">*</span></label>
+                    <input
+                      type="text"
+                      name="gradeAutre"
+                      placeholder="Ex : Maître de conférences"
+                      value={formData.gradeAutre || ''}
+                      onChange={handleChange}
+                      required
+                    />
+                  </>
+                )}
               </div>
             ))}
 
@@ -364,6 +398,12 @@ function RegisterForm({ onSwitchToLogin }) {
                   <span className="confirm-value">{formData[field.name]}</span>
                 </div>
               ))}
+              {formData.grade === 'Autre' && formData.gradeAutre && (
+                <div className="confirm-item">
+                  <span className="confirm-label">Précision du grade</span>
+                  <span className="confirm-value">{formData.gradeAutre}</span>
+                </div>
+              )}
               <div className="confirm-item">
                 <span className="confirm-label">Mot de passe</span>
                 <span className="confirm-value">••••••••</span>

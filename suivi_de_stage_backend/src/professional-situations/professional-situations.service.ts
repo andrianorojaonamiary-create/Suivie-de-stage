@@ -8,9 +8,26 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Student } from '../students/entities/student.entity';
 import { Role } from '../users/enums/role.enum';
+import { ProfessionalSituationType } from './enums/professional-situation-type.enum';
 import { CreateProfessionalSituationDto } from './dto/create-professional-situation.dto';
 import { UpdateProfessionalSituationDto } from './dto/update-professional-situation.dto';
 import { ProfessionalSituation } from './entities/professional-situation.entity';
+
+const SITUATION_LABEL_TO_ENUM: Record<string, ProfessionalSituationType> = {
+  'En emploi': ProfessionalSituationType.EMPLOYE,
+  'En recherche': ProfessionalSituationType.EN_RECHERCHE_EMPLOI,
+  'Études supérieures': ProfessionalSituationType.POURSUITE_ETUDES,
+  Entrepreneur: ProfessionalSituationType.ENTREPRENEUR,
+  Autre: ProfessionalSituationType.AUTRE,
+};
+
+const SITUATION_ENUM_TO_LABEL: Record<ProfessionalSituationType, string> = {
+  [ProfessionalSituationType.EMPLOYE]: 'En emploi',
+  [ProfessionalSituationType.EN_RECHERCHE_EMPLOI]: 'En recherche',
+  [ProfessionalSituationType.POURSUITE_ETUDES]: 'Études supérieures',
+  [ProfessionalSituationType.ENTREPRENEUR]: 'Entrepreneur',
+  [ProfessionalSituationType.AUTRE]: 'Autre',
+};
 
 interface AuthenticatedUser {
   id: string;
@@ -31,6 +48,7 @@ export class ProfessionalSituationsService {
     this.validateDates(dto.dateDebut, dto.dateFin);
     const situation = this.situationsRepository.create({
       ...dto,
+      situation: this.normalizeSituation(dto.situation),
       studentId: student.id,
       student,
     });
@@ -78,11 +96,29 @@ export class ProfessionalSituationsService {
       );
     }
     this.validateDates(dto.dateDebut, dto.dateFin);
-    Object.assign(situation, dto);
+    const { situation: rawSituation, ...updates } = dto;
+    Object.assign(situation, updates);
+    if (rawSituation !== undefined) {
+      situation.situation = this.normalizeSituation(rawSituation);
+    }
     return this.serialize(
       await this.situationsRepository.save(situation),
       actor.role === Role.ADMINISTRATEUR,
     );
+  }
+
+  async remove(id: string, actor: AuthenticatedUser) {
+    const situation = await this.findEntity(id);
+    if (
+      actor.role !== Role.ADMINISTRATEUR &&
+      !(await this.isOwnStudent(situation.studentId, actor.id))
+    ) {
+      throw new ForbiddenException(
+        'Vous ne pouvez pas supprimer cette situation professionnelle.',
+      );
+    }
+    await this.situationsRepository.remove(situation);
+    return { message: 'Situation professionnelle supprimée avec succès.' };
   }
 
   private async findStudentForActor(actor: AuthenticatedUser) {
@@ -119,6 +155,18 @@ export class ProfessionalSituationsService {
     );
   }
 
+  private normalizeSituation(value: string): ProfessionalSituationType {
+    if (
+      Object.values(ProfessionalSituationType).includes(
+        value as ProfessionalSituationType,
+      )
+    )
+      return value as ProfessionalSituationType;
+    const mapped = SITUATION_LABEL_TO_ENUM[value];
+    if (mapped) return mapped;
+    throw new BadRequestException('Situation professionnelle invalide.');
+  }
+
   private validateDates(dateDebut?: string, dateFin?: string) {
     if (dateDebut && dateFin && dateFin < dateDebut) {
       throw new BadRequestException(
@@ -147,7 +195,8 @@ export class ProfessionalSituationsService {
             },
           }
         : {}),
-      situation: situation.situation,
+      situation:
+        SITUATION_ENUM_TO_LABEL[situation.situation] ?? situation.situation,
       entreprise: situation.entreprise,
       poste: situation.poste,
       domaine: situation.domaine,
@@ -156,6 +205,9 @@ export class ProfessionalSituationsService {
       dateDebut: situation.dateDebut,
       dateFin: situation.dateFin,
       description: situation.description,
+      typeContrat: situation.typeContrat,
+      statutAcademique: situation.statutAcademique,
+      dateDiplome: situation.dateDiplome,
       dateCreation: situation.dateCreation,
       dateModification: situation.dateModification,
     };

@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { evaluationsApi, internshipsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
 
 function AdminEvaluations() {
   // ===== ÉTATS =====
@@ -24,63 +25,7 @@ function AdminEvaluations() {
   const tableRef = useRef(null);
 
   // ===== DONNÉES ÉVALUATIONS =====
-  const [evaluations, setEvaluations] = useState([
-    {
-      id: 1,
-      etudiant: 'Miora Rakoto',
-      stage: 'Développement web RH',
-      entreprise: 'TechMada SARL',
-      encadreur: 'RABEMANANTSOA Nivo',
-      type: 'Maître de stage',
-      date: '28/09/2026',
-      status: 'Validé',
-      note: 16.4,
-      commentaire: 'Miora a montré une bonne capacité d\'adaptation et un réel investissement dans les tâches qui lui ont été confiées.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 16 },
-        { nom: 'Qualité du travail', note: 17 },
-        { nom: 'Autonomie', note: 15 },
-        { nom: 'Respect des délais', note: 18 },
-        { nom: 'Esprit d\'équipe', note: 16 },
-        { nom: 'Communication', note: 15 },
-        { nom: 'Assiduité et ponctualité', note: 17 }
-      ]
-    },
-    {
-      id: 2,
-      etudiant: 'Hery Rakotondrabe',
-      stage: 'Application mobile',
-      entreprise: 'Airtel Madagascar',
-      encadreur: 'RALAVA Marie',
-      type: 'Tuteur pédagogique',
-      date: '15/06/2025',
-      status: 'Validé',
-      note: 18.0,
-      commentaire: 'Excellent travail, l\'étudiant a dépassé les attentes.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 19 },
-        { nom: 'Qualité du travail', note: 18 },
-        { nom: 'Autonomie', note: 17 },
-        { nom: 'Respect des délais', note: 18 },
-        { nom: 'Esprit d\'équipe', note: 18 },
-        { nom: 'Communication', note: 17 },
-        { nom: 'Assiduité et ponctualité', note: 19 }
-      ]
-    },
-    {
-      id: 3,
-      etudiant: 'Fanja Andriantsoa',
-      stage: 'Système de reporting',
-      entreprise: 'BNI Madagascar',
-      encadreur: 'RABEMANANTSOA Nivo',
-      type: 'Maître de stage',
-      date: '30/09/2026',
-      status: 'En attente',
-      note: null,
-      commentaire: 'En attente de validation par l\'encadreur.',
-      criteres: []
-    }
-  ]);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     const fetchEvaluations = async () => {
@@ -131,12 +76,13 @@ function AdminEvaluations() {
   }, []);
 
   // ===== STATISTIQUES =====
+  const notesList = evaluations.filter(e => e.note);
   const stats = {
     total: evaluations.length,
     valides: evaluations.filter(e => e.status === 'Validé').length,
     enAttente: evaluations.filter(e => e.status === 'En attente').length,
     enRevision: evaluations.filter(e => e.status === 'En révision').length,
-    moyenneGenerale: (evaluations.filter(e => e.note).reduce((acc, e) => acc + e.note, 0) / evaluations.filter(e => e.note).length).toFixed(1) || 0
+    moyenneGenerale: notesList.length > 0 ? (notesList.reduce((acc, e) => acc + e.note, 0) / notesList.length).toFixed(1) : 0
   };
 
   // ===== STATUT STAGES POUR CAMEMBERT =====
@@ -174,7 +120,7 @@ function AdminEvaluations() {
 
   // ===== TYPES D'ÉVALUATION =====
   const typeOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Tous les types' },
     { value: 'Maître de stage', label: 'Maître de stage' },
     { value: 'Tuteur pédagogique', label: 'Tuteur pédagogique' },
     { value: 'Entreprise', label: 'Entreprise' }
@@ -182,7 +128,7 @@ function AdminEvaluations() {
 
   // ===== STATUTS =====
   const statusOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Tous les statuts' },
     { value: 'Validé', label: 'Validé' },
     { value: 'En attente', label: 'En attente' },
     { value: 'En révision', label: 'En révision' }
@@ -237,7 +183,7 @@ function AdminEvaluations() {
       pdf.save('evaluations.pdf');
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      alert('Erreur lors de l\'export PDF');
+      toast.error('Erreur lors de l\'export PDF');
     } finally {
       setIsExporting(false);
     }

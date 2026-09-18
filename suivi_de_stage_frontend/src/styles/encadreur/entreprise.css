@@ -98,6 +98,26 @@
   gap: 4px;
 }
 
+.encadreur-entreprise-page .entreprise-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 32px 16px;
+  text-align: center;
+  color: #6c7a8a;
+}
+
+.encadreur-entreprise-page .entreprise-empty-icon {
+  font-size: 42px;
+  color: #B0C4D8;
+}
+
+.encadreur-entreprise-page .entreprise-empty p {
+  margin: 0;
+  font-size: 14px;
+}
+
 .encadreur-entreprise-page .display-row {
   display: flex;
   padding: 10px 0;

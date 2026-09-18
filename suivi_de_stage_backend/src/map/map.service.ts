@@ -177,8 +177,6 @@ export class MapService {
   ) {
     if (actor.role === Role.ETUDIANT) {
       query.andWhere('student.userId = :actorId', { actorId: actor.id });
-    } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
       query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
     }
@@ -192,8 +190,6 @@ export class MapService {
       query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ETUDIANT) {
       query.andWhere('student.userId = :actorId', { actorId: actor.id });
-    } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     }
   }
 }

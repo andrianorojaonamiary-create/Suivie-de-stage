@@ -128,10 +128,8 @@ export class InternshipTrackingService {
       actor.role === Role.ADMINISTRATEUR ||
       (actor.role === Role.ETUDIANT &&
         internship.student.user?.id === actor.id) ||
-      (actor.role === Role.ENTREPRISE &&
-        internship.company.user?.id === actor.id) ||
       (actor.role === Role.ENCADREUR &&
-        internship.supervisor.user?.id === actor.id);
+        internship.supervisor?.user?.id === actor.id);
     if (!allowed)
       throw new ForbiddenException('Vous ne pouvez pas consulter ce suivi.');
   }
@@ -140,7 +138,7 @@ export class InternshipTrackingService {
     if (actor.role === Role.ADMINISTRATEUR) return;
     if (
       actor.role !== Role.ENCADREUR ||
-      internship.supervisor.user?.id !== actor.id
+      internship.supervisor?.user?.id !== actor.id
     ) {
       throw new ForbiddenException(
         'Seul l’encadreur affecté peut ajouter ce suivi.',

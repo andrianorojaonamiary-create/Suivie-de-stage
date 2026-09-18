@@ -1,75 +1,84 @@
 # Base de données — Plateforme de suivi des stages (EMIT)
 
-Ce dossier contient le schéma PostgreSQL du projet, prêt à être importé sur n'importe quelle machine.
+Le schéma PostgreSQL est géré **exclusivement par les migrations TypeORM** du backend. Il n'y a plus de fichier SQL à importer à la main.
 
-## Contenu
+- Migrations : `suivi_de_stage_backend/src/database/migrations/` (fichiers `*SchemaSuiviStages*`).
+- Source de vérité du schéma : les entités TypeORM (`suivi_de_stage_backend/src/**/*.entity.ts`).
+- Configuration : `suivi_de_stage_backend/src/database/data-source.ts` (`synchronize: false`, tables et enums créés uniquement via migrations).
 
-- `schema_db_suivi_stages.sql` — structure complète de la base : 11 tables, types enum, clés primaires/étrangères et contraintes `CHECK` (voir ci-dessous). Ne contient **aucune donnée**, uniquement la structure.
-
-## Installation (pour chaque membre de l'équipe)
+## Installation / mise à niveau (pour chaque membre de l'équipe)
 
 ### 1. Installer PostgreSQL
 
-Si ce n'est pas déjà fait : télécharger sur https://www.postgresql.org/download/ et installer (garder le port par défaut 5432, noter le mot de passe de l'utilisateur `postgres`).
+Si ce n'est pas déjà fait : https://www.postgresql.org/download/ (garder le port par défaut 5432, noter le mot de passe de l'utilisateur `postgres`).
 
-### 2. Créer la base et l'utilisateur du projet
+### 2. Créer la base
 
-Avec pgAdmin (ou psql) :
+Depuis le backend (`suivi_de_stage_backend`) :
 
-```sql
-CREATE USER emit_stage_user WITH PASSWORD 'votre_mot_de_passe';
-CREATE DATABASE db_suivi_stages OWNER emit_stage_user;
+```bash
+npm install          # la 1re fois
+npm run migration:run
 ```
 
-### 3. Importer le schéma
-
-Depuis un terminal, dans le dossier contenant `schema_db_suivi_stages.sql` :
-
-**Windows :**
-```
-"C:\Program Files\PostgreSQL\17\bin\psql.exe" -U emit_stage_user -h localhost -d db_suivi_stages -f schema_db_suivi_stages.sql
-```
-
-**macOS / Linux :**
-```
-psql -U emit_stage_user -h localhost -d db_suivi_stages -f schema_db_suivi_stages.sql
-```
-
-Entrer le mot de passe d'`emit_stage_user` quand demandé.
-
-### 4. Vérifier
-
-Dans pgAdmin : `db_suivi_stages` → Schemas → public → Tables. Vous devez voir 11 tables : `utilisateurs`, `etudiants`, `promotions`, `filieres`, `entreprises`, `encadreurs`, `stages`, `evaluations`, `notifications`, `situations_professionnelles`, `emplois`.
-
-### 5. Configurer le `.env` du backend NestJS
-
-Dans le projet backend, créer un fichier `.env` (non fourni ici, à créer par chacun individuellement — jamais partagé) :
+Configurer `.env` dans `suivi_de_stage_backend` (non versionné) :
 
 ```
 DB_HOST=localhost
 DB_PORT=5432
-DB_USER=emit_stage_user
+DB_USERNAME=postgres
 DB_PASSWORD=votre_mot_de_passe
-DB_NAME=db_suivi_stages
+DB_DATABASE=db_suivi_stages
+JWT_SECRET=une_phrase_secrete_longue
+JWT_EXPIRES_IN=1h
 ```
 
-## Contraintes d'intégrité
+### 3. Base existante avec l'ancien schéma
 
-| Table | Contrainte |
+Les anciennes tables (schéma « français » : `utilisateurs`, `etudiants`, `promotions`, `filieres`, `entreprises`, `encadreurs`, `stages`, `evaluations`, `notifications`, `situations_professionnelles`, `emplois`) **ne sont plus compatibles** avec le backend.
+
+La migration ne s'appliquera pas sur une base non vide → **seule une base vierge peut être migrée**. Pour une machine de dev/test :
+
+```sql
+DROP SCHEMA public CASCADE;
+CREATE SCHEMA public;
+```
+
+puis relancer `npm run migration:run` dans `suivi_de_stage_backend`.
+
+**Attention :** cette procédure efface toutes les données locales. Le schéma actuel ne **contient a priori aucun compte** : le premier compte `ADMINISTRATEUR` doit être créé via le endpoint `POST /api/auth/register`, sinon via un INSERT manuel dans `users` (le champ `mot_de_passe` doit alors être un hash bcrypt).
+
+### 4. Vérifier
+
+Dans pgAdmin : `db_suivi_stages` → Schemas → public → Tables. Vous devez voir 9 tables :
+
+`users`, `students`, `companies`, `supervisors`, `internships`, `evaluations`, `notifications`, `professional_situations`, `internship_follow_ups`
+
+## Contraintes et types
+
+| Élément | Détail |
 |---|---|
-| `stages` | `date_fin` doit être postérieure à `date_debut` |
-| `evaluations` | `note` doit être comprise entre 0 et 20 |
+| Types enum | `users_role_enum` (ETUDIANT, ENCADREUR, ENSEIGNANT, ENTREPRISE, ADMINISTRATEUR), `internships_status_enum`, `companies_status_enum`, `evaluations_evaluator_type_enum`, `students_academic_status_enum`, `students_employment_status_enum`, `professional_situations_type_enum`, `follow_ups_type_enum`, `notifications_type_enum` |
+| `internships` | CHECK `date_fin > date_debut` |
+| `evaluations` | CHECK `note >= 0 AND note <= 20`, unicité (stage, évaluateur, type) |
 
 ## Modèle de données
 
 | Table | Rôle |
 |---|---|
-| `utilisateurs` | Compte de connexion (email, mot de passe, rôle) |
-| `etudiants` | Infos étudiant, lié à un utilisateur |
-| `encadreurs` | Infos encadreur, lié à un utilisateur |
-| `entreprises` | Infos entreprise (+ coordonnées GPS) |
-| `promotions` / `filieres` | Classification des étudiants |
-| `stages` | Relie étudiant, entreprise, encadreur — dates et statut (`a_venir`, `en_cours`, `termine`) |
-| `evaluations` | Note (0-20) et commentaire sur un stage |
+| `users` | Compte de connexion (email, mot de passe hashé, rôle, actif, reset de mot de passe) |
+| `students` | Infos étudiant, lié à `users` (et optionnellement encadreur / entreprise) |
+| `companies` | Infos entreprise (+ coordonnées GPS), lié à un compte `ENTREPRISE` |
+| `supervisors` | Infos encadreur, lié à un compte `ENCADREUR` |
+| `internships` | Relie étudiant, entreprise, encadreur — intitulé, dates et statut |
+| `evaluations` | Note (0-20), commentaires et validation d'un stage |
 | `notifications` | Messages système pour un utilisateur |
-| `situations_professionnelles` / `emplois` | Suivi des diplômés après le stage |
+| `professional_situations` | Situation professionnelle d'un étudiant diplômé |
+| `internship_follow_ups` | Suivi d'un stage (observation, entretien, rapport) |
+
+## Utilitaires TypeORM
+
+| Commande (dans `suivi_de_stage_backend`) | Effet |
+|---|---|
+| `npm run migration:run` | Applique les migrations en attente |
+| `npm run migration:revert` | Annule la dernière migration |

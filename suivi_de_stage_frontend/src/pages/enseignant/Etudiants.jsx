@@ -19,42 +19,25 @@ function EnseignantEtudiants() {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  const [students, setStudents] = useState([
-    {
-      id: 1, nom: 'Rakoto Miora', matricule: 'ETU-2024-0421',
-      filiere: 'Génie Logiciel', niveau: 'Master 2',
-      stage: { id: 1, titre: "Plateforme web RH", entreprise: 'TechMada SARL', statut: 'En cours', dateDebut: '2024-03-01', dateFin: '2024-09-15', progression: 65 },
-      evaluation: 'Validé', rapports: 2
-    }
-  ]);
+  const [students, setStudents] = useState([]);
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
         const res = await studentsApi.getAll();
-        const list = Array.isArray(res) ? res : res?.items || [];
-        if (list.length > 0) {
-          const mapped = list.map(item => ({
-            id: item.id,
-            nom: `${item.lastName || item.user?.lastName || ''} ${item.firstName || item.user?.firstName || ''}`.trim() || 'Étudiant',
-            matricule: item.studentNumber || item.matricule || `ETU-${item.id}`,
-            filiere: item.filiere || item.major || 'Non renseigné',
-            niveau: item.niveau || item.level || 'Licence 3',
-            stage: item.currentInternship ? {
-              id: item.currentInternship.id,
-              titre: item.currentInternship.title || 'Stage',
-              entreprise: item.currentInternship.company?.name || 'Entreprise',
-              statut: item.currentInternship.status === 'en_cours' ? 'En cours' : item.currentInternship.status === 'termine' ? 'Terminé' : 'En attente',
-              dateDebut: item.currentInternship.startDate || null,
-              dateFin: item.currentInternship.endDate || null,
-              progression: item.currentInternship.progressPercentage || 0
-            } : { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
-            evaluation: item.evaluationStatus || 'À faire',
-            rapports: item.reportsCount || 0
-          }));
-          setStudents(mapped);
-        }
+        const list = res?.items || [];
+        const mapped = list.map(item => ({
+          id: item.id,
+          nom: `${item.user?.prenom || ''} ${item.user?.nom || ''}`.trim() || 'Étudiant',
+          matricule: item.matricule || `ETU-${item.id}`,
+          filiere: item.formation || 'Non renseigné',
+          niveau: item.niveau || 'Non renseigné',
+          stage: { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
+          evaluation: 'À faire',
+          rapports: 0
+        }));
+        setStudents(mapped);
       } catch (err) {
         console.error('Erreur chargement étudiants enseignant:', err);
       } finally {
@@ -69,13 +52,13 @@ function EnseignantEtudiants() {
 
   const stats = {
     total: students.length,
-    enStage: students.filter(s => s.stage.statut === 'En cours' || s.stage.statut === 'En attente').length,
-    termines: students.filter(s => s.stage.statut === 'Terminé' || s.stage.statut === 'Validé').length,
+    enStage: 0,
+    termines: 0,
     aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
   };
 
   const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));
-  const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'].map(v => ({ value: v, label: v === 'tous' ? 'Tous niveaux' : v }));
+  const niveaux = ['tous', ...new Set(students.map(s => s.niveau))].map(v => ({ value: v, label: v === 'tous' ? 'Tous niveaux' : v }));
 
   const filteredStudents = students.filter(s => {
     if (selectedFiliere !== 'tous' && s.filiere !== selectedFiliere) return false;

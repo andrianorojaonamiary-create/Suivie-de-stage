@@ -5,6 +5,7 @@ import {
   FaPlus, FaEdit, FaTrash, FaEye, FaUsers
 } from 'react-icons/fa';
 import { supervisorsApi } from '../../api';
+import { toast } from 'react-toastify';
 
 function MonEncadreur() {
   const navigate = useNavigate();
@@ -15,19 +16,7 @@ function MonEncadreur() {
   const [loading, setLoading] = useState(true);
   
   // ===== DONNÉES ENCADREURS =====
-  const [encadreurs, setEncadreurs] = useState([
-    {
-      id: 1,
-      nom: 'Rakotomalala',
-      prenom: 'Jean',
-      fonction: 'Directeur technique',
-      entreprise: 'TechMada SARL',
-      email: 'j.rakotomalala@techmada.mg',
-      telephone: '+261 34 12 345 78',
-      specialite: 'Développement logiciel',
-      etudiants: ['Miora Rakoto', 'Hery Rakotondrabe']
-    }
-  ]);
+  const [encadreurs, setEncadreurs] = useState([]);
 
   const fetchSupervisors = async () => {
     try {
@@ -80,10 +69,10 @@ function MonEncadreur() {
       }
       const encadreur = encadreurs.find(e => e.id === encadreurToDelete);
       setEncadreurs(encadreurs.filter(e => e.id !== encadreurToDelete));
-      alert(`Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
+      toast.success(`Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
     } catch (err) {
       console.error('Erreur suppression encadreur:', err);
-      alert('Erreur lors de la suppression de l\'encadreur');
+      toast.error('Erreur lors de la suppression de l\'encadreur');
     } finally {
       setShowDeleteModal(false);
       setEncadreurToDelete(null);

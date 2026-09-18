@@ -1,12 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Internship } from '../internships/entities/internship.entity';
+import { InternshipStatus } from '../internships/enums/internship-status.enum';
 import { Role } from '../users/enums/role.enum';
+import { User } from '../users/entities/user.entity';
 import { FindNotificationsDto } from './dto/find-notifications.dto';
 import { Notification } from './entities/notification.entity';
 import { NotificationType } from './enums/notification-type.enum';
@@ -21,6 +19,8 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
   ) {}
 
   async findAll(dto: FindNotificationsDto, actor: AuthenticatedUser) {
@@ -75,6 +75,50 @@ export class NotificationsService {
       'Stage affecté',
       `Le stage « ${stage.intitule} » vous a été affecté.`,
       supervisorId,
+    );
+  }
+
+  async notifyStageAwaitingValidation(stage: Internship) {
+    const supervisorId = stage.supervisor?.user?.id;
+    if (supervisorId) {
+      await this.createNotification(
+        supervisorId,
+        NotificationType.STAGE_AFFECTE,
+        'Stage en attente de validation',
+        `Le stage « ${stage.intitule} » soumis par ${this.getStudentName(stage)} attend votre validation.`,
+        stage.id,
+      );
+    }
+  }
+
+  async notifyStageAwaitingProfessionalSupervisor(stage: Internship) {
+    const admins = await this.usersRepository.find({
+      where: { role: Role.ADMINISTRATEUR, actif: true },
+    });
+    await Promise.all(
+      admins.map((admin) =>
+        this.createNotification(
+          admin.id,
+          NotificationType.STAGE_AFFECTE,
+          'Stage en attente d’encadreur professionnel',
+          `Le stage « ${stage.intitule} » de ${this.getStudentName(stage)} a été soumis sans encadreur professionnel identifié.`,
+          stage.id,
+        ),
+      ),
+    );
+  }
+
+  async notifyStageStatusChanged(stage: Internship) {
+    const message =
+      stage.statut === InternshipStatus.REFUSE
+        ? `Le stage « ${stage.intitule} » a été refusé par votre encadreur.`
+        : `Le stage « ${stage.intitule} » a été validé par votre encadreur.`;
+    await this.notifyParticipants(
+      stage,
+      NotificationType.STAGE_MODIFIE,
+      'Stage évalué',
+      message,
+      stage.supervisor?.user?.id,
     );
   }
 

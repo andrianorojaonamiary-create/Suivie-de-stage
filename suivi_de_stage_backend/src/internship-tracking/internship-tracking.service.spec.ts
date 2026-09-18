@@ -41,7 +41,7 @@ describe('InternshipTrackingService', () => {
 
   it.each([
     [Role.ETUDIANT, 'student-id'],
-    [Role.ENTREPRISE, 'company-id'],
+    [Role.ENSEIGNANT, 'enseignant-id'],
   ])('rejects observation creation by %s', async (role, id) => {
     internshipsRepository.findOne.mockResolvedValue(stage);
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import { 
   FaGraduationCap, FaBriefcase, FaBuilding, FaMapMarkerAlt,
@@ -8,12 +8,27 @@ import {
   FaUserGraduate, FaChartLine, FaCalendarCheck
 } from 'react-icons/fa';
 import { professionalSituationsApi } from '../../api';
+import { getApiErrorMessage } from '../../api/apiClient';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import DateField from '../../components/Common/DateField';
+import { toast } from 'react-toastify';
+
+const SITUATION_TO_API = {
+  'En emploi': 'EMPLOYE',
+  'En recherche': 'EN_RECHERCHE_EMPLOI',
+  'Études supérieures': 'POURSUITE_ETUDES',
+  'Entrepreneur': 'ENTREPRENEUR',
+  'Autre': 'AUTRE',
+};
 
 function MonAvenir() {
-  // const navigate = useNavigate();
-  
-  // ===== ÉTATS =====
+  const [situation, setSituation] = useState({
+    statut: '',
+    dateDiplome: '',
+    situationPro: '',
+    dateMiseAJour: '',
+    statutAcademique: ''
+  });
   const [isEditingEmploi, setIsEditingEmploi] = useState(false);
   const [isEditingSituation, setIsEditingSituation] = useState(false);
   const [isEditingHistorique, setIsEditingHistorique] = useState(false);
@@ -23,81 +38,70 @@ function MonAvenir() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
 
-  // ===== SITUATION PROFESSIONNELLE =====
-  const [situation, setSituation] = useState({
-    statut: 'Diplômé',
-    dateDiplome: '2028-07-12',
-    situationPro: 'En emploi',
-    dateMiseAJour: '2025-04-20'
-  });
-
   // ===== EMPLOI ACTUEL =====
   const [emploiActuel, setEmploiActuel] = useState({
-    entreprise: 'ABC Informatique',
-    poste: 'Développeur Web',
-    domaine: 'Informatique / Développement',
-    localisation: 'Fianarantsoa, Madagascar',
-    dateDebut: '2028-11-15',
+    entreprise: '',
+    poste: '',
+    domaine: '',
+    localisation: '',
+    dateDebut: '',
     dateFin: '',
-    typeContrat: 'CDI',
+    typeContrat: '',
     description: ''
   });
 
   // ===== HISTORIQUE =====
-  const [historiqueEmplois, setHistoriqueEmplois] = useState([
-    {
-      id: 1,
-      entreprise: 'ABC Informatique',
-      poste: 'Développeur Web',
-      localisation: 'Fianarantsoa, Madagascar',
-      dateDebut: '2028-01-01',
-      dateFin: '2030-12-31'
+  const [historiqueEmplois, setHistoriqueEmplois] = useState([]);
+
+  const [situationApiId, setSituationApiId] = useState(null);
+
+  const loadAvenir = useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await professionalSituationsApi.getMe();
+      const list = Array.isArray(res) ? res : [];
+      if (list.length > 0) {
+        const current = list[0];
+        setSituationApiId(current.id || null);
+        setEmploiActuel({
+          entreprise: current.entreprise || '',
+          poste: current.poste || '',
+          domaine: current.domaine || '',
+          localisation: [current.ville, current.pays].filter(Boolean).join(', '),
+          dateDebut: current.dateDebut ? String(current.dateDebut).split('T')[0] : '',
+          dateFin: current.dateFin ? String(current.dateFin).split('T')[0] : '',
+          typeContrat: current.typeContrat || 'CDI',
+          description: current.description || ''
+        });
+
+        setSituation(prev => ({
+          ...prev,
+          situationPro: current.situation || 'Autre',
+          statutAcademique: current.statutAcademique || '',
+          statut: current.statutAcademique || prev.statut,
+          dateDiplome: current.dateDiplome ? String(current.dateDiplome).split('T')[0] : prev.dateDiplome,
+          dateMiseAJour: current.dateModification ? String(current.dateModification).split('T')[0] : prev.dateMiseAJour
+        }));
+
+        setHistoriqueEmplois(list.slice(1).map((item) => ({
+          id: item.id,
+          entreprise: item.entreprise || 'Entreprise',
+          poste: item.poste || 'Poste',
+          localisation: [item.ville, item.pays].filter(Boolean).join(', '),
+          dateDebut: item.dateDebut ? String(item.dateDebut).split('T')[0] : '',
+          dateFin: item.dateFin ? String(item.dateFin).split('T')[0] : ''
+        })));
+      }
+    } catch (err) {
+      console.error('Erreur chargement mon avenir:', err);
+    } finally {
+      setLoading(false);
     }
-  ]);
+  }, []);
 
   useEffect(() => {
-    const fetchAvenir = async () => {
-      try {
-        setLoading(true);
-        const res = await professionalSituationsApi.getMe();
-        const list = Array.isArray(res) ? res : res?.items || [];
-        if (list.length > 0) {
-          const current = list[0];
-          setEmploiActuel({
-            entreprise: current.entreprise || current.companyName || '',
-            poste: current.poste || current.position || '',
-            domaine: current.domaine || current.sector || '',
-            localisation: current.ville ? `${current.ville}, ${current.pays || 'Madagascar'}` : '',
-            dateDebut: current.dateDebut ? current.dateDebut.split('T')[0] : '',
-            dateFin: current.dateFin ? current.dateFin.split('T')[0] : '',
-            typeContrat: current.contrat || 'CDI',
-            description: current.description || ''
-          });
-
-          setSituation(prev => ({
-            ...prev,
-            situationPro: current.type || current.situation || 'En emploi',
-            dateMiseAJour: current.updatedAt ? current.updatedAt.split('T')[0] : prev.dateMiseAJour
-          }));
-
-          setHistoriqueEmplois(list.map((item, idx) => ({
-            id: item.id || idx + 1,
-            entreprise: item.entreprise || item.companyName || 'Entreprise',
-            poste: item.poste || item.position || 'Poste',
-            localisation: item.ville ? `${item.ville}, ${item.pays || 'Madagascar'}` : '',
-            dateDebut: item.dateDebut ? item.dateDebut.split('T')[0] : '',
-            dateFin: item.dateFin ? item.dateFin.split('T')[0] : ''
-          })));
-        }
-      } catch (err) {
-        console.error('Erreur chargement mon avenir:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAvenir();
-  }, []);
+    loadAvenir();
+  }, [loadAvenir]);
 
   // ===== TEXTE AUTOMATIQUE =====
   const getSituationDetail = () => {
@@ -151,14 +155,44 @@ function MonAvenir() {
     setSituation(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSituationSubmit = (e) => {
+  const emploiPayload = (job) => {
+    const [ville = '', pays = ''] = (job.localisation || '').split(',').map((s) => s.trim());
+    return {
+      entreprise: job.entreprise || undefined,
+      poste: job.poste || undefined,
+      domaine: job.domaine || undefined,
+      ville: ville || undefined,
+      pays: pays || undefined,
+      dateDebut: job.dateDebut || undefined,
+      dateFin: job.dateFin || undefined,
+      typeContrat: job.typeContrat || undefined,
+      description: job.description || undefined,
+    };
+  };
+
+  const handleSituationSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    const payload = {
+      situation: SITUATION_TO_API[situation.situationPro] || 'AUTRE',
+      statutAcademique: situation.statutAcademique || undefined,
+      dateDiplome: situation.dateDiplome || undefined,
+    };
+    try {
+      if (situationApiId) {
+        await professionalSituationsApi.update(situationApiId, payload);
+      } else {
+        const created = await professionalSituationsApi.create(payload);
+        setSituationApiId(created?.id || null);
+      }
       setIsEditingSituation(false);
-      alert('Situation mise à jour avec succès !');
-    }, 1500);
+      toast.success('Situation mise à jour avec succès !');
+      await loadAvenir();
+    } catch (err) {
+      console.error('Erreur mise à jour situation:', err);
+      toast.error(getApiErrorMessage(err, 'Erreur lors de la mise à jour de la situation'));
+      setLoading(false);
+    }
   };
 
   const handleSituationCancel = () => {
@@ -171,14 +205,29 @@ function MonAvenir() {
     setEmploiActuel(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleEmploiSubmit = (e) => {
+  const handleEmploiSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+    const payload = {
+      ...emploiPayload(emploiActuel),
+      situation: SITUATION_TO_API[situation.situationPro] || 'EMPLOYE',
+    };
+    try {
+      if (situationApiId) {
+        await professionalSituationsApi.update(situationApiId, payload);
+      } else {
+        const created = await professionalSituationsApi.create(payload);
+        setSituationApiId(created?.id || null);
+        await loadAvenir();
+      }
       setIsEditingEmploi(false);
-      alert('Emploi mis à jour avec succès !');
-    }, 1500);
+      toast.success('Emploi mis à jour avec succès !');
+      if (situationApiId) await loadAvenir();
+    } catch (err) {
+      console.error('Erreur mise à jour emploi:', err);
+      toast.error(getApiErrorMessage(err, 'Erreur lors de la mise à jour de l\u2019emploi'));
+      setLoading(false);
+    }
   };
 
   const handleEmploiCancel = () => {
@@ -196,19 +245,24 @@ function MonAvenir() {
     setEditJob(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleAddJob = () => {
+  const handleAddJob = async () => {
     if (!newJob.entreprise || !newJob.poste) {
       alert('Veuillez remplir les champs obligatoires');
       return;
     }
-    const newEntry = {
-      id: Date.now(),
-      ...newJob
-    };
-    setHistoriqueEmplois([...historiqueEmplois, newEntry]);
-    setNewJob({ entreprise: '', poste: '', localisation: '', dateDebut: '', dateFin: '' });
-    setShowAddJob(false);
-    alert('Expérience ajoutée avec succès !');
+    try {
+      await professionalSituationsApi.create({
+        ...emploiPayload(newJob),
+        situation: SITUATION_TO_API[situation.situationPro] || 'EMPLOYE',
+      });
+      setNewJob({ entreprise: '', poste: '', localisation: '', dateDebut: '', dateFin: '' });
+      setShowAddJob(false);
+      toast.success('Expérience ajoutée avec succès !');
+      await loadAvenir();
+    } catch (err) {
+      console.error('Erreur ajout expérience:', err);
+      toast.error(getApiErrorMessage(err, 'Erreur lors de l\u2019ajout de l\u2019expérience'));
+    }
   };
 
   const handleEditClick = (job) => {
@@ -223,15 +277,19 @@ function MonAvenir() {
     });
   };
 
-  const handleEditSubmit = (e) => {
+  const handleEditSubmit = async (e) => {
     e.preventDefault();
-    setHistoriqueEmplois(prev => prev.map(job => 
-      job.id === editingHistoriqueId ? { ...job, ...editJob } : job
-    ));
-    setIsEditingHistorique(false);
-    setEditingHistoriqueId(null);
-    setEditJob({ entreprise: '', poste: '', localisation: '', dateDebut: '', dateFin: '' });
-    alert('Expérience modifiée avec succès !');
+    try {
+      await professionalSituationsApi.update(editingHistoriqueId, emploiPayload(editJob));
+      setIsEditingHistorique(false);
+      setEditingHistoriqueId(null);
+      setEditJob({ entreprise: '', poste: '', localisation: '', dateDebut: '', dateFin: '' });
+      toast.success('Expérience modifiée avec succès !');
+      await loadAvenir();
+    } catch (err) {
+      console.error('Erreur modification expérience:', err);
+      toast.error(getApiErrorMessage(err, 'Erreur lors de la modification de l\u2019expérience'));
+    }
   };
 
   const handleEditCancel = () => {
@@ -244,11 +302,20 @@ function MonAvenir() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    setHistoriqueEmplois(prev => prev.filter(j => j.id !== jobToDelete.id));
-    alert(`Expérience chez "${jobToDelete.entreprise}" supprimée !`);
-    setShowDeleteModal(false);
-    setJobToDelete(null);
+  const confirmDelete = async () => {
+    try {
+      if (jobToDelete?.id) {
+        await professionalSituationsApi.delete(jobToDelete.id);
+      }
+      toast.success(`Expérience chez "${jobToDelete?.entreprise}" supprimée !`);
+      await loadAvenir();
+    } catch (err) {
+      console.error('Erreur suppression expérience:', err);
+      toast.error(getApiErrorMessage(err, 'Erreur lors de la suppression de l\u2019expérience'));
+    } finally {
+      setShowDeleteModal(false);
+      setJobToDelete(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -311,8 +378,7 @@ function MonAvenir() {
                 </div>
                 <div className="form-group">
                   <label><FaCalendarAlt /> Date de diplôme</label>
-                  <input
-                    type="date"
+                  <DateField
                     name="dateDiplome"
                     value={situation.dateDiplome}
                     onChange={handleSituationChange}
@@ -335,8 +401,7 @@ function MonAvenir() {
                 </div>
                 <div className="form-group">
                   <label><FaCalendarCheck /> Date de mise à jour</label>
-                  <input
-                    type="date"
+                  <DateField
                     name="dateMiseAJour"
                     value={situation.dateMiseAJour}
                     onChange={handleSituationChange}
@@ -462,8 +527,7 @@ function MonAvenir() {
               <div className="form-row">
                 <div className="form-group">
                   <label><FaCalendarAlt /> Date d'embauche</label>
-                  <input
-                    type="date"
+                  <DateField
                     name="dateDebut"
                     value={emploiActuel.dateDebut}
                     onChange={handleEmploiChange}
@@ -472,8 +536,7 @@ function MonAvenir() {
                 </div>
                 <div className="form-group">
                   <label><FaCalendarAlt /> Date de fin</label>
-                  <input
-                    type="date"
+                  <DateField
                     name="dateFin"
                     value={emploiActuel.dateFin}
                     onChange={handleEmploiChange}
@@ -614,8 +677,7 @@ function MonAvenir() {
                               </div>
                               <div className="form-group">
                                 <label><FaCalendarAlt /> Date début</label>
-                                <input
-                                  type="date"
+                                <DateField
                                   name="dateDebut"
                                   value={editJob.dateDebut}
                                   onChange={handleEditJobChange}
@@ -626,8 +688,7 @@ function MonAvenir() {
                             <div className="form-row">
                               <div className="form-group">
                                 <label><FaCalendarAlt /> Date fin</label>
-                                <input
-                                  type="date"
+                                <DateField
                                   name="dateFin"
                                   value={editJob.dateFin}
                                   onChange={handleEditJobChange}
@@ -723,8 +784,7 @@ function MonAvenir() {
                     </div>
                     <div className="form-group">
                       <label><FaCalendarAlt /> Date début</label>
-                      <input
-                        type="date"
+                      <DateField
                         name="dateDebut"
                         value={newJob.dateDebut}
                         onChange={handleNewJobChange}
@@ -735,8 +795,7 @@ function MonAvenir() {
                   <div className="form-row">
                     <div className="form-group">
                       <label><FaCalendarAlt /> Date fin</label>
-                      <input
-                        type="date"
+                      <DateField
                         name="dateFin"
                         value={newJob.dateFin}
                         onChange={handleNewJobChange}

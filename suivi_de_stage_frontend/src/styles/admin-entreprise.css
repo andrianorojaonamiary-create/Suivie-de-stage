@@ -275,27 +275,25 @@
   display: flex;
   gap: 4px;
 }
-.admin-entreprises-btn-icon {
-  width: 32px;
-  height: 32px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: #6c7a8a;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
+.admin-entreprises-btn-view {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #A0B8D0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.admin-entreprises-btn-icon:hover {
-  background: #E1ECFE;
-  color: #6BA9E6;
-}
-.admin-entreprises-btn-icon.danger:hover {
-  background: #FEE2E2;
-  color: #EF4444;
+.admin-entreprises-btn-view:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
 }
 
 /* ===== PAGINATION ===== */
@@ -402,10 +400,9 @@
     padding: 6px 8px;
     font-size: 11px;
   }
-  .admin-entreprises-btn-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+  .admin-entreprises-btn-view {
+    padding: 5px 10px;
+    font-size: 11px;
   }
   .admin-entreprises-pagination {
     flex-wrap: wrap;

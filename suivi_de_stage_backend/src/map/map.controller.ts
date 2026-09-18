@@ -17,7 +17,7 @@ export class MapController {
   constructor(private readonly mapService: MapService) {}
 
   @Get('internships')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENTREPRISE, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR)
   findInternships(
     @Query() filters: FindMapDto,
     @Req() request: AuthenticatedRequest,
@@ -26,7 +26,7 @@ export class MapController {
   }
 
   @Get('companies')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENTREPRISE, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR)
   findCompanies(
     @Query() filters: FindMapDto,
     @Req() request: AuthenticatedRequest,

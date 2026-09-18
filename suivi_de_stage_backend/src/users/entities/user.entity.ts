@@ -20,6 +20,21 @@ export class User {
   @Column({ type: 'varchar', length: 100 })
   prenom: string;
 
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  matricule?: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  grade?: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  departement?: string | null;
+
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  specialite?: string | null;
+
+  @Column({ type: 'varchar', length: 30, nullable: true })
+  telephone?: string | null;
+
   @Column({ type: 'varchar', length: 255 })
   email: string;
 
@@ -52,6 +67,13 @@ export class User {
     nullable: true,
   })
   passwordResetExpiresAt?: Date | null;
+
+  @Column({
+    name: 'mot_de_passe_change_at',
+    type: 'timestamptz',
+    nullable: true,
+  })
+  motDePasseChangeAt?: Date | null;
 
   @CreateDateColumn({ name: 'date_creation', type: 'timestamptz' })
   dateCreation: Date;

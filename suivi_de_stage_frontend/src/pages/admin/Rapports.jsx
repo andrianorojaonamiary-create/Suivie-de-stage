@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FaEye, FaFilter, FaUsers, FaBuilding } from 'react-icons/fa';
+import { FaEye } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminRapports() {
@@ -11,11 +11,13 @@ function AdminRapports() {
   });
 
   // ===== TOUS LES RAPPORTS =====
-  const [rapports] = useState([
-    { id: 1, etudiant: 'Miora Rakoto', stage: 'TechMada SARL', entreprise: 'TechMada', titre: 'Rapport de prise en main', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, etudiant: 'Hery Rakotondrabe', stage: 'Airtel Madagascar', entreprise: 'Airtel', titre: 'Rapport intermédiaire', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-    { id: 3, etudiant: 'Fanja Andriantsoa', stage: 'BNI Madagascar', entreprise: 'BNI', titre: 'Rapport final', date: '10 Juin 2024', statut: 'À corriger', size: '3.1 MB' },
-  ]);
+  const [rapports] = useState([]);
+
+  const handleViewFile = (fileName) => {
+    if (fileName) {
+      window.open(`/documents/${fileName}`, '_blank');
+    }
+  };
 
   const getStatusBadge = (statut) => {
     const classes = {
@@ -26,11 +28,11 @@ function AdminRapports() {
     return classes[statut] || 'badge-en-attente';
   };
 
-  const etudiants = ['all', ...new Set(rapports.map(r => r.etudiant))].map(v => ({ value: v, label: v === 'all' ? 'Tous' : v }));
-  const stages = ['all', ...new Set(rapports.map(r => r.stage))].map(v => ({ value: v, label: v === 'all' ? 'Tous' : v }));
-  const entreprises = ['all', ...new Set(rapports.map(r => r.entreprise))].map(v => ({ value: v, label: v === 'all' ? 'Toutes' : v }));
+  const etudiants = ['all', ...new Set(rapports.map(r => r.etudiant))].map(v => ({ value: v, label: v === 'all' ? 'Tous les étudiants' : v }));
+  const stages = ['all', ...new Set(rapports.map(r => r.stage))].map(v => ({ value: v, label: v === 'all' ? 'Tous les stages' : v }));
+  const entreprises = ['all', ...new Set(rapports.map(r => r.entreprise))].map(v => ({ value: v, label: v === 'all' ? 'Toutes les entreprises' : v }));
   const statuts = [
-    { value: 'all', label: 'Tous' },
+    { value: 'all', label: 'Tous les statuts' },
     { value: 'En révision', label: 'En révision' },
     { value: 'Validé', label: 'Validé' },
     { value: 'À corriger', label: 'À corriger' }
@@ -55,7 +57,6 @@ function AdminRapports() {
       {/* ===== FILTRES AVANCÉS ===== */}
       <div className="filters-section">
         <div className="filter-group">
-          <label><FaUsers /> Étudiant</label>
           <SelectPersonnalise
             value={filters.etudiant}
             onChange={(v) => setFilters({...filters, etudiant: v})}
@@ -65,7 +66,6 @@ function AdminRapports() {
         </div>
 
         <div className="filter-group">
-          <label><FaBuilding /> Stage</label>
           <SelectPersonnalise
             value={filters.stage}
             onChange={(v) => setFilters({...filters, stage: v})}
@@ -75,7 +75,6 @@ function AdminRapports() {
         </div>
 
         <div className="filter-group">
-          <label><FaBuilding /> Entreprise</label>
           <SelectPersonnalise
             value={filters.entreprise}
             onChange={(v) => setFilters({...filters, entreprise: v})}
@@ -85,7 +84,6 @@ function AdminRapports() {
         </div>
 
         <div className="filter-group">
-          <label><FaFilter /> Statut</label>
           <SelectPersonnalise
             value={filters.statut}
             onChange={(v) => setFilters({...filters, statut: v})}
@@ -122,7 +120,7 @@ function AdminRapports() {
                   <td><span className="admin-rapports-date">{report.date}</span></td>
                   <td><span className={getStatusBadge(report.statut)}>{report.statut}</span></td>
                   <td className="admin-rapports-actions">
-                    <button className="btn-action-icon"><FaEye /></button>
+                    <button className="admin-rapports-btn-view" onClick={() => handleViewFile(report.fileName)} title="Voir le fichier"><FaEye /> Voir</button>
                   </td>
                 </tr>
               ))

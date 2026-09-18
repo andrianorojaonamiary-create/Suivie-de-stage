@@ -1,14 +1,15 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 
-import EtudiantForm from './components/EtudiantForm';
 import EtudiantDetail from './components/EtudiantDetail';
+import EtudiantForm from './components/EtudiantForm';
 import EtudiantDelete from './components/EtudiantDelete';
 import studentsApi from '../../api/studentsApi';
+import usersApi from '../../api/usersApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEtudiants() {
@@ -16,44 +17,38 @@ function AdminEtudiants() {
   const [filterFiliere, setFilterFiliere] = useState('Tous');
   const [filterPromotion, setFilterPromotion] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEtudiant, setSelectedEtudiant] = useState(null);
+  const [editEtudiant, setEditEtudiant] = useState(null);
+  const [deleteEtudiant, setDeleteEtudiant] = useState(null);
+  const [formData, setFormData] = useState({
+    matricule: '', nom: '', prenom: '', email: '',
+    telephone: '', formation: '', promotion: '', niveau: '', statutAcademique: 'ACTIF'
+  });
   const [loading, setLoading] = useState(true);
   const [etudiants, setEtudiants] = useState([]);
-  const [formData, setFormData] = useState({
-    matricule: '',
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    filiere: '',
-    promotion: '',
-    niveau: '',
-    statut: 'Actif'
-  });
   const itemsPerPage = 5;
 
   const loadStudents = async () => {
     try {
       setLoading(true);
       const res = await studentsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const list = res?.items || [];
 
       const mapped = list.map(item => ({
         id: item.id,
         matricule: item.matricule || 'ETU-00',
-        nom: item.user?.nom || item.nom || 'Nom',
-        prenom: item.user?.prenom || item.prenom || 'Prénom',
-        email: item.user?.email || item.email || 'email@emit.mg',
-        telephone: item.user?.telephone || item.telephone || '+261 34 00 000 00',
-        filiere: item.parcours || item.filiere || 'Génie Informatique',
+        nom: item.user?.nom || 'Nom',
+        prenom: item.user?.prenom || 'Prénom',
+        email: item.user?.email || 'email@emit.mg',
+        telephone: item.telephone || '—',
+        formation: item.formation || 'Non renseigné',
         promotion: item.promotion || '2026',
         niveau: item.niveau || 'L3',
-        statut: item.statutEmploi === 'en_emploi' ? 'Diplômé' : 'Actif',
-        stage: item.internships?.[0]?.titre || '—',
-        entreprise: item.internships?.[0]?.entreprise?.nom || '—'
+        statut: item.statutAcademique || 'ACTIF',
       }));
       setEtudiants(mapped);
     } catch (err) {
@@ -69,9 +64,9 @@ function AdminEtudiants() {
 
   const stats = {
     total: etudiants.length,
-    actifs: etudiants.filter(e => e.statut === 'Actif').length,
-    diplomes: etudiants.filter(e => e.statut === 'Diplômé').length,
-    enStage: etudiants.filter(e => e.stage && e.stage !== '—').length
+    actifs: etudiants.filter(e => e.statut === 'ACTIF').length,
+    diplomes: etudiants.filter(e => e.statut === 'DIPLOME').length,
+    enStage: 0
   };
 
   const filteredEtudiants = etudiants.filter(e => {
@@ -79,7 +74,7 @@ function AdminEtudiants() {
                         (e.prenom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (e.matricule || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (e.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchFiliere = filterFiliere === 'Tous' || e.filiere === filterFiliere;
+    const matchFiliere = filterFiliere === 'Tous' || e.formation === filterFiliere;
     const matchPromotion = filterPromotion === 'Tous' || e.promotion === filterPromotion;
     return matchSearch && matchFiliere && matchPromotion;
   });
@@ -93,81 +88,120 @@ function AdminEtudiants() {
   };
 
   const filiereOptions = [
-    { value: 'Tous', label: 'Tous' },
-    { value: 'Génie Informatique', label: 'Génie Informatique' },
-    { value: 'Management', label: 'Management' },
-    { value: 'Relations publiques & Multimédia', label: 'Relations publiques & Multimédia' }
+    { value: 'Tous', label: 'Toutes les formations' },
+    ...new Set(etudiants.map(e => e.formation).filter(Boolean)).map(v => ({ value: v, label: v }))
   ];
   const promotionOptions = [
-    { value: 'Tous', label: 'Tous' },
-    { value: '2024', label: '2024' },
-    { value: '2025', label: '2025' },
-    { value: '2026', label: '2026' }
+    { value: 'Tous', label: 'Toutes les promotions' },
+    ...new Set(etudiants.map(e => e.promotion).filter(Boolean)).map(v => ({ value: v, label: v }))
   ];
-  const niveauOptions = [{ value: 'L1', label: 'L1' }, { value: 'L2', label: 'L2' }, { value: 'L3', label: 'L3' }, { value: 'M1', label: 'M1' }, { value: 'M2', label: 'M2' }];
-  const statutOptions = [{ value: 'Actif', label: 'Actif' }, { value: 'Diplômé', label: 'Diplômé' }];
+  const niveauOptions = [
+    { value: 'L1', label: 'Licence 1' },
+    { value: 'L2', label: 'Licence 2' },
+    { value: 'L3', label: 'Licence 3' },
+    { value: 'M1', label: 'Master 1' },
+    { value: 'M2', label: 'Master 2' }
+  ];
+  const statutOptions = [
+    { value: 'ACTIF', label: 'Actif' },
+    { value: 'DIPLOME', label: 'Diplômé' },
+    { value: 'SUSPENDU', label: 'Suspendu' },
+    { value: 'ABANDONNE', label: 'Abandonné' }
+  ];
 
   const getStatusBadge = (statut) => {
-    return statut === 'Actif' ? 'badge-actif' : 'badge-diplome';
-  };
-
-  const resetForm = () => {
-    setFormData({
-      matricule: '',
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      filiere: '',
-      promotion: '',
-      niveau: '',
-      statut: 'Actif'
-    });
-  };
-
-  const handleEdit = async () => {
-    try {
-      if (selectedEtudiant?.id) {
-        await studentsApi.update(selectedEtudiant.id, {
-          matricule: formData.matricule,
-          niveau: formData.niveau
-        });
-        await loadStudents();
-      }
-    } catch {
-      setEtudiants(etudiants.map(e => e.id === selectedEtudiant?.id ? { ...e, ...formData } : e));
-    }
-    setShowEditModal(false);
-    resetForm();
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (selectedEtudiant?.id) {
-        await studentsApi.delete(selectedEtudiant.id);
-        await loadStudents();
-      }
-    } catch {
-      setEtudiants(etudiants.filter(e => e.id !== selectedEtudiant?.id));
-    }
-    setShowDeleteModal(false);
-    setSelectedEtudiant(null);
-  };
-
-  const openEditModal = (etudiant) => {
-    setSelectedEtudiant(etudiant);
-    setFormData(etudiant);
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (etudiant) => {
-    setSelectedEtudiant(etudiant);
-    setShowDeleteModal(true);
+    if (statut === 'DIPLOME') return 'badge-diplome';
+    return 'badge-actif';
   };
 
   const openDetailModal = (etudiant) => {
     setSelectedEtudiant(etudiant);
     setShowDetailModal(true);
+  };
+
+  const openCreateModal = () => {
+    setFormData({
+      matricule: '', nom: '', prenom: '', email: '',
+      telephone: '', formation: '', promotion: '', niveau: '', statutAcademique: 'ACTIF'
+    });
+    setShowCreateModal(true);
+  };
+
+  const openEditModal = (etudiant) => {
+    setEditEtudiant(etudiant);
+    setFormData({
+      matricule: etudiant.matricule,
+      nom: etudiant.nom,
+      prenom: etudiant.prenom,
+      email: etudiant.email,
+      telephone: etudiant.telephone === '—' ? '' : etudiant.telephone,
+      formation: etudiant.formation,
+      promotion: etudiant.promotion,
+      niveau: etudiant.niveau,
+      statutAcademique: etudiant.statut
+    });
+    setShowEditModal(true);
+  };
+
+  const openDeleteModal = (etudiant) => {
+    setDeleteEtudiant(etudiant);
+    setShowDeleteModal(true);
+  };
+
+  const handleCreate = async () => {
+    try {
+      const defaultPassword = `EMIT@${formData.promotion || new Date().getFullYear()}`;
+      const user = await usersApi.create({
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        motDePasse: defaultPassword,
+        role: 'ETUDIANT',
+      });
+      await studentsApi.create({
+        userId: user.id,
+        matricule: formData.matricule,
+        formation: formData.formation,
+        niveau: formData.niveau,
+        promotion: formData.promotion,
+        telephone: formData.telephone || undefined,
+      });
+      setShowCreateModal(false);
+      loadStudents();
+    } catch (err) {
+      console.error('Erreur création étudiant:', err);
+    }
+  };
+
+  const handleEdit = async () => {
+    if (!editEtudiant) return;
+    try {
+      await studentsApi.update(editEtudiant.id, {
+        matricule: formData.matricule,
+        formation: formData.formation,
+        niveau: formData.niveau,
+        promotion: formData.promotion,
+        telephone: formData.telephone || undefined,
+        statutAcademique: formData.statutAcademique,
+      });
+      setShowEditModal(false);
+      setEditEtudiant(null);
+      loadStudents();
+    } catch (err) {
+      console.error('Erreur modification étudiant:', err);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleteEtudiant) return;
+    try {
+      await studentsApi.delete(deleteEtudiant.id);
+      setShowDeleteModal(false);
+      setDeleteEtudiant(null);
+      loadStudents();
+    } catch (err) {
+      console.error('Erreur suppression étudiant:', err);
+    }
   };
 
   return (
@@ -178,6 +212,9 @@ function AdminEtudiants() {
           <h1>Gestion des étudiants</h1>
           <p className="admin-etudiants-subtitle">Gérez les étudiants et leurs informations</p>
         </div>
+        <button className="admin-etudiants-btn-add" onClick={openCreateModal}>
+          <FaPlus /> Ajouter
+        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -256,18 +293,17 @@ function AdminEtudiants() {
             <tr>
               <th>Matricule</th>
               <th>Étudiant</th>
-              <th>Filière</th>
+              <th>Formation</th>
               <th>Promotion</th>
               <th>Niveau</th>
               <th>Statut</th>
-              <th>Stage / Entreprise</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             {paginatedEtudiants.length === 0 ? (
               <tr>
-                <td colSpan="8" className="admin-etudiants-empty">Aucun étudiant trouvé</td>
+                <td colSpan="7" className="admin-etudiants-empty">Aucun étudiant trouvé</td>
               </tr>
             ) : (
               paginatedEtudiants.map((etudiant) => (
@@ -282,25 +318,19 @@ function AdminEtudiants() {
                       </div>
                     </div>
                   </td>
-                  <td>{etudiant.filiere}</td>
+                  <td>{etudiant.formation}</td>
                   <td><span className="admin-etudiants-promotion-badge">{etudiant.promotion}</span></td>
                   <td>{etudiant.niveau}</td>
                   <td><span className={getStatusBadge(etudiant.statut)}>{etudiant.statut}</span></td>
                   <td>
-                    <div className="admin-etudiants-stage-info">
-                      <span className="admin-etudiants-stage-name">{etudiant.stage || '—'}</span>
-                      <span className="admin-etudiants-entreprise-name">{etudiant.entreprise || '—'}</span>
-                    </div>
-                  </td>
-                  <td>
                     <div className="admin-etudiants-actions">
-                      <button className="admin-etudiants-btn-icon" onClick={() => openDetailModal(etudiant)} title="Voir">
-                        <FaEye />
+                      <button className="admin-etudiants-btn-view" onClick={() => openDetailModal(etudiant)} title="Voir">
+                        <FaEye /> Voir
                       </button>
-                      <button className="admin-etudiants-btn-icon" onClick={() => openEditModal(etudiant)} title="Modifier">
+                      <button className="admin-etudiants-btn-edit" onClick={() => openEditModal(etudiant)} title="Modifier">
                         <FaEdit />
                       </button>
-                      <button className="admin-etudiants-btn-icon danger" onClick={() => openDeleteModal(etudiant)} title="Supprimer">
+                      <button className="admin-etudiants-btn-delete" onClick={() => openDeleteModal(etudiant)} title="Supprimer">
                         <FaTrash />
                       </button>
                     </div>
@@ -326,14 +356,36 @@ function AdminEtudiants() {
       </div>
 
       {/* ===== MODALES (COMPOSANTS EXTERNES) ===== */}
+      {showDetailModal && (
+        <EtudiantDetail
+          etudiant={selectedEtudiant}
+          onClose={() => { setShowDetailModal(false); setSelectedEtudiant(null); }}
+        />
+      )}
+
+      {showCreateModal && (
+        <EtudiantForm
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
+          onCancel={() => setShowCreateModal(false)}
+          title="Ajouter un étudiant"
+          submitLabel="Créer"
+          filiereOptions={filiereOptions}
+          promotionOptions={promotionOptions}
+          niveauOptions={niveauOptions}
+          statutOptions={statutOptions}
+        />
+      )}
+
       {showEditModal && (
         <EtudiantForm
-          title="Modifier l'étudiant"
-          submitLabel="Modifier"
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
+          onCancel={() => { setShowEditModal(false); setEditEtudiant(null); }}
+          title="Modifier l'étudiant"
+          submitLabel="Enregistrer"
           filiereOptions={filiereOptions}
           promotionOptions={promotionOptions}
           niveauOptions={niveauOptions}
@@ -343,16 +395,9 @@ function AdminEtudiants() {
 
       {showDeleteModal && (
         <EtudiantDelete
-          etudiant={selectedEtudiant}
+          etudiant={deleteEtudiant}
           onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setSelectedEtudiant(null); }}
-        />
-      )}
-
-      {showDetailModal && (
-        <EtudiantDetail
-          etudiant={selectedEtudiant}
-          onClose={() => { setShowDetailModal(false); setSelectedEtudiant(null); }}
+          onCancel={() => { setShowDeleteModal(false); setDeleteEtudiant(null); }}
         />
       )}
     </div>

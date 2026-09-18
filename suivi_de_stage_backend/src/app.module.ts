@@ -74,12 +74,10 @@ export class AppModule implements OnModuleInit {
       'ETUDIANT',
       'ENCADREUR',
       'ENSEIGNANT',
-      'ENTREPRISE',
       'ADMINISTRATEUR',
       'ROLE_ETUDIANT',
       'ROLE_ENCADREUR',
       'ROLE_ENSEIGNANT',
-      'ROLE_ENTREPRISE',
       'ROLE_ADMINISTRATEUR',
     ];
     for (const role of roles) {

@@ -83,7 +83,7 @@ describe('MapService', () => {
     );
 
     expect(builder.andWhere).toHaveBeenCalledWith(
-      'student.user_id = :actorId',
+      'student.userId = :actorId',
       { actorId: 'student-id' },
     );
     expect(builder.andWhere).toHaveBeenCalledWith(

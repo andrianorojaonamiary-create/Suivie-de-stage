@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaArrowLeft, FaUserGraduate, FaBuilding, FaCalendarAlt, 
@@ -6,80 +6,10 @@ import {
 } from 'react-icons/fa';
 
 function EncadreurStageDetail() {
-  const { id } = useParams();
+  useParams();
   const navigate = useNavigate();
-  const [stage, setStage] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    setTimeout(() => {
-      const stages = {
-        1: {
-          id: 1,
-          titre: "Développement d'une plateforme web de gestion RH",
-          etudiant: 'Rakoto Miora',
-          entreprise: 'TechMada SARL',
-          ville: 'Antananarivo',
-          adresse: 'Lot II M 77, Antananarivo',
-          dateDebut: '2024-03-01',
-          dateFin: '2024-09-15',
-          statut: 'En cours',
-          description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js.",
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo',
-          progression: 65
-        },
-        2: {
-          id: 2,
-          titre: "Migration et sécurisation du système d'information",
-          etudiant: 'Ramanantsoa Tojo',
-          entreprise: 'BNI Madagascar',
-          ville: 'Antananarivo',
-          adresse: 'Rue Ravoninahitriniarivo, Antananarivo',
-          dateDebut: '2024-05-01',
-          dateFin: '2024-11-01',
-          statut: 'En attente',
-          description: "Migration du système d'information vers une architecture sécurisée.",
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo',
-          progression: 15
-        },
-        3: {
-          id: 3,
-          titre: "Application de gestion des rendez-vous",
-          etudiant: 'Razafindramary Fy',
-          entreprise: 'Santé Plus',
-          ville: 'Antananarivo',
-          adresse: 'Lot II M 77, Antananarivo',
-          dateDebut: '2024-08-01',
-          dateFin: '2025-01-15',
-          statut: 'En cours',
-          description: "Application mobile de gestion des rendez-vous médicaux avec React Native.",
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo',
-          progression: 5
-        },
-        4: {
-          id: 4,
-          titre: "Système de gestion de stock",
-          etudiant: 'Rajaonarivelo Ando',
-          entreprise: 'DistriTech',
-          ville: 'Antananarivo',
-          adresse: 'Lot II M 77, Antananarivo',
-          dateDebut: '2024-07-01',
-          dateFin: '2024-12-31',
-          statut: 'Refusé',
-          description: "Développement d'un système de gestion de stock pour entreprise de distribution.",
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Dr. Ranaivo',
-          progression: 20
-        }
-      };
-      
-      setStage(stages[id] || null);
-      setLoading(false);
-    }, 500);
-  }, [id]);
+  const [stage] = useState(null);
+  const [loading] = useState(false);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';

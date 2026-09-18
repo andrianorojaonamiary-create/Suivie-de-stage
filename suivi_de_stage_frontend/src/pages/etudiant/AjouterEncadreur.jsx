@@ -6,6 +6,7 @@ import {
  
 } from 'react-icons/fa';
 import { sanitizePhone } from '../../utils/phone';
+import { toast } from 'react-toastify';
 
 function AjouterEncadreur() {
   const navigate = useNavigate();
@@ -47,9 +48,9 @@ function AjouterEncadreur() {
     setLoading(true);
     setTimeout(() => {
       if (isEditing) {
-        alert('Encadreur modifié avec succès !');
+        toast.success('Encadreur modifié avec succès !');
       } else {
-        alert('Encadreur ajouté avec succès !');
+        toast.success('Encadreur ajouté avec succès !');
       }
       setLoading(false);
       navigate('/etudiant/encadreur');

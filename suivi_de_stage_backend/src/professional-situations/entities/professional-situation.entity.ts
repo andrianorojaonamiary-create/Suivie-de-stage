@@ -58,6 +58,20 @@ export class ProfessionalSituation {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
+  @Column({ name: 'type_contrat', type: 'varchar', length: 50, nullable: true })
+  typeContrat: string | null;
+
+  @Column({
+    name: 'statut_academique',
+    type: 'varchar',
+    length: 50,
+    nullable: true,
+  })
+  statutAcademique: string | null;
+
+  @Column({ name: 'date_diplome', type: 'date', nullable: true })
+  dateDiplome: string | null;
+
   @CreateDateColumn({ name: 'date_creation', type: 'timestamptz' })
   dateCreation: Date;
 

@@ -4,4 +4,6 @@ export enum InternshipStatus {
   TERMINE = 'TERMINE',
   SUSPENDU = 'SUSPENDU',
   ANNULE = 'ANNULE',
+  EN_ATTENTE = 'EN_ATTENTE',
+  REFUSE = 'REFUSE',
 }

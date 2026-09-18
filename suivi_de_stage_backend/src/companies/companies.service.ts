@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   ForbiddenException,
   Injectable,
@@ -31,19 +32,47 @@ export class CompaniesService {
   ) {}
 
   async create(dto: CreateCompanyDto, actor: AuthenticatedUser) {
-    this.ensureAdmin(actor);
-    const user = await this.findCompanyUser(dto.userId);
-    const company = this.companiesRepository.create({ ...dto, user });
+    let ownerId: string;
+    if (actor.role === Role.ENCADREUR) {
+      ownerId = actor.id;
+    } else {
+      this.ensureAdmin(actor);
+      if (!dto.userId) {
+        throw new BadRequestException(
+          'Le champ userId est requis pour un administrateur.',
+        );
+      }
+      ownerId = dto.userId;
+    }
+    const user = await this.findCompanyOwner(ownerId);
+    const company = this.companiesRepository.create({
+      ...dto,
+      userId: ownerId,
+      user,
+      region: dto.region ?? dto.ville ?? 'Non renseignée',
+    });
     return this.saveAndSerialize(company);
   }
 
   async findAll(dto: FindCompaniesDto, actor: AuthenticatedUser) {
-    this.ensureAdmin(actor);
+    const canList =
+      actor.role === Role.ADMINISTRATEUR || actor.role === Role.ETUDIANT;
+    if (!canList) {
+      throw new ForbiddenException(
+        'Accès réservé aux administrateurs et étudiants.',
+      );
+    }
     const page = dto.page ?? 1;
     const limit = dto.limit ?? 10;
     const query = this.companiesRepository
       .createQueryBuilder('company')
       .innerJoinAndSelect('company.user', 'user');
+
+    if (actor.role === Role.ETUDIANT) {
+      query.andWhere('company.statut = :statut', {
+        statut: CompanyStatus.ACTIVE,
+      });
+    }
 
     if (dto.ville)
       query.andWhere('LOWER(company.ville) = LOWER(:ville)', {
@@ -85,20 +114,30 @@ export class CompaniesService {
   }
 
   async findMe(actor: AuthenticatedUser) {
-    this.ensureCompany(actor);
-    return this.toPublicCompany(await this.findByUserId(actor.id));
+    let company: Company;
+    if (actor.role === Role.ENCADREUR) {
+      try {
+        company = await this.findByUserId(actor.id);
+      } catch (error) {
+        if (!(error instanceof NotFoundException)) throw error;
+        company = await this.findByEncadreur(actor.id);
+      }
+    } else {
+      company = await this.findByUserId(actor.id);
+    }
+    return this.toPublicCompany(company);
   }
 
   async update(id: string, dto: UpdateCompanyDto, actor: AuthenticatedUser) {
     const company = await this.findEntity(id);
-    this.ensureCanAccess(company, actor);
+    await this.ensureCanAccess(company, actor);
     if (actor.role !== Role.ADMINISTRATEUR && (dto.userId || dto.statut)) {
       throw new ForbiddenException(
         'Seul un administrateur peut modifier le compte ou le statut.',
       );
     }
     if (dto.userId) {
-      company.user = await this.findCompanyUser(dto.userId);
+      company.user = await this.findCompanyOwner(dto.userId);
       company.userId = dto.userId;
     }
     Object.assign(company, dto);
@@ -114,7 +153,7 @@ export class CompaniesService {
 
   async findHostedStudents(id: string, actor: AuthenticatedUser) {
     const company = await this.findEntity(id);
-    this.ensureCanAccess(company, actor);
+    await this.ensureCanAccess(company, actor);
     const students = await this.studentsRepository.find({
       where: { entrepriseId: company.userId },
       relations: { user: true },
@@ -155,10 +194,31 @@ export class CompaniesService {
     return company;
   }
 
-  private async findCompanyUser(id: string) {
+  private async findByEncadreur(encadreurId: string) {
+    const student = await this.studentsRepository.findOne({
+      where: { encadreurId },
+      order: { dateCreation: 'ASC' },
+    });
+    if (!student?.entrepriseId) {
+      throw new NotFoundException(
+        'Aucune entreprise associée à cet encadreur.',
+      );
+    }
+    const company = await this.companiesRepository.findOne({
+      where: { userId: student.entrepriseId },
+      relations: { user: true },
+    });
+    if (!company)
+      throw new NotFoundException(
+        'Aucune entreprise associée à cet encadreur.',
+      );
+    return company;
+  }
+
+  private async findCompanyOwner(id: string) {
     const user = await this.usersService.findActiveById(id);
-    if (!user || user.role !== Role.ENTREPRISE)
-      throw new NotFoundException('Compte entreprise introuvable.');
+    if (!user || user.role !== Role.ENCADREUR)
+      throw new NotFoundException('Encadreur introuvable.');
     return user;
   }
 
@@ -169,25 +229,26 @@ export class CompaniesService {
       );
   }
 
-  private ensureCompany(actor: AuthenticatedUser) {
-    if (actor.role !== Role.ENTREPRISE && actor.role !== Role.ADMINISTRATEUR)
-      throw new ForbiddenException('Accès réservé aux entreprises.');
-  }
-
-  private ensureCanAccess(company: Company, actor: AuthenticatedUser) {
-    if (
-      actor.role !== Role.ADMINISTRATEUR &&
-      (actor.role !== Role.ENTREPRISE || company.userId !== actor.id)
-    ) {
-      throw new ForbiddenException(
-        'Vous ne pouvez pas consulter cette entreprise.',
-      );
+  private async ensureCanAccess(company: Company, actor: AuthenticatedUser) {
+    if (actor.role === Role.ADMINISTRATEUR || company.userId === actor.id) {
+      return;
     }
+    if (actor.role === Role.ENCADREUR) {
+      const assignedStudent = await this.studentsRepository.findOne({
+        where: { encadreurId: actor.id, entrepriseId: company.userId },
+        select: { id: true },
+      });
+      if (assignedStudent) return;
+    }
+    throw new ForbiddenException(
+      'Vous ne pouvez pas consulter cette entreprise.',
+    );
   }
 
   private async ensureCanRead(company: Company, actor: AuthenticatedUser) {
-    if (actor.role === Role.ADMINISTRATEUR) return;
-    if (actor.role === Role.ENTREPRISE && company.userId === actor.id) return;
+    if (actor.role === Role.ADMINISTRATEUR || company.userId === actor.id) {
+      return;
+    }
     if (actor.role === Role.ENCADREUR) {
       const assignedStudent = await this.studentsRepository.findOne({
         where: { encadreurId: actor.id, entrepriseId: company.userId },

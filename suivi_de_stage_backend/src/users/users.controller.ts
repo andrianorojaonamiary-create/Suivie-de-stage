@@ -32,7 +32,7 @@ export class UsersController {
   }
 
   @Get()
-  @Roles(Role.ADMINISTRATEUR, Role.ENSEIGNANT, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENSEIGNANT, Role.ENCADREUR, Role.ETUDIANT)
   findAll(@Query() findUsersDto: FindUsersDto) {
     return this.usersService.findAll(findUsersDto);
   }

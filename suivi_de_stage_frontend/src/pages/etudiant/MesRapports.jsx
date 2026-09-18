@@ -27,17 +27,7 @@ function MesRapports() {
   const [reportToDelete, setReportToDelete] = useState(null);
 
   // ===== DONNÉES : RAPPORTS PAR STAGE =====
-  const [stages, setStages] = useState([
-    {
-      id: 1,
-      titre: 'Développement plateforme web RH',
-      entreprise: 'TechMada SARL',
-      rapports: [
-        { id: 1, title: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', status: 'Validé', size: '1.2 MB', commentaire: 'Très bon travail !' },
-        { id: 2, title: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', status: 'En révision', size: '2.4 MB', commentaire: 'En attente de validation' },
-      ]
-    }
-  ]);
+  const [stages, setStages] = useState([]);
 
   useEffect(() => {
     const fetchStagesWithRapports = async () => {

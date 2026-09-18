@@ -30,12 +30,13 @@ export const authApi = {
       role: userData.role,
       ...(userData.matricule && { matricule: userData.matricule }),
       ...(userData.niveau && { niveau: userData.niveau }),
-      ...(userData.filiere && { filiere: userData.filiere }),
+      ...(userData.formation && { formation: userData.formation }),
+      ...(userData.promotion && { promotion: userData.promotion }),
       ...(userData.grade && { grade: userData.grade }),
       ...(userData.departement && { departement: userData.departement }),
       ...(userData.specialite && { specialite: userData.specialite }),
       ...(userData.entreprise && { entreprise: userData.entreprise }),
-      ...(userData.poste && { poste: userData.poste }),
+      ...(userData.fonction && { fonction: userData.fonction }),
       ...(userData.telephone && { telephone: userData.telephone }),
       ...(userData.adresse && { adresse: userData.adresse })
     };
@@ -61,6 +62,16 @@ export const authApi = {
   updateMe: async (data) => {
     const res = await unwrap(apiClient.patch('/auth/me', data));
     return normalizeUser(res);
+  },
+
+  /**
+   * Changement du mot de passe d'un utilisateur authentifié
+   * @param {{ ancienMotDePasse: string, nouveauMotDePasse: string }} data
+   */
+  changePassword: async ({ ancienMotDePasse, nouveauMotDePasse }) => {
+    return unwrap(
+      apiClient.patch('/auth/change-password', { ancienMotDePasse, nouveauMotDePasse }),
+    );
   },
 
   /**

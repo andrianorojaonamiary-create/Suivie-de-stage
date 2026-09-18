@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   FaUsers, FaUserGraduate, FaEye, FaStar, FaFileAlt, 
@@ -6,6 +6,7 @@ import {
   FaClock, FaCheckCircle, FaTimes, FaGraduationCap, 
   FaComment
 } from 'react-icons/fa';
+import { studentsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function EncadreurEtudiants() {
@@ -15,91 +16,45 @@ function EncadreurEtudiants() {
   const [selectedNiveau, setSelectedNiveau] = useState('tous');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [loading, setLoading] = useState(true);
 
-  const [students] = useState([
-    {
-      id: 1,
-      nom: 'Rakoto Miora',
-      matricule: 'ETU-2024-0421',
-      filiere: 'Génie Logiciel',
-      niveau: 'Master 2',
-      stage: {
-        id: 1,
-        titre: "Plateforme web RH",
-        entreprise: 'TechMada SARL',
-        statut: 'En cours',
-        dateDebut: '2024-03-01',
-        dateFin: '2024-09-15',
-        progression: 65
-      },
-      evaluation: 'Validé',
-      rapports: 2
-    },
-    {
-      id: 2,
-      nom: 'Ramanantsoa Tojo',
-      matricule: 'ETU-2024-0423',
-      filiere: 'Sécurité Info.',
-      niveau: 'Master 1',
-      stage: {
-        id: 2,
-        titre: "Migration système",
-        entreprise: 'BNI Madagascar',
-        statut: 'En attente',
-        dateDebut: '2024-05-01',
-        dateFin: '2024-11-01',
-        progression: 15
-      },
-      evaluation: 'À faire',
-      rapports: 0
-    },
-    {
-      id: 3,
-      nom: 'Razafindramary Fy',
-      matricule: 'ETU-2024-0427',
-      filiere: 'Génie Logiciel',
-      niveau: 'Master 2',
-      stage: {
-        id: 3,
-        titre: "Gestion rendez-vous",
-        entreprise: 'Santé Plus',
-        statut: 'En cours',
-        dateDebut: '2024-08-01',
-        dateFin: '2025-01-15',
-        progression: 5
-      },
-      evaluation: 'À faire',
-      rapports: 0
-    },
-    {
-      id: 4,
-      nom: 'Rajaonarivelo Ando',
-      matricule: 'ETU-2024-0426',
-      filiere: 'Réseaux',
-      niveau: 'Licence 1',
-      stage: {
-        id: 4,
-        titre: "Gestion de stock",
-        entreprise: 'DistriTech',
-        statut: 'Refusé',
-        dateDebut: '2024-07-01',
-        dateFin: '2024-12-31',
-        progression: 20
-      },
-      evaluation: 'À corriger',
-      rapports: 1
-    }
-  ]);
+  const [students, setStudents] = useState([]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        const res = await studentsApi.getAll();
+        const list = res?.items || [];
+        const mapped = list.map(item => ({
+          id: item.id,
+          nom: `${item.user?.prenom || ''} ${item.user?.nom || ''}`.trim() || 'Étudiant',
+          matricule: item.matricule || '—',
+          filiere: item.formation || 'Non renseigné',
+          niveau: item.niveau || 'Non renseigné',
+          stage: { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
+          evaluation: 'À faire',
+          rapports: 0
+        }));
+        setStudents(mapped);
+      } catch (err) {
+        console.error('Erreur chargement étudiants encadreur:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStudents();
+  }, []);
 
   const stats = {
     total: students.length,
-    enStage: students.filter(s => s.stage.statut === 'En cours' || s.stage.statut === 'En attente').length,
-    termines: students.filter(s => s.stage.statut === 'Terminé' || s.stage.statut === 'Validé').length,
+    enStage: 0,
+    termines: 0,
     aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
   };
 
   const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));
-  const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'].map(v => ({ value: v, label: v === 'tous' ? 'Tous niveaux' : v }));
+  const niveaux = ['tous', ...new Set(students.map(s => s.niveau))].map(v => ({ value: v, label: v === 'tous' ? 'Tous niveaux' : v }));
 
   const filteredStudents = students.filter(s => {
     if (selectedFiliere !== 'tous' && s.filiere !== selectedFiliere) return false;

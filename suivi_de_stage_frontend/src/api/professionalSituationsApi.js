@@ -29,7 +29,13 @@ export const professionalSituationsApi = {
    * @param {string} id
    * @param {Object} data
    */
-  update: (id, data) => unwrap(apiClient.patch(`/professional-situations/${id}`, data))
+  update: (id, data) => unwrap(apiClient.patch(`/professional-situations/${id}`, data)),
+
+  /**
+   * Supprimer une situation professionnelle (Étudiant propriétaire ou Admin)
+   * @param {string} id
+   */
+  delete: (id) => unwrap(apiClient.delete(`/professional-situations/${id}`))
 };
 
 export default professionalSituationsApi;

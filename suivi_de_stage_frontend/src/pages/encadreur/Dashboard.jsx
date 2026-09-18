@@ -3,7 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { Link } from 'react-router-dom';
 import { 
   FaUsers, FaClipboardList, FaStar, FaFileAlt, 
-  FaArrowRight, FaBell, FaComment, FaBuilding,
+  FaArrowRight, FaBell, FaBuilding,
   FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
@@ -102,13 +102,13 @@ function EncadreurDashboard() {
   // ===== STATISTIQUES =====
   const stats = {
     etudiants: encadreurStages.length,
-    etudiantsChange: '+2 ce mois',
+    etudiantsChange: '',
     stagesEnCours: encadreurStages.filter(s => s.statut === 'En cours').length,
-    stagesActifs: `${Math.round((encadreurStages.filter(s => s.statut === 'En cours').length / encadreurStages.length) * 100)}%`,
-    evaluationsEnAttente: 3,
-    rapportsRecus: 4,
+    stagesActifs: encadreurStages.length > 0 ? `${Math.round((encadreurStages.filter(s => s.statut === 'En cours').length / encadreurStages.length) * 100)}%` : '0%',
+    evaluationsEnAttente: 0,
+    rapportsRecus: 0,
     rapportsTotal: encadreurStages.length,
-    observations: 5
+    observations: 0
   };
 
   // ===== DONNÉES CAMEMBERT =====
@@ -131,55 +131,10 @@ function EncadreurDashboard() {
   }));
 
   // ===== INFORMATIONS DE L'ENTREPRISE =====
-  const entrepriseInfo = {
-    nom: 'TechMada SARL',
-    adresse: 'Lot II M 77, Antananarivo',
-    ville: 'Antananarivo',
-    telephone: '+261 34 12 345 67',
-    email: 'contact@techmada.mg',
-    site: 'www.techmada.mg',
-    description: 'Entreprise spécialisée dans le développement de solutions logicielles.'
-  };
+  const entrepriseInfo = null;
 
   // ===== ACTIVITÉS RÉCENTES =====
-  const recentActivities = [
-    { 
-      id: 1, 
-      icon: <FaFileAlt />, 
-      text: 'Rapport de Miora Rakoto déposé', 
-      detail: 'Rapport intermédiaire à commenter',
-      time: 'Il y a 2h',
-      color: '#6BA9E6',
-      bg: '#E1ECFE'
-    },
-    { 
-      id: 2, 
-      icon: <FaUsers />, 
-      text: 'Nouvel étudiant assigné', 
-      detail: 'Razafindramary Fy vous a été assigné',
-      time: 'Il y a 5h',
-      color: '#27AE60',
-      bg: '#D1FAE5'
-    },
-    { 
-      id: 3, 
-      icon: <FaStar />, 
-      text: 'Évaluation à réaliser', 
-      detail: 'Pour Ramanantsoa Tojo',
-      time: 'Il y a 1h',
-      color: '#F39C12',
-      bg: '#FEF3C7'
-    },
-    { 
-      id: 4, 
-      icon: <FaComment />, 
-      text: 'Observation ajoutée', 
-      detail: 'Vous avez ajouté une observation sur Miora Rakoto',
-      time: 'Il y a 3h',
-      color: '#7C3AED',
-      bg: '#EDE9FE'
-    },
-  ];
+  const recentActivities = [];
 
   const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
 
@@ -391,29 +346,37 @@ function EncadreurDashboard() {
             <h3><FaBuilding /> Mon entreprise</h3>
           </div>
           <div className="entreprise-info-body">
-            <div className="entreprise-name">
-              <FaBuilding className="entreprise-icon" />
-              <span className="name">{entrepriseInfo.nom}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaMapMarkerAlt className="detail-icon" />
-              <span>{entrepriseInfo.adresse}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaPhone className="detail-icon" />
-              <span>{entrepriseInfo.telephone}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaEnvelope className="detail-icon" />
-              <span>{entrepriseInfo.email}</span>
-            </div>
-            <div className="entreprise-detail">
-              <FaGlobe className="detail-icon" />
-              <span>{entrepriseInfo.site}</span>
-            </div>
-            <div className="entreprise-description">
-              <p>{entrepriseInfo.description}</p>
-            </div>
+            {entrepriseInfo ? (
+              <>
+                <div className="entreprise-name">
+                  <FaBuilding className="entreprise-icon" />
+                  <span className="name">{entrepriseInfo.nom}</span>
+                </div>
+                <div className="entreprise-detail">
+                  <FaMapMarkerAlt className="detail-icon" />
+                  <span>{entrepriseInfo.adresse}</span>
+                </div>
+                <div className="entreprise-detail">
+                  <FaPhone className="detail-icon" />
+                  <span>{entrepriseInfo.telephone}</span>
+                </div>
+                <div className="entreprise-detail">
+                  <FaEnvelope className="detail-icon" />
+                  <span>{entrepriseInfo.email}</span>
+                </div>
+                <div className="entreprise-detail">
+                  <FaGlobe className="detail-icon" />
+                  <span>{entrepriseInfo.site}</span>
+                </div>
+                <div className="entreprise-description">
+                  <p>{entrepriseInfo.description}</p>
+                </div>
+              </>
+            ) : (
+              <p className="detail-empty">
+                Aucune information sur votre entreprise n'est encore disponible sur la plateforme.
+              </p>
+            )}
             <div className="entreprise-stats">
               <div className="stat-item">
                 <span className="stat-number">{encadreurStages.length}</span>

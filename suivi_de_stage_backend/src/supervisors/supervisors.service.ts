@@ -37,7 +37,15 @@ export class SupervisorsService {
   }
 
   async findAll(dto: FindSupervisorsDto, actor: AuthenticatedUser) {
-    this.ensureAdminOrEnseignant(actor);
+    const canList =
+      actor.role === Role.ADMINISTRATEUR ||
+      actor.role === Role.ENSEIGNANT ||
+      actor.role === Role.ETUDIANT;
+    if (!canList) {
+      throw new ForbiddenException(
+        'Accès réservé aux administrateurs, enseignants et étudiants.',
+      );
+    }
     const page = dto.page ?? 1;
     const limit = dto.limit ?? 10;
     const query = this.supervisorsRepository
@@ -182,14 +190,6 @@ export class SupervisorsService {
     }
   }
 
-  private ensureAdminOrEnseignant(actor: AuthenticatedUser) {
-    if (actor.role !== Role.ADMINISTRATEUR && actor.role !== Role.ENSEIGNANT) {
-      throw new ForbiddenException(
-        'Accès réservé aux administrateurs et enseignants.',
-      );
-    }
-  }
-
   private ensureSupervisor(actor: AuthenticatedUser) {
     if (
       actor.role !== Role.ENCADREUR &&
@@ -237,6 +237,7 @@ export class SupervisorsService {
       fonction: supervisor.fonction,
       specialite: supervisor.specialite,
       telephone: supervisor.telephone,
+      entreprise: supervisor.entreprise ?? null,
       user: supervisor.user
         ? {
             id: supervisor.user.id,

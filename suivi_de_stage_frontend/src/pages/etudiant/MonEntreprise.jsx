@@ -5,6 +5,7 @@ import {
   FaPlus, FaEdit, FaTrash, FaEye
 } from 'react-icons/fa';
 import { companiesApi } from '../../api';
+import { toast } from 'react-toastify';
 
 function MonEntreprise() {
   const navigate = useNavigate();
@@ -15,21 +16,7 @@ function MonEntreprise() {
   const [loading, setLoading] = useState(true);
   
   // ===== DONNÉES ENTREPRISES =====
-  const [entreprises, setEntreprises] = useState([
-    {
-      id: 1,
-      nom: 'TechMada SARL',
-      domaine: 'Technologies de l\'information',
-      adresse: 'Lot II M 77, Antananarivo',
-      ville: 'Antananarivo',
-      telephone: '+261 34 12 345 67',
-      email: 'contact@techmada.mg',
-      site: 'www.techmada.mg',
-      description: 'TechMada est une entreprise spécialisée dans le développement de solutions logicielles.',
-      lat: -18.8792,
-      lng: 47.5079
-    }
-  ]);
+  const [entreprises, setEntreprises] = useState([]);
 
   const fetchCompanies = async () => {
     try {
@@ -84,10 +71,10 @@ function MonEntreprise() {
       }
       const entreprise = entreprises.find(e => e.id === entrepriseToDelete);
       setEntreprises(entreprises.filter(e => e.id !== entrepriseToDelete));
-      alert(`Entreprise "${entreprise?.nom}" supprimée !`);
+      toast.success(`Entreprise "${entreprise?.nom}" supprimée !`);
     } catch (err) {
       console.error('Erreur suppression entreprise:', err);
-      alert('Erreur lors de la suppression de l\'entreprise');
+      toast.error('Erreur lors de la suppression de l\'entreprise');
     } finally {
       setShowDeleteModal(false);
       setEntrepriseToDelete(null);

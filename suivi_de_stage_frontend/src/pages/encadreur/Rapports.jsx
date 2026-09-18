@@ -21,11 +21,7 @@ function EncadreurRapports() {
   const [selectedRapport, setSelectedRapport] = useState(null);
   const [commentaire, setCommentaire] = useState('');
 
-  const [allRapports, setAllRapports] = useState([
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-    { id: 3, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', titre: 'Rapport de prise en main', fileName: null, date: '—', statut: 'À déposer', size: '—' }
-  ]);
+  const [allRapports, setAllRapports] = useState([]);
 
   const rapports = studentId 
     ? allRapports.filter(r => r.etudiantId === parseInt(studentId))

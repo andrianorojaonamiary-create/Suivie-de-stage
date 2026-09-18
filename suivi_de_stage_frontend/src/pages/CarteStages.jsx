@@ -49,17 +49,11 @@ function CarteStages() {
           }));
           setStageMarkers(mapped);
         } else {
-          // Fallback d'affichage démonstration géolocalisée si aucun point en base
-          setStageMarkers([
-            { id: 1, student: 'Miora Rakoto', company: 'TechMada SARL', city: 'Antananarivo', subject: 'Plateforme web RH', status: 'En cours', lat: -18.8792, lng: 47.5079 },
-            { id: 2, student: 'Tojo Ramanantsoa', company: 'EMIT Lab', city: 'Fianarantsoa', subject: 'Supervision réseau', status: 'En cours', lat: -21.4588, lng: 47.0878 },
-          ]);
+          setStageMarkers([]);
         }
       } catch (err) {
         console.error('Erreur chargement carte:', err);
-        setStageMarkers([
-          { id: 1, student: 'Miora Rakoto', company: 'TechMada SARL', city: 'Antananarivo', subject: 'Plateforme web RH', status: 'En cours', lat: -18.8792, lng: 47.5079 },
-        ]);
+        setStageMarkers([]);
       } finally {
         setLoading(false);
       }

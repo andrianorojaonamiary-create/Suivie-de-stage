@@ -12,19 +12,17 @@ describe('RolesGuard', () => {
     } as unknown as ExecutionContext;
   }
 
-  it.each([
-    Role.ETUDIANT,
-    Role.ENCADREUR,
-    Role.ENTREPRISE,
-    Role.ADMINISTRATEUR,
-  ])('allows the %s role when required', (role) => {
-    const reflector = {
-      getAllAndOverride: jest.fn().mockReturnValue([role]),
-    } as unknown as Reflector;
-    const guard = new RolesGuard(reflector);
+  it.each([Role.ETUDIANT, Role.ENCADREUR, Role.ADMINISTRATEUR])(
+    'allows the %s role when required',
+    (role) => {
+      const reflector = {
+        getAllAndOverride: jest.fn().mockReturnValue([role]),
+      } as unknown as Reflector;
+      const guard = new RolesGuard(reflector);
 
-    expect(guard.canActivate(contextWithUser({ role }))).toBe(true);
-  });
+      expect(guard.canActivate(contextWithUser({ role }))).toBe(true);
+    },
+  );
 
   it('rejects an unauthenticated request for a protected role', () => {
     const reflector = {

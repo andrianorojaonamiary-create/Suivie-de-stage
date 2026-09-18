@@ -88,6 +88,14 @@ export class UsersService {
       .getOne();
   }
 
+  async findByIdWithPassword(id: string) {
+    return this.usersRepository
+      .createQueryBuilder('user')
+      .addSelect('user.motDePasse')
+      .where('user.id = :id', { id })
+      .getOne();
+  }
+
   async findActiveById(id: string) {
     return this.usersRepository.findOne({
       where: { id, actif: true },
@@ -126,6 +134,7 @@ export class UsersService {
 
     if (updateUserDto.motDePasse) {
       changes.motDePasse = await hash(updateUserDto.motDePasse, 12);
+      changes.motDePasseChangeAt = new Date();
     }
 
     const user = await this.usersRepository.preload({ id, ...changes });

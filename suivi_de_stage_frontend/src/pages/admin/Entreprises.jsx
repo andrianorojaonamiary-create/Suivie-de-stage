@@ -1,12 +1,10 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye,
   FaBuilding, FaUsers,FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 
-import EntrepriseForm from './components/EntrepriseForm';
 import EntrepriseDetail from './components/EntrepriseDetail';
-import EntrepriseDelete from './components/EntrepriseDelete';
 import companiesApi from '../../api/companiesApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
@@ -15,22 +13,10 @@ function AdminEntreprises() {
   const [filterDomaine, setFilterDomaine] = useState('Tous');
   const [filterVille, setFilterVille] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEntreprise, setSelectedEntreprise] = useState(null);
   const [loading, setLoading] = useState(true);
   const [entreprises, setEntreprises] = useState([]);
-  const [formData, setFormData] = useState({
-    nom: '',
-    domaine: '',
-    adresse: '',
-    ville: '',
-    telephone: '',
-    email: '',
-    latitude: '',
-    longitude: ''
-  });
   const itemsPerPage = 5;
 
   const loadCompanies = async () => {
@@ -86,7 +72,7 @@ function AdminEntreprises() {
   };
 
   const domaineOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Tous les domaines' },
     { value: 'Technologies', label: 'Technologies' },
     { value: 'Banque', label: 'Banque' },
     { value: 'Télécom', label: 'Télécom' },
@@ -94,66 +80,9 @@ function AdminEntreprises() {
     { value: 'Services', label: 'Services' }
   ];
   const villeOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Toutes les villes' },
     { value: 'Antananarivo', label: 'Antananarivo' }
   ];
-
-  const resetForm = () => {
-    setFormData({
-      nom: '',
-      domaine: '',
-      adresse: '',
-      ville: '',
-      telephone: '',
-      email: '',
-      latitude: '',
-      longitude: ''
-    });
-  };
-
-  const handleEdit = async () => {
-    try {
-      if (selectedEntreprise?.id) {
-        await companiesApi.update(selectedEntreprise.id, {
-          nom: formData.nom,
-          secteur: formData.domaine,
-          adresse: formData.adresse,
-          ville: formData.ville,
-          email: formData.email,
-          telephone: formData.telephone
-        });
-        await loadCompanies();
-      }
-    } catch {
-      setEntreprises(entreprises.map(e => e.id === selectedEntreprise?.id ? { ...e, ...formData } : e));
-    }
-    setShowEditModal(false);
-    resetForm();
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (selectedEntreprise?.id) {
-        await companiesApi.delete(selectedEntreprise.id);
-        await loadCompanies();
-      }
-    } catch {
-      setEntreprises(entreprises.filter(e => e.id !== selectedEntreprise?.id));
-    }
-    setShowDeleteModal(false);
-    setSelectedEntreprise(null);
-  };
-
-  const openEditModal = (entreprise) => {
-    setSelectedEntreprise(entreprise);
-    setFormData(entreprise);
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (entreprise) => {
-    setSelectedEntreprise(entreprise);
-    setShowDeleteModal(true);
-  };
 
   const openDetailModal = (entreprise) => {
     setSelectedEntreprise(entreprise);
@@ -255,9 +184,7 @@ function AdminEntreprises() {
                   </td>
                   <td>
                     <div className="admin-entreprises-actions">
-                      <button className="admin-entreprises-btn-icon" onClick={() => openDetailModal(entreprise)} title="Voir"><FaEye /></button>
-                      <button className="admin-entreprises-btn-icon" onClick={() => openEditModal(entreprise)} title="Modifier"><FaEdit /></button>
-                      <button className="admin-entreprises-btn-icon danger" onClick={() => openDeleteModal(entreprise)} title="Supprimer"><FaTrash /></button>
+                      <button className="admin-entreprises-btn-view" onClick={() => openDetailModal(entreprise)} title="Voir"><FaEye /> Voir</button>
                     </div>
                   </td>
                 </tr>
@@ -278,27 +205,6 @@ function AdminEntreprises() {
           </div>
         )}
       </div>
-
-      {showEditModal && (
-        <EntrepriseForm
-          title="Modifier l'entreprise"
-          submitLabel="Modifier"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
-          domaineOptions={domaineOptions}
-          villeOptions={villeOptions}
-        />
-      )}
-
-      {showDeleteModal && (
-        <EntrepriseDelete
-          entreprise={selectedEntreprise}
-          onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setSelectedEntreprise(null); }}
-        />
-      )}
 
       {showDetailModal && (
         <EntrepriseDetail
