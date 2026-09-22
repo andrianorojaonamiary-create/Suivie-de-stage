@@ -7,10 +7,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Internship } from '../internships/entities/internship.entity';
 import { Role } from '../users/enums/role.enum';
+import { NotificationsService } from '../notifications/notifications.service';
 import { CreateFollowUpDto } from './dto/create-follow-up.dto';
 import { FindFollowUpsDto } from './dto/find-follow-ups.dto';
 import { UpdateFollowUpDto } from './dto/update-follow-up.dto';
 import { InternshipFollowUp } from './entities/internship-follow-up.entity';
+import { FollowUpType } from './enums/follow-up-type.enum';
 
 interface AuthenticatedUser {
   id: string;
@@ -24,6 +26,7 @@ export class InternshipTrackingService {
     private readonly followUpsRepository: Repository<InternshipFollowUp>,
     @InjectRepository(Internship)
     private readonly internshipsRepository: Repository<Internship>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(
@@ -40,7 +43,11 @@ export class InternshipTrackingService {
       contenu: dto.contenu,
       type: dto.type,
     });
-    return this.toPublicFollowUp(await this.followUpsRepository.save(followUp));
+    const saved = await this.followUpsRepository.save(followUp);
+    if (saved.type === FollowUpType.OBSERVATION) {
+      await this.notificationsService.notifyObservationAdded(internship);
+    }
+    return this.toPublicFollowUp(saved);
   }
 
   async findAll(
@@ -129,19 +136,22 @@ export class InternshipTrackingService {
       (actor.role === Role.ETUDIANT &&
         internship.student.user?.id === actor.id) ||
       (actor.role === Role.ENCADREUR &&
-        internship.supervisor?.user?.id === actor.id);
+        internship.supervisor?.user?.id === actor.id) ||
+      (actor.role === Role.ENSEIGNANT && internship.tuteurId === actor.id);
     if (!allowed)
       throw new ForbiddenException('Vous ne pouvez pas consulter ce suivi.');
   }
 
   private ensureCanWrite(internship: Internship, actor: AuthenticatedUser) {
     if (actor.role === Role.ADMINISTRATEUR) return;
-    if (
-      actor.role !== Role.ENCADREUR ||
-      internship.supervisor?.user?.id !== actor.id
-    ) {
+    const assigned =
+      actor.role === Role.ENCADREUR &&
+      internship.supervisor?.user?.id === actor.id;
+    const tutored =
+      actor.role === Role.ENSEIGNANT && internship.tuteurId === actor.id;
+    if (!assigned && !tutored) {
       throw new ForbiddenException(
-        'Seul l’encadreur affecté peut ajouter ce suivi.',
+        'Seul l’encadreur affecté ou le tuteur peut ajouter ce suivi.',
       );
     }
   }

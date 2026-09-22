@@ -1,9 +1,7 @@
-import { createContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient, { getApiErrorMessage, normalizeUser } from '../api/apiClient';
 import { toast } from 'react-toastify';
-
-// Création du contexte (à l'intérieur du fichier)
-const AuthContext = createContext(null);
+import { AuthContext } from './authContext';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -139,6 +137,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-// Exporter le contexte pour qu'il soit accessible par le hook
-export { AuthContext };

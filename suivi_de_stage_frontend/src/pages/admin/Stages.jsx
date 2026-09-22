@@ -16,13 +16,11 @@ function AdminStages() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [stages, setStages] = useState([]);
   const itemsPerPage = 5;
 
   const loadStages = async () => {
     try {
-      setLoading(true);
       const res = await internshipsApi.getAll();
       const list = Array.isArray(res) ? res : res?.items || [];
 
@@ -41,13 +39,14 @@ function AdminStages() {
       setStages(mapped);
     } catch (err) {
       console.error('Erreur récurrente stages:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadStages();
+    const run = async () => {
+      await loadStages();
+    };
+    run();
   }, []);
 
   const stats = {

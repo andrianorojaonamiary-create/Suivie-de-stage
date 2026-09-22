@@ -3,7 +3,7 @@ import { useAuth } from '../hooks/useAuth';
 import {
   FaUserCircle, FaEnvelope, FaPhone, FaBuilding, 
   FaLock, FaSave, FaUser, FaBook, FaGraduationCap, FaBriefcase,
-  FaIdCard, FaMapMarkerAlt, FaGlobe,FaChalkboardTeacher ,FaShieldAlt, FaTimes,
+  FaIdCard, FaMapMarkerAlt, FaChalkboardTeacher ,FaShieldAlt, FaTimes,
   FaEye, FaEyeSlash, FaCalendarAlt
 } from 'react-icons/fa';
 import { sanitizePhone } from '../utils/phone';
@@ -108,7 +108,10 @@ function Profil() {
   const [profile, setProfile] = useState(getProfileData());
 
   useEffect(() => {
-    setProfile(getProfileData());
+    const syncProfile = async () => {
+      setProfile(getProfileData());
+    };
+    syncProfile();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [studentProfile, supervisorProfile, user]);
   const [showPassForm, setShowPassForm] = useState(false);

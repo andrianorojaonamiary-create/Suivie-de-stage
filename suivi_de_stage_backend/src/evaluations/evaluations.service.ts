@@ -46,6 +46,7 @@ export class EvaluationsService {
       stageId: dto.stageId,
       stage,
       evaluateur: evaluator,
+      validee: true,
       dateEvaluation: dto.dateEvaluation
         ? new Date(dto.dateEvaluation)
         : undefined,
@@ -176,7 +177,8 @@ export class EvaluationsService {
       actor.role === Role.ADMINISTRATEUR ||
       (actor.role === Role.ETUDIANT && stage.student.user?.id === actor.id) ||
       (actor.role === Role.ENCADREUR &&
-        stage.supervisor?.user?.id === actor.id);
+        stage.supervisor?.user?.id === actor.id) ||
+      (actor.role === Role.ENSEIGNANT && stage.tuteurId === actor.id);
     if (!allowed)
       throw new ForbiddenException(
         'Vous ne pouvez pas consulter cette évaluation.',

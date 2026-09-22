@@ -93,6 +93,7 @@ function Register() {
         { name: 'niveau', label: 'Niveau', type: 'select', placeholder: 'Sélectionner le niveau', required: true, options: () => niveauOptions },
         { name: 'formation', label: 'Filière', type: 'select', placeholder: 'Sélectionner la filière', required: true, options: () => filiereOptionsByNiveau[formData.niveau] || [] },
         { name: 'promotion', label: 'Promotion', type: 'select', placeholder: 'Sélectionner la promotion', required: true, options: () => promotionOptions },
+        { name: 'adresse', label: 'Adresse', placeholder: 'Ex : Lot II T 23, Fianarantsoa' },
       ],
       'ROLE_ENSEIGNANT': [
         ...common,

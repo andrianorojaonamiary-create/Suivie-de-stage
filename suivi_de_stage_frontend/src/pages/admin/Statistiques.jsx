@@ -28,42 +28,11 @@ const EvaluationTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-import { useEffect } from 'react';
-import statisticsApi from '../../api/statisticsApi';
-
 function Statistiques() {
 
   const [filterYear, setFilterYear] = useState('2026');
   const [isExporting, setIsExporting] = useState(false);
-  const [statsData, setStatsData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const statsRef = useRef(null);
-
-  useEffect(() => {
-    const fetchAllStats = async () => {
-      try {
-        setLoading(true);
-        const [dash, intern, emp, geo] = await Promise.allSettled([
-          statisticsApi.getDashboard(),
-          statisticsApi.getInternships(),
-          statisticsApi.getEmployment(),
-          statisticsApi.getGeography()
-        ]);
-        setStatsData({
-          dash: dash.status === 'fulfilled' ? dash.value : null,
-          intern: intern.status === 'fulfilled' ? intern.value : null,
-          emp: emp.status === 'fulfilled' ? emp.value : null,
-          geo: geo.status === 'fulfilled' ? geo.value : null,
-        });
-      } catch (err) {
-        console.error('Erreur chargement statistiques:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchAllStats();
-  }, [filterYear]);
 
   // ===== FONCTION EXPORT PDF =====
   const handleExportPDF = async () => {

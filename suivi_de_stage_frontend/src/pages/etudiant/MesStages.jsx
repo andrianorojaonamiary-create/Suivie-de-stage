@@ -9,24 +9,19 @@ function MesStages() {
   const navigate = useNavigate();
   const [stages, setStages] = useState([]);
 
-  const [loading, setLoading] = useState(true);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [stageToDelete, setStageToDelete] = useState(null);
 
-  const fetchStages = async () => {
-    try {
-      setLoading(true);
-      const res = await internshipsApi.getAll();
-      const list = res?.data || (Array.isArray(res) ? res : []);
-      setStages(mapInternshipList(list));
-    } catch (err) {
-      console.error('Erreur chargement mes stages:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const res = await internshipsApi.getAll();
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        setStages(mapInternshipList(list));
+      } catch (err) {
+        console.error('Erreur chargement mes stages:', err);
+      }
+    };
     fetchStages();
   }, []);
 

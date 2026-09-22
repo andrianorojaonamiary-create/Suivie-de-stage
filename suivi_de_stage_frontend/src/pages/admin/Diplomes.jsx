@@ -24,7 +24,6 @@ function AdminDiplomes() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
   const tableRef = useRef(null);
 
@@ -34,7 +33,6 @@ function AdminDiplomes() {
   useEffect(() => {
     const fetchDiplomes = async () => {
       try {
-        setLoading(true);
         const res = await professionalSituationsApi.getAll();
         const list = Array.isArray(res) ? res : res?.items || [];
         if (list.length > 0) {
@@ -59,8 +57,6 @@ function AdminDiplomes() {
         }
       } catch (err) {
         console.error('Erreur chargement diplômés:', err);
-      } finally {
-        setLoading(false);
       }
     };
 

@@ -11,6 +11,7 @@ import {
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
 import { internshipsApi, evaluationsApi } from '../../api';
+import { useAuth } from '../../hooks/useAuth';
 
 // ============================================================
 // MODAL DÉTAILS ÉVALUATION
@@ -294,11 +295,30 @@ async function loadAllEvaluations() {
   );
   const evalResults = await Promise.all(evalPromises);
 
-  const allEvs = [];
+  const rows = [];
   internships.forEach((s, i) => {
     const evals = evalResults[i]?.data || [];
+    if (evals.length === 0) {
+      rows.push({
+        id: `pending-${s.id}`,
+        stageId: s.id,
+        etudiantId: s.student?.id,
+        etudiant: s.student?.user
+          ? `${s.student.user.prenom ?? ''} ${s.student.user.nom ?? ''}`.trim()
+          : 'Étudiant',
+        stage: s.intitule,
+        entreprise: s.company?.nom || '',
+        type: 'ENCADREUR',
+        statut: 'À faire',
+        date: '',
+        note: null,
+        filiere: s.student?.formation || '',
+        pending: true,
+      });
+      return;
+    }
     evals.forEach((e) => {
-      allEvs.push({
+      rows.push({
         ...e,
         stageId: s.id,
         etudiantId: s.student?.id,
@@ -312,14 +332,16 @@ async function loadAllEvaluations() {
         date: e.dateEvaluation ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR') : '',
         note: e.note,
         filiere: s.student?.formation || '',
+        pending: false,
       });
     });
   });
 
-  return allEvs;
+  return { rows, internships };
 }
 
 function EncadreurEvaluations() {
+  const { user } = useAuth();
   const { studentId } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
@@ -337,7 +359,8 @@ function EncadreurEvaluations() {
     const fetchEvaluations = async () => {
       try {
         setLoading(true);
-        setAllEvaluations(await loadAllEvaluations());
+        const { rows } = await loadAllEvaluations();
+        setAllEvaluations(rows);
       } catch (err) {
         console.error(' chargement évaluations:', err);
       } finally {
@@ -364,7 +387,9 @@ function EncadreurEvaluations() {
   const stats = {
     total: evaluations.length,
     valides: evaluations.filter(e => e.statut === 'Validé').length,
-    enAttente: evaluations.filter(e => e.statut === 'À faire' || e.statut === 'En attente').length
+    enAttente: new Set(
+      evaluations.filter(e => e.pending).map(e => String(e.etudiantId))
+    ).size
   };
 
   const filteredEvals = evaluations.filter(e => {
@@ -413,28 +438,37 @@ function EncadreurEvaluations() {
         toast.error('Stage introuvable pour cette évaluation');
         return;
       }
-      await evaluationsApi.create({
+      const criteriaLabels = [
+        ['Compétences techniques', data.competenceTech],
+        ['Qualité du travail', data.qualiteTravail],
+        ['Autonomie', data.autonomie],
+        ['Respect des délais', data.respectDelais],
+        ["Esprit d'équipe", data.espritEquipe],
+        ['Communication', data.communication],
+        ['Assiduité et ponctualité', data.assiduite],
+      ];
+      const observation = criteriaLabels
+        .map(([label, val]) => `${label} : ${val}/20`)
+        .join(' | ');
+      const payload = {
         stageId: selectedEvaluation.stageId,
-        note: data.moyenne,
-        commentaire: data.appreciation,
-        criteres: {
-          competenceTech: data.competenceTech,
-          qualiteTravail: data.qualiteTravail,
-          autonomie: data.autonomie,
-          respectDelais: data.respectDelais,
-          espritEquipe: data.espritEquipe,
-          communication: data.communication,
-          assiduite: data.assiduite,
-        },
-        type: 'ENCADREUR',
-      });
+        evaluateurId: user?.id,
+        typeEvaluateur: 'ENCADREUR',
+        note: Number(data.moyenne),
+        observation,
+      };
+      if (data.appreciation?.trim()) {
+        payload.commentaire = data.appreciation.trim();
+      }
+      await evaluationsApi.create(payload);
       toast.success(<>
         <div>Évaluation enregistrée avec succès !</div>
         <div>Note moyenne : {data.moyenne}/20</div>
       </>);
       setShowEvalForm(false);
       setSelectedEvaluation(null);
-      setAllEvaluations(await loadAllEvaluations());
+      const { rows } = await loadAllEvaluations();
+      setAllEvaluations(rows);
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || "Erreur lors de l'enregistrement";
       toast.error(Array.isArray(message) ? message.join(', ') : message);
@@ -493,8 +527,7 @@ function EncadreurEvaluations() {
                   options={[
                     { value: 'tous', label: 'Tous les statuts' },
                     { value: 'Validé', label: 'Validé' },
-                    { value: 'À faire', label: 'À faire' },
-                    { value: 'En attente', label: 'En attente' }
+                    { value: 'À faire', label: 'À faire' }
                   ]}
                 />
               </div>

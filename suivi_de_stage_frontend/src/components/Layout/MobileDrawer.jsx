@@ -14,10 +14,12 @@ function MobileDrawer({ isOpen, onClose }) {
   const location = useLocation();
 
   // Fermer le drawer lors d'une navigation
+  // (isOpen/onClose délibérément exclus : inclure isOpen refermerait le drawer dès son ouverture)
   useEffect(() => {
     if (isOpen) {
       onClose();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   const getDashboardPath = () => {

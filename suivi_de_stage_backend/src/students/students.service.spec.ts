@@ -13,8 +13,17 @@ describe('StudentsService', () => {
     softRemove: jest.fn(),
   };
   const usersService = { findActiveById: jest.fn() };
+  const internshipsRepository = {
+    createQueryBuilder: jest.fn(() => ({
+      innerJoin: jest.fn().mockReturnThis(),
+      where: jest.fn().mockReturnThis(),
+      andWhere: jest.fn().mockReturnThis(),
+      getCount: jest.fn(async () => 0),
+    })),
+  };
   const service = new StudentsService(
     studentsRepository as never,
+    internshipsRepository as never,
     usersService as never,
   );
 

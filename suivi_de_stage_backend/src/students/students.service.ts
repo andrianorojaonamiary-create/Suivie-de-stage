@@ -9,6 +9,7 @@ import { DeepPartial, QueryFailedError, Repository } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Role } from '../users/enums/role.enum';
 import { UsersService } from '../users/users.service';
+import { Internship } from '../internships/entities/internship.entity';
 import { CreateStudentDto } from './dto/create-student.dto';
 import { FindStudentsDto } from './dto/find-students.dto';
 import { UpdateStudentDto } from './dto/update-student.dto';
@@ -24,6 +25,8 @@ export class StudentsService {
   constructor(
     @InjectRepository(Student)
     private readonly studentsRepository: Repository<Student>,
+    @InjectRepository(Internship)
+    private readonly internshipsRepository: Repository<Internship>,
     private readonly usersService: UsersService,
   ) {}
 
@@ -70,7 +73,7 @@ export class StudentsService {
 
   async findOne(id: string, actor: AuthenticatedUser) {
     const student = await this.findEntity(id);
-    this.ensureCanRead(student, actor);
+    await this.ensureCanRead(student, actor);
     return this.toPublicStudent(student, actor);
   }
 
@@ -105,7 +108,7 @@ export class StudentsService {
       return this.saveAndSerialize(student, actor);
     }
 
-    this.ensureCanRead(student, actor);
+    await this.ensureCanRead(student, actor);
     if (actor.role !== Role.ETUDIANT) {
       throw new ForbiddenException('Vous ne pouvez pas modifier cet étudiant.');
     }
@@ -132,9 +135,26 @@ export class StudentsService {
     if (actor.role === Role.ETUDIANT) {
       query.andWhere('student.userId = :userId', { userId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
-      query.andWhere('student.encadreurId = :encadreurId', {
-        encadreurId: actor.id,
-      });
+      query.andWhere(
+        `(student.encadreurId = :encadreurId OR EXISTS (
+          SELECT 1
+          FROM internships i
+          INNER JOIN supervisors sup ON sup.id = i.supervisor_id
+          WHERE i.student_id = "student".id
+            AND sup.user_id = :encadreurId
+        ))`,
+        { encadreurId: actor.id },
+      );
+    } else if (actor.role === Role.ENSEIGNANT) {
+      query.andWhere(
+        `EXISTS (
+          SELECT 1
+          FROM internships i
+          WHERE i.student_id = "student".id
+            AND i.tuteur_id = :tuteurId
+        )`,
+        { tuteurId: actor.id },
+      );
     }
   }
 
@@ -203,17 +223,30 @@ export class StudentsService {
     }
   }
 
-  private ensureCanRead(student: Student, actor: AuthenticatedUser) {
+  private async ensureCanRead(student: Student, actor: AuthenticatedUser) {
     const allowed =
       actor.role === Role.ADMINISTRATEUR ||
       actor.role === Role.ENSEIGNANT ||
       (actor.role === Role.ETUDIANT && student.userId === actor.id) ||
-      (actor.role === Role.ENCADREUR && student.encadreurId === actor.id);
+      (actor.role === Role.ENCADREUR &&
+        (student.encadreurId === actor.id ||
+          (await this.isSupervisedBy(student.id, actor.id))));
     if (!allowed) {
       throw new ForbiddenException(
         'Vous ne pouvez pas consulter cet étudiant.',
       );
     }
+  }
+
+  private async isSupervisedBy(studentId: string, actorId: string) {
+    if (!studentId || !actorId) return false;
+    const count = await this.internshipsRepository
+      .createQueryBuilder('internship')
+      .innerJoin('internship.supervisor', 'supervisor')
+      .where('internship.studentId = :studentId', { studentId })
+      .andWhere('supervisor.userId = :actorId', { actorId })
+      .getCount();
+    return count > 0;
   }
 
   private async saveAndSerialize(student: Student, actor?: AuthenticatedUser) {
@@ -242,7 +275,8 @@ export class StudentsService {
           prenom: student.user.prenom,
           ...(actor?.role === Role.ADMINISTRATEUR ||
           actor?.role === Role.ETUDIANT ||
-          actor?.role === Role.ENSEIGNANT
+          actor?.role === Role.ENSEIGNANT ||
+          actor?.role === Role.ENCADREUR
             ? { email: student.user.email, role: student.user.role }
             : {}),
         }
@@ -293,9 +327,16 @@ export class StudentsService {
       formation: publicStudent.formation,
       niveau: publicStudent.niveau,
       promotion: publicStudent.promotion,
+      telephone: publicStudent.telephone,
+      adresse: publicStudent.adresse,
       statutAcademique: publicStudent.statutAcademique,
       user: publicUser
-        ? { id: publicUser.id, nom: publicUser.nom, prenom: publicUser.prenom }
+        ? {
+            id: publicUser.id,
+            nom: publicUser.nom,
+            prenom: publicUser.prenom,
+            email: publicUser.email,
+          }
         : undefined,
       dateCreation: publicStudent.dateCreation,
       dateModification: publicStudent.dateModification,

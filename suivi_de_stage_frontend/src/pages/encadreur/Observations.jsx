@@ -63,10 +63,11 @@ function EncadreurObservations() {
             stage: s.intitule,
             entreprise: s.company?.nom || '',
             date: f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '—',
+            dateBrute: f.date || null,
             contenu: f.contenu || '',
             type: TYPE_LABELS[f.type] || f.type || 'Observation',
-            auteur: f.autorizedUser || f.auteur?.user
-              ? `${f.auteur?.user?.prenom ?? ''} ${f.auteur?.user?.nom ?? ''}`.trim()
+            auteur: f.auteur
+              ? `${f.auteur.prenom ?? ''} ${f.auteur.nom ?? ''}`.trim() || 'Encadreur'
               : 'Encadreur',
           }));
         });
@@ -109,7 +110,7 @@ function EncadreurObservations() {
   ];
 
   const filteredData = filteredObs.filter(o => {
-    if (selectedEtudiant !== 'tous' && o.etudiant !== selectedEtudiant) return false;
+    if (selectedEtudiant !== 'tous' && String(o.etudiantId) !== String(selectedEtudiant)) return false;
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase().trim();
       return o.etudiant.toLowerCase().includes(term) ||
@@ -134,10 +135,22 @@ function EncadreurObservations() {
     }
   };
 
+  const studentsEncadres = new Set(
+    (studentId
+      ? stages.filter((s) => String(s.student?.id) === String(studentId))
+      : stages
+    )
+      .map((s) => s.student?.id)
+      .filter(Boolean)
+      .map(String)
+  );
+  const studentsObserves = new Set(filteredObs.map((o) => String(o.etudiantId)));
   const stats = {
     total: filteredObs.length,
+    sansObservation: [...studentsEncadres].filter((id) => !studentsObserves.has(id)).length,
     recents: filteredObs.filter(o => {
-      const date = new Date(o.date);
+      const date = new Date(o.dateBrute);
+      if (Number.isNaN(date.getTime())) return false;
       const now = new Date();
       const diff = (now - date) / (1000 * 60 * 60 * 24);
       return diff <= 7;
@@ -271,6 +284,13 @@ function EncadreurObservations() {
           <div className="stat-info">
             <span className="stat-value">{stats.total}</span>
             <span className="stat-label">Total</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon pending"><FaUserGraduate /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.sansObservation}</span>
+            <span className="stat-label">À observer</span>
           </div>
         </div>
         <div className="stat-card">

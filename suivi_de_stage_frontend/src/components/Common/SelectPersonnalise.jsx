@@ -5,7 +5,7 @@ import { FaChevronDown } from 'react-icons/fa';
 
 const DROPDOWN_MAX_HEIGHT = 220;
 const DROPDOWN_GAP = 8;
-const DROPDOWN_Z_INDEX = 9998;
+const DROPDOWN_Z_INDEX = 100000;
 
 function SelectPersonnalise({
   options,
@@ -104,19 +104,23 @@ function SelectPersonnalise({
             zIndex: DROPDOWN_Z_INDEX,
           }}
         >
-          {options.map((option) => (
-            <li
-              key={option.value}
-              className={`select-personnalise-item ${option.value === value ? 'active' : ''}`}
-              onClick={() => handleSelect(option.value)}
-            >
-              {option.icon && <span className="select-personnalise-item-icon">{option.icon}</span>}
-              <span className="select-personnalise-item-label">{option.label}</span>
-              {option.value === value && (
-                <span className="select-personnalise-item-check">✓</span>
-              )}
-            </li>
-          ))}
+          {options.length === 0 ? (
+            <li className="select-personnalise-empty">Aucune option disponible</li>
+          ) : (
+            options.map((option) => (
+              <li
+                key={option.value}
+                className={`select-personnalise-item ${option.value === value ? 'active' : ''}`}
+                onClick={() => handleSelect(option.value)}
+              >
+                {option.icon && <span className="select-personnalise-item-icon">{option.icon}</span>}
+                <span className="select-personnalise-item-label">{option.label}</span>
+                {option.value === value && (
+                  <span className="select-personnalise-item-check">✓</span>
+                )}
+              </li>
+            ))
+          )}
         </ul>,
         document.body,
       )}

@@ -7,7 +7,7 @@ import {
   FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { internshipsApi, reportsApi, notificationsApi, companiesApi } from '../../api';
+import { internshipsApi, reportsApi, notificationsApi, companiesApi, evaluationsApi } from '../../api';
 import mapInternship from '../../utils/internshipMapping';
 
 // ============================================================
@@ -79,6 +79,7 @@ function EncadreurDashboard() {
     stagesEnCours: 0,
     evaluationsEnAttente: 0,
     rapportsRecus: 0,
+    rapportsAttendus: 0,
     totalStages: 0,
   });
   const [entrepriseInfo, setEntrepriseInfo] = useState(null);
@@ -118,11 +119,43 @@ function EncadreurDashboard() {
       setEncadreurStages(mappedStages);
 
       const enCours = mappedStages.filter((s) => s.statutApi === 'EN_COURS').length;
+
+      const evalByStageRes = await Promise.allSettled(
+        mappedStages.map((s) => evaluationsApi.getByInternship(s.id)),
+      );
+      const evalByStage = new Map(
+        mappedStages.map((s, i) => [
+          s.id,
+          evalByStageRes[i].status === 'fulfilled'
+            ? (Array.isArray(evalByStageRes[i].value) ? evalByStageRes[i].value : evalByStageRes[i].value?.data) || []
+            : [],
+        ]),
+      );
+      const activeStages = mappedStages.filter(
+        (s) => s.statutApi === 'EN_COURS' || s.statutApi === 'TERMINE',
+      );
+      const evaluationsEnAttente = activeStages.filter(
+        (s) => !(evalByStage.get(s.id) || []).some((e) => e.validee),
+      ).length;
+
+      const rapportsByStage = new Map();
+      rapports.forEach((r) => {
+        const sid = r.stage?.id;
+        if (!sid) return;
+        if (!rapportsByStage.has(sid)) rapportsByStage.set(sid, new Set());
+        if (r.type) rapportsByStage.get(sid).add(r.type);
+      });
+      const rapportsAttendus = activeStages.reduce(
+        (acc, s) => acc + Math.max(0, 3 - (rapportsByStage.get(s.id)?.size || 0)),
+        0,
+      );
+
       setStats({
         etudiants: new Set(mappedStages.map((s) => s.etudiantId).filter(Boolean)).size,
         stagesEnCours: enCours,
-        evaluationsEnAttente: enCours,
+        evaluationsEnAttente,
         rapportsRecus: rapports.length,
+        rapportsAttendus,
         totalStages: mappedStages.length,
       });
 
@@ -189,7 +222,7 @@ function EncadreurDashboard() {
     ? Math.min(100, Math.round((stats.stagesEnCours / stats.totalStages) * 100)) : 0;
   const evaluationsPct = stats.totalStages > 0
     ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.totalStages) * 100)) : 0;
-  const rapportsAttendus = stats.totalStages * 2;
+  const rapportsAttendus = stats.rapportsAttendus;
   const rapportsPct = rapportsAttendus > 0
     ? Math.min(100, Math.round((stats.rapportsRecus / rapportsAttendus) * 100)) : 0;
 

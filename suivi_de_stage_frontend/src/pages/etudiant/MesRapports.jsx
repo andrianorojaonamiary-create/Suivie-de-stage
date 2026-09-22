@@ -47,7 +47,7 @@ function MesRapports() {
         rapports: (item.reports || item.rapports || []).map((r) => ({
           id: r.id,
           title: mapReportType(r.type),
-          fileName: r.fileName || r.originalName || null,
+          fileName: r.originalName || r.fileName || null,
           date: formatReportDate(r.dateCreation || r.submittedAt),
           status: mapReportStatus(r.statut || r.status),
           size: formatReportSize(r.size),
@@ -61,7 +61,10 @@ function MesRapports() {
   };
 
   useEffect(() => {
-    fetchStagesWithRapports();
+    const run = async () => {
+      await fetchStagesWithRapports();
+    };
+    run();
   }, []);
 
   // ===== RAPPORTS À DÉPOSER =====
@@ -182,15 +185,26 @@ function MesRapports() {
       toast.error('Aucun fichier à visualiser');
       return;
     }
+    const ext = (report.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleTelecharger(report);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
+      return;
+    }
+    const win = window.open('', '_blank');
     try {
       const blob = await reportsApi.download(report.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      URL.revokeObjectURL(url);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
       toast.info(`Ouverture de "${report.fileName || report.title}"...`);
     } catch (error) {
       toast.error('Erreur lors de l\'ouverture du fichier');
       console.error('Erreur:', error);
+      if (win) win.close();
     }
   };
 

@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
-  FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
+  FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes,
+  FaTimesCircle, FaComment, FaCalendarAlt
 } from 'react-icons/fa';
 import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
 import { toast } from 'react-toastify';
@@ -23,6 +24,9 @@ function EncadreurStudentDetail() {
   const [rapports, setRapports] = useState([]);
   const [stage, setStage] = useState(null);
   const [evaluations, setEvaluations] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [rejectRapport, setRejectRapport] = useState(null);
+  const [rejectCommentaire, setRejectCommentaire] = useState('');
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -42,6 +46,14 @@ function EncadreurStudentDetail() {
         });
       } catch (err) {
         console.error('Erreur chargement étudiant:', err);
+        if (err?.response?.status === 404) {
+          setErrorMessage(null);
+        } else {
+          const raw = err?.response?.data?.message || err?.message || '';
+          setErrorMessage(
+            Array.isArray(raw) ? raw.join(', ') : (raw || "Erreur lors du chargement de l'étudiant."),
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -101,7 +113,7 @@ function EncadreurStudentDetail() {
           .map((r) => ({
             id: r.id,
             titre: mapReportType(r.type),
-            fileName: r.fileName || r.originalName,
+            fileName: r.originalName || r.fileName,
             size: formatReportSize(r.size),
             date: formatReportDate(r.dateCreation),
             statut: mapReportStatus(r.statut),
@@ -127,43 +139,62 @@ function EncadreurStudentDetail() {
     }
   };
 
-  const handleRefuserRapport = async (id) => {
+  const openRejectRapport = (rapport) => {
+    setRejectRapport(rapport);
+    setRejectCommentaire('');
+  };
+
+  const closeRejectRapport = () => {
+    setRejectRapport(null);
+    setRejectCommentaire('');
+  };
+
+  const confirmRejectRapport = async () => {
+    if (!rejectRapport) return;
+    const commentaire = rejectCommentaire.trim();
+    if (!commentaire) {
+      toast.warning('Un commentaire est obligatoire pour refuser le rapport');
+      return;
+    }
     try {
-      await reportsApi.updateStatus(id, { statut: 'REJETE' });
-      setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Refusé' } : r));
+      await reportsApi.updateStatus(rejectRapport.id, { statut: 'REJETE', commentaire });
+      setRapports(prev => prev.map(r =>
+        r.id === rejectRapport.id ? { ...r, statut: 'Refusé', commentaire, raison: commentaire } : r
+      ));
       toast.success('Rapport refusé');
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Erreur lors du refus';
       toast.error(Array.isArray(message) ? message.join(', ') : message);
     }
+    closeRejectRapport();
   };
 
   const handleViewFile = async (rapport) => {
-    if (!rapport?.id) {
-      window.open(`/documents/${rapport?.fileName}`, '_blank');
+    if (!rapport?.id) return;
+    const ext = (rapport.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleDownloadFile(rapport);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
       return;
     }
+    const win = window.open('', '_blank');
     try {
       const blob = await reportsApi.download(rapport.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      URL.revokeObjectURL(url);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
     } catch (err) {
       console.error('Erreur:', err);
+      if (win) win.close();
       toast.error("Erreur lors de l'ouverture du fichier");
     }
   };
 
   const handleDownloadFile = async (rapport) => {
-    if (!rapport?.id) {
-      const link = document.createElement('a');
-      link.href = `/documents/${rapport?.fileName}`;
-      link.download = rapport?.fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return;
-    }
+    if (!rapport?.id) return;
     try {
       const blob = await reportsApi.download(rapport.id);
       const url = URL.createObjectURL(blob);
@@ -205,8 +236,8 @@ function EncadreurStudentDetail() {
     return (
       <div className="student-detail-notfound">
         <FaInfoCircle className="notfound-icon" />
-        <h2>Étudiant non trouvé</h2>
-        <p>L'étudiant que vous recherchez n'existe pas.</p>
+        <h2>{errorMessage ? "Accès impossible" : 'Étudiant non trouvé'}</h2>
+        <p>{errorMessage || "L'étudiant que vous recherchez n'existe pas."}</p>
         <button className="btn-back-detail" onClick={() => navigate('/encadreur/etudiants')}>
           <FaArrowLeft /> Retour
         </button>
@@ -375,7 +406,7 @@ function EncadreurStudentDetail() {
                           {rapport.statut !== 'Validé' && (
                             <>
                               <button className="btn-action-icon" title="Valider" onClick={() => handleValiderRapport(rapport.id)}><FaCheck /></button>
-                              <button className="btn-action-icon" title="Refuser" onClick={() => handleRefuserRapport(rapport.id)}><FaTimes /></button>
+                              <button className="btn-action-icon" title="Refuser" onClick={() => openRejectRapport(rapport)}><FaTimes /></button>
                             </>
                           )}
                         </>
@@ -388,6 +419,42 @@ function EncadreurStudentDetail() {
           </div>
         )}
       </div>
+
+      {rejectRapport && (
+        <div className="modal-overlay" onClick={closeRejectRapport}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2><FaTimesCircle className="modal-icon-reject" /> Refuser le rapport</h2>
+              <button className="modal-close" onClick={closeRejectRapport}><FaTimes /></button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-question">
+                Voulez-vous <strong className="text-danger">refuser</strong> le rapport <strong>{rejectRapport.titre}</strong> de <strong>{student.nom}</strong> ?
+              </p>
+              <div className="stage-summary">
+                <div className="summary-item"><FaFileAlt /> {rejectRapport.titre}</div>
+                <div className="summary-item"><FaCalendarAlt /> {rejectRapport.date}</div>
+              </div>
+              <div className="comment-section">
+                <label><FaComment /> Commentaire (obligatoire)</label>
+                <textarea
+                  className={`comment-textarea ${!rejectCommentaire.trim() ? 'error' : ''}`}
+                  placeholder="Justifiez votre refus..."
+                  value={rejectCommentaire}
+                  onChange={(e) => setRejectCommentaire(e.target.value)}
+                />
+                {!rejectCommentaire.trim() && <span className="error-message">Un commentaire est obligatoire pour refuser</span>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={closeRejectRapport}>Annuler</button>
+              <button className="btn-modal-confirm btn-reject" onClick={confirmRejectRapport} disabled={!rejectCommentaire.trim()}>
+                <FaTimesCircle /> Refuser
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

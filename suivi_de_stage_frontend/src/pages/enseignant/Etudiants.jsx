@@ -6,7 +6,7 @@ import {
   FaChevronLeft, FaChevronRight, FaClock, FaCheckCircle,
   FaTimes, FaGraduationCap
 } from 'react-icons/fa';
-import { studentsApi, internshipsApi, reportsApi } from '../../api';
+import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import mapInternship from '../../utils/internshipMapping';
 
@@ -71,6 +71,31 @@ function EnseignantEtudiants() {
 
         const emptyStage = { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 };
 
+        const evalByStage = new Map();
+        const selectedStages = [...stagesByStudent.entries()].map(([, list]) => {
+          const raw = preferStage(list);
+          return raw ? mapInternship(raw) : null;
+        });
+        const uniqueStageIds = [...new Set(selectedStages.filter(Boolean).map((s) => s.id))];
+        await Promise.all(
+          uniqueStageIds.map(async (stageId) => {
+            try {
+              const ev = await evaluationsApi.getByInternship(stageId);
+              evalByStage.set(stageId, Array.isArray(ev) ? ev : ev?.data || []);
+            } catch {
+              evalByStage.set(stageId, []);
+            }
+          }),
+        );
+
+        const deriveEval = (statutApi, evals) => {
+          if (!statutApi) return '—';
+          if (evals && evals.length > 0) {
+            return evals.some((ev) => ev.validee) ? 'Validé' : 'À faire';
+          }
+          return statutApi === 'EN_COURS' || statutApi === 'TERMINE' ? 'À faire' : '—';
+        };
+
         const mapped = [...stagesByStudent.entries()].map(([id, list]) => {
           const info = infosById.get(id) || null;
           const rawStage = preferStage(list);
@@ -95,7 +120,7 @@ function EnseignantEtudiants() {
                   progression: stage.progression,
                 }
               : { ...emptyStage },
-            evaluation: stage?.statutApi === 'TERMINE' ? 'À faire' : '',
+            evaluation: stage ? deriveEval(stage.statutApi, evalByStage.get(stage.id) || []) : '',
             rapports: rapportsByStudent.get(id) || 0,
           };
         });
@@ -117,7 +142,7 @@ function EnseignantEtudiants() {
     total: students.length,
     enStage: students.filter(s => s.stage.statutApi === 'EN_COURS').length,
     termines: students.filter(s => s.stage.statutApi === 'TERMINE').length,
-    aEvaluer: students.filter(s => s.stage.statutApi === 'TERMINE').length
+    aEvaluer: students.filter(s => s.evaluation === 'À faire').length
   };
 
   const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));

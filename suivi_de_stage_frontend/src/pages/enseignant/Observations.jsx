@@ -1,11 +1,19 @@
-import { useState } from 'react';
-import { 
+import { useState, useEffect } from 'react';
+import {
   FaComment, FaPlus, FaEye, FaEdit, FaTrash,
   FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
   FaUserGraduate, FaBuilding, FaTimes, FaSave,
   FaClock, FaInfoCircle
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
+import { internshipsApi, trackingApi } from '../../api';
+
+const TYPE_LABELS = {
+  OBSERVATION: 'Observation',
+  ENTRETIEN: 'Entretien',
+  RAPPORT: 'Rapport',
+};
 
 function EnseignantObservations() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,18 +26,76 @@ function EnseignantObservations() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedObs, setSelectedObs] = useState(null);
   const [obsToDelete, setObsToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [observations, setObservations] = useState([]);
+  const [stages, setStages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ etudiantId: '', contenu: '' });
 
-  const [formData, setFormData] = useState({
-    etudiant: '',
-    contenu: ''
-  });
+  const getPreferredStage = (studentIdTarget) => {
+    return stages.find((s) => String(s.student?.id) === String(studentIdTarget) && s.statut === 'EN_COURS') ||
+      stages.find((s) => String(s.student?.id) === String(studentIdTarget) && s.statut === 'TERMINE') ||
+      stages.find((s) => String(s.student?.id) === String(studentIdTarget)) || null;
+  };
 
-  const etudiants = ['tous', ...new Set(observations.map(o => o.etudiant))].map(v => ({ value: v, label: v === 'tous' ? 'Tous les étudiants' : v }));
+  useEffect(() => {
+    const fetchObservations = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll({ limit: 100 });
+        const internships = res?.data || (Array.isArray(res) ? res : []);
+        setStages(internships);
 
-  const filteredObs = observations.filter(o => {
-    if (selectedEtudiant !== 'tous' && o.etudiant !== selectedEtudiant) return false;
+        const followUpPromises = internships.map(async (s) => {
+          const followRes = await trackingApi.getByInternship(s.id).catch(() => ({ data: [] }));
+          const list = followRes?.data || (Array.isArray(followRes) ? followRes : []);
+          return list.map((f) => ({
+            id: f.id,
+            stageId: s.id,
+            etudiantId: s.student?.id,
+            etudiant: s.student?.user
+              ? `${s.student.user.prenom ?? ''} ${s.student.user.nom ?? ''}`.trim()
+              : 'Étudiant',
+            stage: s.intitule,
+            entreprise: s.company?.nom || '',
+            date: f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '—',
+            dateBrute: f.date || null,
+            contenu: f.contenu || '',
+            type: TYPE_LABELS[f.type] || f.type || 'Observation',
+            auteur: f.auteur
+              ? `${f.auteur.prenom ?? ''} ${f.auteur.nom ?? ''}`.trim() || 'Tuteur'
+              : 'Tuteur',
+          }));
+        });
+
+        const results = await Promise.all(followUpPromises);
+        setObservations(results.flat());
+      } catch (err) {
+        console.error('Erreur chargement observations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchObservations();
+  }, []);
+
+  const filteredObs = observations;
+
+  const etudiantOptions = stages
+    .filter((s) => s.student?.id)
+    .map((s) => ({
+      value: String(s.student.id),
+      label: `${s.student.user?.prenom ?? ''} ${s.student.user?.nom ?? ''}`.trim() || 'Étudiant',
+    }))
+    .filter((o, index, arr) => arr.findIndex((x) => x.value === o.value) === index);
+  const etudiants = [
+    { value: 'tous', label: 'Tous les étudiants' },
+    ...etudiantOptions,
+  ];
+
+  const filteredData = filteredObs.filter(o => {
+    if (selectedEtudiant !== 'tous' && String(o.etudiantId) !== String(selectedEtudiant)) return false;
     if (searchTerm.trim() !== '') {
       const term = searchTerm.toLowerCase().trim();
       return o.etudiant.toLowerCase().includes(term) ||
@@ -39,9 +105,9 @@ function EnseignantObservations() {
     return true;
   });
 
-  const totalPages = Math.ceil(filteredObs.length / itemsPerPage);
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedObs = filteredObs.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedObs = filteredData.slice(startIndex, startIndex + itemsPerPage);
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -55,52 +121,85 @@ function EnseignantObservations() {
   };
 
   const stats = {
-    total: observations.length,
-    recents: observations.filter(o => {
-      const date = new Date(o.date);
+    total: filteredObs.length,
+    recents: filteredObs.filter(o => {
+      const date = new Date(o.dateBrute);
+      if (Number.isNaN(date.getTime())) return false;
       const now = new Date();
       const diff = (now - date) / (1000 * 60 * 60 * 24);
       return diff <= 7;
     }).length
   };
 
-  const handleAdd = () => {
-    if (!formData.etudiant || !formData.contenu) {
-      alert('Veuillez remplir tous les champs');
+  const handleAdd = async () => {
+    if (!formData.etudiantId || !formData.contenu) {
+      toast.warning('Veuillez remplir tous les champs');
       return;
     }
-    const newObs = {
-      id: Date.now(),
-      etudiant: formData.etudiant,
-      stage: 'Stage en cours',
-      entreprise: 'Entreprise',
-      date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-      contenu: formData.contenu,
-      auteur: 'Prof. Andrianivo'
-    };
-    setObservations([newObs, ...observations]);
-    setShowAddModal(false);
-    setFormData({ etudiant: '', contenu: '' });
+    const stage = getPreferredStage(formData.etudiantId);
+    if (!stage) {
+      toast.error('Aucun stage trouvé pour cet étudiant');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const created = await trackingApi.create(stage.id, {
+        contenu: formData.contenu,
+        type: 'OBSERVATION',
+      });
+      const newObservation = {
+        id: created?.id || Date.now(),
+        stageId: stage.id,
+        etudiantId: stage.student?.id,
+        etudiant: stage.student?.user
+          ? `${stage.student.user.prenom ?? ''} ${stage.student.user.nom ?? ''}`.trim()
+          : 'Étudiant',
+        stage: stage.intitule,
+        entreprise: stage.company?.nom || '',
+        date: new Date().toLocaleDateString('fr-FR'),
+        contenu: formData.contenu,
+        type: 'Observation',
+        auteur: 'Tuteur',
+      };
+      setObservations([newObservation, ...observations]);
+      toast.success('Observation ajoutée avec succès !');
+      setShowAddModal(false);
+      setFormData({ etudiantId: '', contenu: '' });
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || "Erreur lors de l'ajout";
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEdit = (obs) => {
     setSelectedObs(obs);
-    setFormData({ etudiant: obs.etudiant, contenu: obs.contenu });
+    setFormData({ etudiantId: String(obs.etudiantId), contenu: obs.contenu });
     setShowEditModal(true);
   };
 
-  const handleUpdate = () => {
-    if (!formData.etudiant || !formData.contenu) {
-      alert('Veuillez remplir tous les champs');
+  const handleUpdate = async () => {
+    if (!formData.contenu) {
+      toast.warning('Veuillez remplir le champ observation');
       return;
     }
-    const updated = observations.map(o => 
-      o.id === selectedObs.id ? { ...o, etudiant: formData.etudiant, contenu: formData.contenu } : o
-    );
-    setObservations(updated);
-    setShowEditModal(false);
-    setSelectedObs(null);
-    setFormData({ etudiant: '', contenu: '' });
+    setSubmitting(true);
+    try {
+      await trackingApi.update(selectedObs.id, { contenu: formData.contenu });
+      setObservations(observations.map(o =>
+        o.id === selectedObs.id ? { ...o, contenu: formData.contenu } : o
+      ));
+      toast.success('Observation modifiée avec succès !');
+      setShowEditModal(false);
+      setSelectedObs(null);
+      setFormData({ etudiantId: '', contenu: '' });
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la modification';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = (obs) => {
@@ -108,10 +207,20 @@ function EnseignantObservations() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    setObservations(observations.filter(o => o.id !== obsToDelete.id));
-    setShowDeleteModal(false);
-    setObsToDelete(null);
+  const confirmDelete = async () => {
+    setSubmitting(true);
+    try {
+      await trackingApi.delete(obsToDelete.id);
+      setObservations(observations.filter(o => o.id !== obsToDelete.id));
+      toast.success('Observation supprimée');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la suppression';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+      setShowDeleteModal(false);
+      setObsToDelete(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -170,7 +279,7 @@ function EnseignantObservations() {
               </div>
             </div>
           </div>
-          
+
           <div className="search-wrapper">
             <div className="search-group">
               <FaSearch className="search-icon" />
@@ -190,7 +299,12 @@ function EnseignantObservations() {
           </div>
         </div>
 
-        {filteredObs.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <FaComment className="empty-icon" />
+            <h3>Chargement...</h3>
+          </div>
+        ) : paginatedObs.length === 0 ? (
           <div className="empty-state">
             <FaComment className="empty-icon" />
             <h3>Aucune observation</h3>
@@ -202,7 +316,7 @@ function EnseignantObservations() {
               <thead>
                 <tr>
                   <th>Étudiant</th>
-                  <th>Stage</th>
+                  <th> Stage</th>
                   <th>Observation</th>
                   <th>Date</th>
                   <th className="actions-header">Actions</th>
@@ -211,11 +325,7 @@ function EnseignantObservations() {
               <tbody>
                 {paginatedObs.map((obs) => (
                   <tr key={obs.id}>
-                    <td>
-                      <div className="student-cell">
-                        <span className="student-name">{obs.etudiant}</span>
-                      </div>
-                    </td>
+                    <td><strong>{obs.etudiant}</strong></td>
                     <td>
                       <div className="stage-cell">
                         <span className="stage-title">{obs.stage}</span>
@@ -225,7 +335,7 @@ function EnseignantObservations() {
                     <td>
                       <div className="observation-cell">
                         <span className="observation-text">{obs.contenu}</span>
-                        <span className="observation-author">{obs.auteur}</span>
+                        <span className="observation-author">{obs.type} · {obs.auteur}</span>
                       </div>
                     </td>
                     <td>{obs.date}</td>
@@ -249,7 +359,7 @@ function EnseignantObservations() {
 
             {totalPages > 1 && (
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -265,7 +375,7 @@ function EnseignantObservations() {
                     {index + 1}
                   </button>
                 ))}
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -273,7 +383,7 @@ function EnseignantObservations() {
                   <FaChevronRight />
                 </button>
                 <span className="page-info">
-                  {filteredObs.length} observation{filteredObs.length > 1 ? 's' : ''}
+                  {filteredData.length} observation{filteredData.length > 1 ? 's' : ''}
                 </span>
               </div>
             )}
@@ -294,16 +404,16 @@ function EnseignantObservations() {
                 <label><FaUserGraduate /> Étudiant *</label>
                 <SelectPersonnalise
                   className="form-control"
-                  value={formData.etudiant}
-                  onChange={(v) => setFormData({ ...formData, etudiant: v })}
+                  value={formData.etudiantId}
+                  onChange={(v) => setFormData({ ...formData, etudiantId: v })}
                   placeholder="Sélectionner un étudiant"
                   options={etudiants.filter(e => e.value !== 'tous')}
                 />
               </div>
               <div className="form-group">
                 <label><FaComment /> Observation *</label>
-                <textarea 
-                  className="form-control" 
+                <textarea
+                  className="form-control"
                   rows="4"
                   placeholder="Rédigez votre observation..."
                   value={formData.contenu}
@@ -313,8 +423,8 @@ function EnseignantObservations() {
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancel" onClick={() => setShowAddModal(false)}>Annuler</button>
-              <button className="btn-modal-confirm btn-validate" onClick={handleAdd}>
-                <FaSave /> Enregistrer
+              <button className="btn-modal-confirm btn-validate" onClick={handleAdd} disabled={submitting}>
+                <FaSave /> {submitting ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             </div>
           </div>
@@ -331,19 +441,13 @@ function EnseignantObservations() {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label><FaUserGraduate /> Étudiant *</label>
-                <SelectPersonnalise
-                  className="form-control"
-                  value={formData.etudiant}
-                  onChange={(v) => setFormData({ ...formData, etudiant: v })}
-                  placeholder="Sélectionner un étudiant"
-                  options={etudiants.filter(e => e.value !== 'tous')}
-                />
+                <label><FaUserGraduate /> Étudiant</label>
+                <span className="form-control-static">{selectedObs.etudiant} · {selectedObs.stage}</span>
               </div>
               <div className="form-group">
                 <label><FaComment /> Observation *</label>
-                <textarea 
-                  className="form-control" 
+                <textarea
+                  className="form-control"
                   rows="4"
                   placeholder="Rédigez votre observation..."
                   value={formData.contenu}
@@ -353,8 +457,8 @@ function EnseignantObservations() {
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancel" onClick={() => setShowEditModal(false)}>Annuler</button>
-              <button className="btn-modal-confirm btn-validate" onClick={handleUpdate}>
-                <FaSave /> Modifier
+              <button className="btn-modal-confirm btn-validate" onClick={handleUpdate} disabled={submitting}>
+                <FaSave /> {submitting ? 'Modification...' : 'Modifier'}
               </button>
             </div>
           </div>

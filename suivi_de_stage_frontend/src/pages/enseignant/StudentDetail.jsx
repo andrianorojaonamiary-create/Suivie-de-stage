@@ -4,7 +4,7 @@ import {
   FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
   FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
 } from 'react-icons/fa';
-import { studentsApi, internshipsApi, reportsApi } from '../../api';
+import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
 import { toast } from 'react-toastify';
 import {
   mapReportType,
@@ -22,6 +22,7 @@ function EnseignantStudentDetail() {
   const [activeTab, setActiveTab] = useState('info');
   const [rapports, setRapports] = useState([]);
   const [stage, setStage] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -61,7 +62,22 @@ function EnseignantStudentDetail() {
           owned.find((s) => s.statut === 'TERMINE') ||
           owned.find((s) => s.statut === 'A_VENIR') ||
           owned[0];
-        setStage(mapInternship(raw));
+        const mapped = mapInternship(raw);
+        setStage(mapped);
+        const evalRes = await evaluationsApi.getByInternship(mapped.id).catch(() => ({ data: [] }));
+        const list = evalRes?.data || (Array.isArray(evalRes) ? evalRes : []);
+        setEvaluations(
+          list.map((e) => ({
+            id: e.id,
+            type: 'Encadreur',
+            note: e.note,
+            date: e.dateEvaluation
+              ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR')
+              : '—',
+            statut: e.validee ? 'Validé' : 'À faire',
+            commentaire: e.commentaire || '',
+          })),
+        );
       } catch (err) {
         console.error('Erreur chargement stage étudiant:', err);
       }
@@ -80,7 +96,7 @@ function EnseignantStudentDetail() {
           .map((r) => ({
             id: r.id,
             titre: mapReportType(r.type),
-            fileName: r.fileName || r.originalName,
+            fileName: r.originalName || r.fileName,
             size: formatReportSize(r.size),
             date: formatReportDate(r.dateCreation),
             statut: mapReportStatus(r.statut),
@@ -118,31 +134,31 @@ function EnseignantStudentDetail() {
   };
 
   const handleViewFile = async (rapport) => {
-    if (!rapport?.id) {
-      window.open(`/documents/${rapport?.fileName}`, '_blank');
+    if (!rapport?.id) return;
+    const ext = (rapport.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleDownloadFile(rapport);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
       return;
     }
+    const win = window.open('', '_blank');
     try {
       const blob = await reportsApi.download(rapport.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      URL.revokeObjectURL(url);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
     } catch (err) {
       console.error('Erreur:', err);
+      if (win) win.close();
       toast.error("Erreur lors de l'ouverture du fichier");
     }
   };
 
   const handleDownloadFile = async (rapport) => {
-    if (!rapport?.id) {
-      const link = document.createElement('a');
-      link.href = `/documents/${rapport?.fileName}`;
-      link.download = rapport?.fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return;
-    }
+    if (!rapport?.id) return;
     try {
       const blob = await reportsApi.download(rapport.id);
       const url = URL.createObjectURL(blob);
@@ -164,8 +180,6 @@ function EnseignantStudentDetail() {
     const date = new Date(dateStr);
     return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR');
   };
-
-  const evaluations = [];
 
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
@@ -272,6 +286,13 @@ function EnseignantStudentDetail() {
 
         {activeTab === 'evaluations' && (
           <div className="eval-table-wrap">
+            {evaluations.length === 0 ? (
+              <div className="empty-state">
+                <FaStar className="empty-icon" />
+                <h3>Aucune évaluation</h3>
+                <p>Aucune évaluation n'a encore été déposée pour ce stage.</p>
+              </div>
+            ) : (
             <table className="eval-table">
               <thead>
                 <tr>
@@ -308,6 +329,7 @@ function EnseignantStudentDetail() {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
         )}
 

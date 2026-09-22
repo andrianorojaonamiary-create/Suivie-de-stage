@@ -163,6 +163,18 @@ export class NotificationsService {
       );
   }
 
+  async notifyObservationAdded(stage: Internship) {
+    const userId = stage.student?.user?.id;
+    if (!userId) return;
+    await this.createNotification(
+      userId,
+      NotificationType.OBSERVATION,
+      'Nouvelle observation',
+      `Une observation a été ajoutée au stage « ${stage.intitule} ».`,
+      stage.id,
+    );
+  }
+
   async notifyStageEndingSoon(stage: Internship) {
     const participants = [
       stage.student?.user?.id,

@@ -76,7 +76,7 @@
 
 .observations-page .stats-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -109,6 +109,7 @@
 }
 
 .observations-page .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
+.observations-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
 .observations-page .stat-icon.active { background: #FFF3E0; color: #F39C12; }
 
 .observations-page .stat-info {

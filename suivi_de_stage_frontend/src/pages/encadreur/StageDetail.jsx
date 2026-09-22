@@ -12,15 +12,23 @@ function EncadreurStageDetail() {
   const navigate = useNavigate();
   const [stage, setStage] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     const fetchStage = async () => {
       try {
         setLoading(true);
+        setErrorMessage('');
         const data = await internshipsApi.getById(id);
         setStage(mapInternship(data));
       } catch (err) {
         console.error('Erreur chargement stage:', err);
+        if (err?.response?.status !== 404) {
+          const raw = err?.response?.data?.message || err?.message || '';
+          setErrorMessage(
+            Array.isArray(raw) ? raw.join(', ') : (raw || "Erreur lors du chargement du stage."),
+          );
+        }
       } finally {
         setLoading(false);
       }
@@ -63,8 +71,8 @@ function EncadreurStageDetail() {
     return (
       <div className="stage-detail-notfound">
         <FaInfoCircle className="notfound-icon" />
-        <h2>Stage non trouvé</h2>
-        <p>Le stage que vous recherchez n'existe pas.</p>
+        <h2>{errorMessage ? "Accès impossible" : 'Stage non trouvé'}</h2>
+        <p>{errorMessage || "Le stage que vous recherchez n'existe pas."}</p>
         <button className="btn-back-detail" onClick={() => navigate('/encadreur/stages')}>
           <FaArrowLeft /> Retour
         </button>

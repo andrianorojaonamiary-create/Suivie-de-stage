@@ -16,13 +16,11 @@ function AdminEncadreurs() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEncadreur, setSelectedEncadreur] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [encadreurs, setEncadreurs] = useState([]);
   const itemsPerPage = 5;
 
   const loadSupervisors = async () => {
     try {
-      setLoading(true);
       const res = await supervisorsApi.getAll();
       const list = Array.isArray(res) ? res : res?.items || [];
 
@@ -40,13 +38,14 @@ function AdminEncadreurs() {
       setEncadreurs(mapped);
     } catch (err) {
       console.error('Erreur chargement encadreurs:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSupervisors();
+    const run = async () => {
+      await loadSupervisors();
+    };
+    run();
   }, []);
 
   const stats = {

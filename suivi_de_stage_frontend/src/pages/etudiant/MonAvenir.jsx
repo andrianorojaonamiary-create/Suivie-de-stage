@@ -100,7 +100,10 @@ function MonAvenir() {
   }, []);
 
   useEffect(() => {
-    loadAvenir();
+    const run = async () => {
+      await loadAvenir();
+    };
+    run();
   }, [loadAvenir]);
 
   // ===== TEXTE AUTOMATIQUE =====

@@ -46,7 +46,7 @@ function EnseignantRapports() {
           stage: r.stage?.intitule || 'Stage',
           entreprise: r.stage?.entreprise || 'Entreprise',
           titre: mapReportType(r.type),
-          fileName: r.fileName || r.originalName,
+          fileName: r.originalName || r.fileName,
           date: formatReportDate(r.dateCreation),
           statut: mapReportStatus(r.statut),
           size: formatReportSize(r.size),
@@ -114,31 +114,31 @@ function EnseignantRapports() {
   };
 
   const handleViewFile = async (rapport) => {
-    if (!rapport?.id) {
-      window.open(`/documents/${rapport?.fileName}`, '_blank');
+    if (!rapport?.id) return;
+    const ext = (rapport.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleDownloadFile(rapport);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
       return;
     }
+    const win = window.open('', '_blank');
     try {
       const blob = await reportsApi.download(rapport.id);
       const url = URL.createObjectURL(blob);
-      window.open(url, '_blank');
-      URL.revokeObjectURL(url);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
     } catch (error) {
       console.error('Erreur:', error);
+      if (win) win.close();
       toast.error('Erreur lors de l\'ouverture du fichier');
     }
   };
 
   const handleDownloadFile = async (rapport) => {
-    if (!rapport?.id) {
-      const link = document.createElement('a');
-      link.href = `/documents/${rapport?.fileName}`;
-      link.download = rapport?.fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      return;
-    }
+    if (!rapport?.id) return;
     try {
       const blob = await reportsApi.download(rapport.id);
       const url = URL.createObjectURL(blob);

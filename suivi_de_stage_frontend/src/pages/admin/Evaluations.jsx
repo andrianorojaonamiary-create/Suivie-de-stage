@@ -20,7 +20,6 @@ function AdminEvaluations() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
   const tableRef = useRef(null);
 
@@ -30,7 +29,6 @@ function AdminEvaluations() {
   useEffect(() => {
     const fetchEvaluations = async () => {
       try {
-        setLoading(true);
         // Try fetching internships to aggregate evaluations
         const internshipsRes = await internshipsApi.getAll();
         const internshipsList = Array.isArray(internshipsRes) ? internshipsRes : internshipsRes?.items || [];
@@ -56,7 +54,7 @@ function AdminEvaluations() {
                   criteres: ev.criteres || ev.criteria || []
                 });
               });
-            } catch (err) {
+            } catch {
               // Ignore single stage eval fetch errors
             }
           }
@@ -67,8 +65,6 @@ function AdminEvaluations() {
         }
       } catch (err) {
         console.error('Erreur chargement évaluations:', err);
-      } finally {
-        setLoading(false);
       }
     };
 

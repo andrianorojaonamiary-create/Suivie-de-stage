@@ -1,18 +1,11 @@
-import { useState, useMemo } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FaCheckCircle, FaFileAlt, FaExclamationTriangle, 
-  FaCalendarAlt, FaComment, FaBuilding, FaCheck,
-  FaUserPlus, FaClock, FaStar, FaUsers, FaBell,
-  FaUpload, FaFilePdf
-} from 'react-icons/fa';
+import { FaCheck, FaBell, FaUpload } from 'react-icons/fa';
 
 import { useEffect } from 'react';
 import notificationsApi from '../api/notificationsApi';
 
 function Notifications() {
-  const { user } = useAuth();
   const [filter, setFilter] = useState('all');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);

@@ -18,7 +18,7 @@ import {
 
 function EtudiantDashboard() {
   const [progress, setProgress] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   const [daysRemaining, setDaysRemaining] = useState(0);
 
   // ===== INFORMATIONS DU STAGE =====
@@ -127,18 +127,14 @@ function EtudiantDashboard() {
                 && new Date().getTime() >= (new Date(current.dateDebut).getTime() + new Date(current.dateFin).getTime()) / 2,
             },
             {
-              label: 'Fin du stage',
-              done: (current.statut === 'En cours' || current.statut === 'Terminé')
-                && current.dateFin
-                && new Date().getTime() >= new Date(current.dateFin).getTime(),
-            },
-            {
               label: 'Évaluation',
               done: hasEvaluation,
             },
             {
-              label: 'Validation finale',
-              done: current.statut === 'Terminé',
+              label: 'Fin du stage',
+              done: (current.statut === 'En cours' || current.statut === 'Terminé')
+                && current.dateFin
+                && new Date().getTime() >= new Date(current.dateFin).getTime(),
             },
           ];
           setSteps(stepsData);

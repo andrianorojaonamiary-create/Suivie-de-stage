@@ -12,7 +12,7 @@ import { mapReportStatus, formatReportDate } from '../../utils/reportMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function SuiviStage() {
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
   // ===== STAGES DE L'ÉTUDIANT =====
   const [stages, setStages] = useState([]);
 
@@ -148,9 +148,8 @@ function SuiviStage() {
     { label: 'Validation du thème', done: true },
     { label: 'Début du stage', done: !!stageStarted },
     { label: 'Mi-parcours', done: !!stageStarted && debutMs !== null && finMs !== null && nowDate.getTime() >= (debutMs + finMs) / 2 },
-    { label: 'Fin du stage', done: !!stageStarted && finMs !== null && nowDate.getTime() >= finMs },
     { label: 'Évaluation', done: hasEvaluation },
-    { label: 'Validation finale', done: selectedStage.statut === 'Terminé' },
+    { label: 'Fin du stage', done: !!stageStarted && finMs !== null && nowDate.getTime() >= finMs },
   ] : [];
   const stageProgress = milestones.length > 0
     ? Math.round((milestones.filter((m) => m.done).length / milestones.length) * 100)

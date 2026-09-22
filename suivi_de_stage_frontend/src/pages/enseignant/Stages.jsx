@@ -173,10 +173,10 @@ function StagesEnseignant() {
   const confirmValidate = async () => {
     setLoading(true);
     try {
-      await internshipsApi.update(selectedStage.id, {
-        statut: "EN_COURS",
-        observations: commentaire,
-      });
+      const payload = { statut: "EN_COURS" };
+      const trimmed = commentaire?.trim();
+      if (trimmed && trimmed.length >= 2) payload.observations = trimmed;
+      await internshipsApi.update(selectedStage.id, payload);
       setStages((prev) =>
         prev.map((s) =>
           s.id === selectedStage.id

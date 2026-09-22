@@ -7,7 +7,7 @@ import {
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import map from '../../assets/map.jpg';
-import { internshipsApi, notificationsApi, reportsApi } from '../../api';
+import { internshipsApi, notificationsApi, reportsApi, evaluationsApi } from '../../api';
 import mapApi from '../../api/mapApi';
 
 // ============================================================
@@ -79,6 +79,7 @@ function EnseignantDashboard() {
     stagesEnCours: 0,
     evaluationsEnAttente: 0,
     rapportsRecus: 0,
+    rapportsAttendus: 0,
     totalStages: 0
   });
 
@@ -110,11 +111,27 @@ function EnseignantDashboard() {
         const aVenir = list.filter((s) => s.statut === 'EN_ATTENTE' || s.statut === 'A_VENIR').length;
         const etudiants = new Set(list.map((s) => s.student?.id).filter(Boolean)).size;
 
+        const evalByStageRes = await Promise.allSettled(
+          list.map((s) => evaluationsApi.getByInternship(s.id)),
+        );
+        const evalByStage = new Map(
+          list.map((s, i) => [
+            s.id,
+            evalByStageRes[i].status === 'fulfilled'
+              ? (Array.isArray(evalByStageRes[i].value) ? evalByStageRes[i].value : evalByStageRes[i].value?.data) || []
+              : [],
+          ]),
+        );
+        const evaluationsEnAttente = list.filter(
+          (s) => (s.statut === 'EN_COURS' || s.statut === 'TERMINE') &&
+            !(evalByStage.get(s.id) || []).some((e) => e.validee),
+        ).length;
+
         setStats((prev) => ({
           ...prev,
           etudiants: etudiants || prev.etudiants,
           stagesEnCours: enCours,
-          evaluationsEnAttente: enCours,
+          evaluationsEnAttente,
           totalStages: list.length,
         }));
         setStageStatusData([
@@ -127,7 +144,20 @@ function EnseignantDashboard() {
       // ===== RAPPORTS REÇUS (scopés au tuteur) =====
       if (reportsRes.status === 'fulfilled') {
         const rapports = reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []);
-        setStats((prev) => ({ ...prev, rapportsRecus: rapports.length }));
+        const stagesForReports = stagesRes.status === 'fulfilled'
+          ? stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : [])
+          : [];
+        const rapportsByStage = new Map();
+        rapports.forEach((r) => {
+          const sid = r.stage?.id;
+          if (!sid) return;
+          if (!rapportsByStage.has(sid)) rapportsByStage.set(sid, new Set());
+          if (r.type) rapportsByStage.get(sid).add(r.type);
+        });
+        const rapportsAttendus = stagesForReports
+          .filter((s) => s.statut === 'EN_COURS' || s.statut === 'TERMINE')
+          .reduce((acc, s) => acc + Math.max(0, 3 - (rapportsByStage.get(s.id)?.size || 0)), 0);
+        setStats((prev) => ({ ...prev, rapportsRecus: rapports.length, rapportsAttendus }));
       }
 
       // ===== RÉPARTITION PAR FILIÈRE (étudiants du tuteur) =====
@@ -191,7 +221,7 @@ function EnseignantDashboard() {
     ? Math.min(100, Math.round((stats.stagesEnCours / stats.totalStages) * 100)) : 0;
   const evaluationsPct = stats.totalStages > 0
     ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.totalStages) * 100)) : 0;
-  const rapportsAttendus = stats.totalStages * 2;
+  const rapportsAttendus = stats.rapportsAttendus;
   const rapportsPct = rapportsAttendus > 0
     ? Math.min(100, Math.round((stats.rapportsRecus / rapportsAttendus) * 100)) : 0;
 

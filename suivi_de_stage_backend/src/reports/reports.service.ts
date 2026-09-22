@@ -176,7 +176,7 @@ export class ReportsService {
             ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
             : 'application/octet-stream';
     return {
-      stream: new StreamableFile(createReadStream(filePath)),
+      stream: new StreamableFile(createReadStream(filePath), { type: contentType }),
       contentType,
       originalName: report.originalName,
     };

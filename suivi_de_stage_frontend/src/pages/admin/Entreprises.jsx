@@ -15,13 +15,11 @@ function AdminEntreprises() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEntreprise, setSelectedEntreprise] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [entreprises, setEntreprises] = useState([]);
   const itemsPerPage = 5;
 
   const loadCompanies = async () => {
     try {
-      setLoading(true);
       const res = await companiesApi.getAll();
       const list = Array.isArray(res) ? res : res?.items || [];
 
@@ -40,13 +38,14 @@ function AdminEntreprises() {
       setEntreprises(mapped);
     } catch (err) {
       console.error('Erreur chargement entreprises:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadCompanies();
+    const run = async () => {
+      await loadCompanies();
+    };
+    run();
   }, []);
 
   const stats = {

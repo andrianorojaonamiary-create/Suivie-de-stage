@@ -31,7 +31,7 @@ export class InternshipTrackingController {
   constructor(private readonly trackingService: InternshipTrackingService) {}
 
   @Post('internships/:internshipId')
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENSEIGNANT)
   create(
     @Param('internshipId', new ParseUUIDPipe()) internshipId: string,
     @Body() dto: CreateFollowUpDto,
@@ -41,7 +41,7 @@ export class InternshipTrackingController {
   }
 
   @Get('internships/:internshipId')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENSEIGNANT)
   findAll(
     @Param('internshipId', new ParseUUIDPipe()) internshipId: string,
     @Query() dto: FindFollowUpsDto,
@@ -51,7 +51,7 @@ export class InternshipTrackingController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENSEIGNANT)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateFollowUpDto,
@@ -61,7 +61,7 @@ export class InternshipTrackingController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENSEIGNANT)
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,

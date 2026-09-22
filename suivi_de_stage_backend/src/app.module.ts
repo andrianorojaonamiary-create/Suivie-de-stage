@@ -98,5 +98,12 @@ export class AppModule implements OnModuleInit {
         // Ignore
       }
     }
+    try {
+      await this.dataSource.query(
+        `ALTER TYPE public.notifications_type_enum ADD VALUE IF NOT EXISTS 'OBSERVATION';`,
+      );
+    } catch (err) {
+      // Ignore
+    }
   }
 }

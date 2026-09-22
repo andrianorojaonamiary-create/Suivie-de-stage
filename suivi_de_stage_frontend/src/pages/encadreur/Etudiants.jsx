@@ -6,7 +6,7 @@ import {
   FaClock, FaCheckCircle, FaTimes, FaGraduationCap,
   FaComment
 } from 'react-icons/fa';
-import { studentsApi, internshipsApi, reportsApi } from '../../api';
+import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
 import mapInternship from '../../utils/internshipMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
@@ -58,6 +58,27 @@ function EncadreurEtudiants() {
         return list[0];
       };
 
+      const evalByStage = new Map();
+      const uniqueStageIds = [...new Set(stages.map((s) => s.id))];
+      await Promise.all(
+        uniqueStageIds.map(async (stageId) => {
+          try {
+            const ev = await evaluationsApi.getByInternship(stageId);
+            evalByStage.set(stageId, Array.isArray(ev) ? ev : ev?.data || []);
+          } catch {
+            evalByStage.set(stageId, []);
+          }
+        }),
+      );
+
+      const deriveEval = (statutApi, evals) => {
+        if (!statutApi) return '—';
+        if (evals && evals.length > 0) {
+          return evals.some((ev) => ev.validee) ? 'Validé' : 'À faire';
+        }
+        return statutApi === 'EN_COURS' || statutApi === 'TERMINE' ? 'À faire' : '—';
+      };
+
       const mapped = [...stagesByStudent.entries()].map(([studentId, list]) => {
         const info = infosById.get(studentId);
         const stage = prefer(list);
@@ -68,13 +89,13 @@ function EncadreurEtudiants() {
         const nbRapports = rapports.filter(
           (r) => String(r.stage?.etudiantId) === String(studentId)
         ).length;
-        const evaluation = stage.statut === 'TERMINE' ? 'À faire' : '—';
+        const evaluation = deriveEval(m.statutApi, evalByStage.get(stage.id) || []);
         return {
           id: studentId,
           nom: info ? `${info.user?.prenom || ''} ${info.user?.nom || ''}`.trim() || student : student,
           matricule: info?.matricule || '—',
-          filiere: info?.formation || 'Non renseigné',
-          niveau: info?.niveau || 'Non renseigné',
+          filiere: stage.student?.formation || info?.formation || 'Non renseigné',
+          niveau: stage.student?.niveau || info?.niveau || 'Non renseigné',
           stage: {
             id: m.id,
             titre: m.titre,

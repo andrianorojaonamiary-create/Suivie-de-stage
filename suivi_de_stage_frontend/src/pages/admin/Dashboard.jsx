@@ -12,19 +12,15 @@ import { useState, useEffect } from 'react';
 import statisticsApi from '../../api/statisticsApi';
 
 function AdminDashboard() {
-  const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        setLoading(true);
         const data = await statisticsApi.getDashboard();
         setDashboardData(data);
       } catch (err) {
         console.error('Erreur chargement statistiques admin:', err);
-      } finally {
-        setLoading(false);
       }
     };
     fetchStats();

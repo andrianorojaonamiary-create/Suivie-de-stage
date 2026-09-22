@@ -28,13 +28,11 @@ function AdminEtudiants() {
     matricule: '', nom: '', prenom: '', email: '',
     telephone: '', formation: '', promotion: '', niveau: '', statutAcademique: 'ACTIF'
   });
-  const [loading, setLoading] = useState(true);
   const [etudiants, setEtudiants] = useState([]);
   const itemsPerPage = 5;
 
   const loadStudents = async () => {
     try {
-      setLoading(true);
       const res = await studentsApi.getAll();
       const list = res?.items || [];
 
@@ -53,13 +51,14 @@ function AdminEtudiants() {
       setEtudiants(mapped);
     } catch (err) {
       console.error('Erreur chargement étudiants:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadStudents();
+    const run = async () => {
+      await loadStudents();
+    };
+    run();
   }, []);
 
   const stats = {

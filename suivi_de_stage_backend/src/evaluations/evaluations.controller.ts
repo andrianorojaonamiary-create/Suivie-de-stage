@@ -39,7 +39,7 @@ export class EvaluationsController {
   }
 
   @Get('internships/:stageId')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENSEIGNANT)
   findAll(
     @Param('stageId', new ParseUUIDPipe()) stageId: string,
     @Query() dto: FindEvaluationsDto,
@@ -49,7 +49,7 @@ export class EvaluationsController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENSEIGNANT)
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
