@@ -37,19 +37,19 @@ function AdminEntreprises() {
     try {
       setLoading(true);
       const res = await companiesApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const list = Array.isArray(res) ? res : res?.data || res?.items || [];
 
       const mapped = list.map(item => ({
         id: item.id,
         nom: item.nom || 'Entreprise',
-        domaine: item.secteur || item.domaine || 'Technologies',
-        adresse: item.adresse || 'Madagascar',
-        ville: item.ville || 'Antananarivo',
-        telephone: item.telephone || '+261 34 00 000 00',
-        email: item.email || 'contact@entreprise.mg',
+        domaine: item.secteurActivite || item.secteur || item.domaine || 'Technologies',
+        adresse: item.adresse || '—',
+        ville: item.ville || '—',
+        telephone: item.telephone || '—',
+        email: item.email || '—',
         stagiaires: item.internships?.length || item.stagiaires || 0,
-        latitude: item.latitude || '-18.8792',
-        longitude: item.longitude || '47.5079'
+        latitude: item.latitude || '',
+        longitude: item.longitude || ''
       }));
       setEntreprises(mapped);
     } catch (err) {

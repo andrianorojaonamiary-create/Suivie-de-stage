@@ -1,6 +1,8 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignOutAlt, FaBell, FaBars } from 'react-icons/fa';
+import notificationsApi from '../../api/notificationsApi';
 
 function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const { user, logout } = useAuth();
@@ -8,7 +10,28 @@ function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const location = useLocation();
   const handleToggle = onToggleMobileMenu || onMobileMenuToggle;
 
-  const unreadNotifications = 3;
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  useEffect(() => {
+    if (!user) {
+      setUnreadNotifications(0);
+      return;
+    }
+
+    let isMounted = true;
+    const fetchUnreadCount = async () => {
+      try {
+        const res = await notificationsApi.getAll();
+        const dataList = Array.isArray(res) ? res : res?.items || res?.data || [];
+        const count = dataList.filter(n => !(n.lu || n.estLue || n.read)).length;
+        if (isMounted) setUnreadNotifications(count);
+      } catch {
+        if (isMounted) setUnreadNotifications(0);
+      }
+    };
+
+    fetchUnreadCount();
+  }, [user, location.pathname]);
 
   const handleLogout = () => {
     logout();

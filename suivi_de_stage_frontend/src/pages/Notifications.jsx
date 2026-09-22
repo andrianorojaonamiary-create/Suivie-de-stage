@@ -28,8 +28,8 @@ function Notifications() {
           id: n.id,
           type: n.type || 'Info',
           text: n.titre ? `${n.titre} : ${n.message || ''}` : (n.message || 'Notification'),
-          time: n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : 'Récemment',
-          read: Boolean(n.estLue),
+          time: (n.dateCreation || n.createdAt) ? new Date(n.dateCreation || n.createdAt).toLocaleDateString('fr-FR') : 'Récemment',
+          read: Boolean(n.lu ?? n.estLue ?? n.read),
           icon: <FaBell />,
           color: n.type === 'alerte' ? '#E74C3C' : '#6BA9E6',
           bg: n.type === 'alerte' ? '#FEE2E2' : '#E1ECFE'

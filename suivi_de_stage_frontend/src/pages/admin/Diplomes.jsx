@@ -113,26 +113,36 @@ function AdminDiplomes() {
       try {
         setLoading(true);
         const res = await professionalSituationsApi.getAll();
-        const list = Array.isArray(res) ? res : res?.items || [];
+        const list = Array.isArray(res) ? res : res?.data || res?.items || [];
         if (list.length > 0) {
-          const mapped = list.map((item, idx) => ({
-            id: item.id || idx + 1,
-            nom: item.student?.user?.lastName || item.student?.lastName || item.nom || 'Diplômé',
-            prenom: item.student?.user?.firstName || item.student?.firstName || item.prenom || '',
-            email: item.student?.user?.email || item.email || '',
-            telephone: item.student?.user?.phone || item.student?.phone || item.telephone || '',
-            promotion: item.student?.promotion || item.promotion || '2023',
-            filiere: item.student?.filiere || item.filiere || 'Génie Informatique',
-            situation: item.type || item.situation || 'En emploi',
-            entreprise: item.entreprise || item.companyName || '',
-            poste: item.poste || item.position || '',
-            localisation: item.ville || item.localisation || 'Antananarivo',
-            dateEmbauche: item.dateDebut || item.dateEmbauche || null,
-            secteur: item.domaine || item.secteur || '',
-            contrat: item.contrat || 'CDI',
-            historique: item.historique || []
-          }));
+          const mapped = list.map((item, idx) => {
+            const studentUser = item.student?.user || {};
+            let sitLabel = 'En emploi';
+            if (item.situation === 'EN_RECHERCHE_EMPLOI' || item.situation === 'RECHERCHE') sitLabel = 'En recherche';
+            else if (item.situation === 'POURSUITE_ETUDES') sitLabel = 'Études supérieures';
+            else if (item.situation === 'EMPLOYE' || item.situation === 'ENTREPRENEUR') sitLabel = 'En emploi';
+
+            return {
+              id: item.id || idx + 1,
+              nom: studentUser.nom || item.nom || 'Nom',
+              prenom: studentUser.prenom || item.prenom || 'Prénom',
+              email: studentUser.email || item.email || '—',
+              telephone: item.student?.telephone || '—',
+              promotion: item.student?.promotion || '2023',
+              filiere: item.student?.formation || item.domaine || 'Informatique',
+              situation: sitLabel,
+              entreprise: item.entreprise || '—',
+              poste: item.poste || '—',
+              localisation: item.ville || item.pays || '—',
+              dateEmbauche: item.dateDebut || null,
+              secteur: item.domaine || '—',
+              contrat: 'CDI',
+              historique: []
+            };
+          });
           setDiplomes(mapped);
+        } else {
+          setDiplomes([]);
         }
       } catch (err) {
         console.error('Erreur chargement diplômés:', err);

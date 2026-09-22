@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { FaEye, FaFilter, FaUsers, FaBuilding } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import internshipsApi from '../../api/internshipsApi';
 
 function AdminRapports() {
   const [filters, setFilters] = useState({
@@ -9,13 +10,36 @@ function AdminRapports() {
     statut: 'all',
     entreprise: 'all'
   });
+  const [rapports, setRapports] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // ===== TOUS LES RAPPORTS =====
-  const [rapports] = useState([
-    { id: 1, etudiant: 'Miora Rakoto', stage: 'TechMada SARL', entreprise: 'TechMada', titre: 'Rapport de prise en main', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, etudiant: 'Hery Rakotondrabe', stage: 'Airtel Madagascar', entreprise: 'Airtel', titre: 'Rapport intermédiaire', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-    { id: 3, etudiant: 'Fanja Andriantsoa', stage: 'BNI Madagascar', entreprise: 'BNI', titre: 'Rapport final', date: '10 Juin 2024', statut: 'À corriger', size: '3.1 MB' },
-  ]);
+  useEffect(() => {
+    const fetchRapports = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll();
+        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
+
+        const mapped = list.map(stage => ({
+          id: stage.id,
+          etudiant: stage.student?.user ? `${stage.student.user.prenom} ${stage.student.user.nom}` : 'Étudiant',
+          stage: stage.intitule || stage.titre || 'Stage',
+          entreprise: stage.company?.nom || stage.entreprise?.nom || 'Entreprise',
+          titre: `Rapport de stage - ${stage.intitule || 'Suivi'}`,
+          date: stage.dateDebut ? new Date(stage.dateDebut).toLocaleDateString('fr-FR') : '—',
+          statut: stage.statut === 'TERMINE' ? 'Validé' : stage.statut === 'EN_COURS' ? 'En révision' : 'À corriger',
+          size: 'PDF'
+        }));
+        setRapports(mapped);
+      } catch (err) {
+        console.error('Erreur chargement rapports:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRapports();
+  }, []);
 
   const getStatusBadge = (statut) => {
     const classes = {

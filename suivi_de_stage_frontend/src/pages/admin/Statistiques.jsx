@@ -96,104 +96,90 @@ function Statistiques() {
   };
 
   // ===== KPI CARDS =====
+  const totalStudents = statsData?.dash?.counts?.students ?? 0;
+  const totalCompanies = statsData?.dash?.counts?.companies ?? 0;
+  const totalInternships = statsData?.dash?.counts?.internships ?? 0;
+  const totalSupervisors = statsData?.dash?.counts?.supervisors ?? 0;
+
   const kpiData = [
-    { label: 'Utilisateurs totaux', value: '356', evolution: '+12.5%', vs: 'vs année dernière', icon: <FaUsers />, color: '#6BA9E6', bg: '#DBEBF9' },
-    { label: 'Étudiants', value: '298', evolution: '+10.3%', vs: 'vs année dernière', icon: <FaUserGraduate />, color: '#7C3AED', bg: '#EDE9FE' },
-    { label: 'Entreprises', value: '87', evolution: '+8.6%', vs: 'vs année dernière', icon: <FaBuilding />, color: '#F59E0B', bg: '#FEF3C7' },
-    { label: 'Stages créés', value: '142', evolution: '+15.2%', vs: 'vs année dernière', icon: <FaBriefcase />, color: '#22C55E', bg: '#D1FAE5' },
+    { label: 'Total utilisateurs', value: String(totalStudents + totalCompanies + totalSupervisors), evolution: 'Inscrits BDD', vs: 'total général', icon: <FaUsers />, color: '#6BA9E6', bg: '#DBEBF9' },
+    { label: 'Étudiants', value: String(totalStudents), evolution: 'Enregistrés', vs: 'dans la base', icon: <FaUserGraduate />, color: '#7C3AED', bg: '#EDE9FE' },
+    { label: 'Entreprises', value: String(totalCompanies), evolution: 'Partenaires', vs: 'dans la base', icon: <FaBuilding />, color: '#F59E0B', bg: '#FEF3C7' },
+    { label: 'Stages créés', value: String(totalInternships), evolution: 'Enregistrés', vs: 'au total', icon: <FaBriefcase />, color: '#22C55E', bg: '#D1FAE5' },
   ];
 
   // ===== STAGES PAR MOIS =====
-  const stagesParMois = [
-    { mois: 'Sept.', stages: 45 },
-    { mois: 'Oct.', stages: 52 },
-    { mois: 'Nov.', stages: 38 },
-    { mois: 'Déc.', stages: 48 },
-    { mois: 'Janv.', stages: 55 },
-    { mois: 'Fév.', stages: 42 },
-    { mois: 'Mars', stages: 58 },
-    { mois: 'Avr.', stages: 65 },
-    { mois: 'Mai', stages: 50 },
-    { mois: 'Juin', stages: 70 },
-    { mois: 'Juil.', stages: 62 },
-    { mois: 'Août', stages: 48 },
+  const stagesParMois = statsData?.intern?.byYear?.map(y => ({
+    mois: String(y.year),
+    stages: Number(y.count)
+  })) || [
+    { mois: 'En cours', stages: statsData?.dash?.internships?.ongoing || 0 },
+    { mois: 'À venir', stages: statsData?.dash?.internships?.upcoming || 0 },
+    { mois: 'Terminés', stages: statsData?.dash?.internships?.completed || 0 },
   ];
 
   // ===== ÉVOLUTION STAGES =====
   const evolutionStages = [
-    { mois: 'Sept.', crees: 30, termines: 15 },
-    { mois: 'Oct.', crees: 35, termines: 20 },
-    { mois: 'Nov.', crees: 25, termines: 18 },
-    { mois: 'Déc.', crees: 32, termines: 22 },
-    { mois: 'Janv.', crees: 38, termines: 25 },
-    { mois: 'Fév.', crees: 28, termines: 20 },
-    { mois: 'Mars', crees: 42, termines: 30 },
-    { mois: 'Avr.', crees: 45, termines: 35 },
-    { mois: 'Mai', crees: 35, termines: 28 },
-    { mois: 'Juin', crees: 50, termines: 40 },
-    { mois: 'Juil.', crees: 42, termines: 35 },
-    { mois: 'Août', crees: 32, termines: 25 },
+    { mois: 'À venir', crees: statsData?.dash?.internships?.upcoming || 0, termines: 0 },
+    { mois: 'En cours', crees: statsData?.dash?.internships?.ongoing || 0, termines: 0 },
+    { mois: 'Terminés', crees: 0, termines: statsData?.dash?.internships?.completed || 0 },
   ];
 
   // ===== STATUT STAGES =====
+  const ongoingCount = statsData?.dash?.internships?.ongoing || 0;
+  const upcomingCount = statsData?.dash?.internships?.upcoming || 0;
+  const completedCount = statsData?.dash?.internships?.completed || 0;
+
   const statutStages = [
-    { name: 'Total', value: 142 },
-    { name: 'En cours', value: 56, pourcentage: '39.4%' },
-    { name: 'Validés', value: 42, pourcentage: '29.6%' },
-    { name: 'Terminés', value: 22, pourcentage: '15.5%' },
-    { name: 'Non démarrés', value: 22, pourcentage: '15.5%' },
+    { name: 'Total', value: totalInternships },
+    { name: 'En cours', value: ongoingCount, pourcentage: totalInternships ? `${Math.round((ongoingCount / totalInternships) * 100)}%` : '0%' },
+    { name: 'À venir', value: upcomingCount, pourcentage: totalInternships ? `${Math.round((upcomingCount / totalInternships) * 100)}%` : '0%' },
+    { name: 'Terminés', value: completedCount, pourcentage: totalInternships ? `${Math.round((completedCount / totalInternships) * 100)}%` : '0%' },
   ];
 
-  // ===== STAGES PAR FILIÈRE =====
-  const stagesParFiliere = [
-    { filiere: 'Informatique', valeur: 45, pourcentage: '31.7%', color: '#162449' },
-    { filiere: 'Management', valeur: 32, pourcentage: '22.5%', color: '#F59E0B' },
-    { filiere: 'Relations publiques & Multimédia', valeur: 28, pourcentage: '19.7%', color: '#7C3AED' },
+  // ===== STAGES PAR FILIÈRE / DOMAINE =====
+  const stagesParFiliere = statsData?.intern?.byDomain?.map((d, i) => ({
+    filiere: d.domain || 'Autre',
+    valeur: Number(d.count || 0),
+    pourcentage: totalInternships ? `${Math.round((Number(d.count || 0) / totalInternships) * 100)}%` : '0%',
+    color: COLORS[i % COLORS.length]
+  })) || [
+    { filiere: 'Informatique', valeur: totalInternships, pourcentage: '100%', color: '#162449' }
   ];
 
-  // ===== TOP 5 ENTREPRISES =====
-  const topEntreprises = [
-    { nom: 'ABC Informatique', stages: 28, ville: 'Antananarivo', secteur: 'Tech' },
-    { nom: 'Telma Madagascar', stages: 22, ville: 'Antananarivo', secteur: 'Télécom' },
-    { nom: 'Airtel Madagascar', stages: 18, ville: 'Antananarivo', secteur: 'Télécom' },
-    { nom: 'Baobab Bank', stages: 15, ville: 'Fianarantsoa', secteur: 'Banque' },
-    { nom: 'Madigicom', stages: 12, ville: 'Toamasina', secteur: 'Tech' },
+  // ===== TOP 5 ENTREPRISES PAR VILLE =====
+  const topEntreprises = statsData?.geo?.byCity?.map((c, i) => ({
+    nom: `Entreprises de ${c.city || 'Ville'}`,
+    stages: Number(c.count || 0),
+    ville: c.city || 'Madagascar',
+    secteur: 'Multi-secteurs'
+  })) || [
+    { nom: 'Toutes entreprises', stages: totalInternships, ville: 'Madagascar', secteur: 'Général' }
   ];
 
   // ===== RÉPARTITION PAR NIVEAU =====
   const repartitionNiveau = [
-    { niveau: 'L1', nombre: 98, pourcentage: 32.9 },
-    { niveau: 'L2', nombre: 112, pourcentage: 37.6 },
-    { niveau: 'L3', nombre: 88, pourcentage: 29.5 },
-    { niveau: 'M1', nombre: 45, pourcentage: 15.1 },
-    { niveau: 'M2', nombre: 32, pourcentage: 10.7 },
-    { niveau: 'Total', nombre: 375, pourcentage: 100 },
+    { niveau: 'Étudiants inscrits', nombre: totalStudents, pourcentage: 100 },
+    { niveau: 'Diplômés insérés', nombre: statsData?.dash?.employment?.graduates || 0, pourcentage: totalStudents ? Math.round(((statsData?.dash?.employment?.graduates || 0) / totalStudents) * 100) : 0 },
   ];
 
   // ===== ACTIVITÉS RÉCENTES =====
   const activitesRecentes = [
-    { action: 'Nouveau stage créé', utilisateur: 'Andrianinina T.', details: 'Stage chez ABC Informatique', date: '24/05/2026 10:30' },
-    { action: 'Évaluation soumise', utilisateur: 'Rakotomavo H.', details: 'Évaluation de Randrianarisoa M.', date: '24/05/2026 09:15' },
-    { action: 'Rapport validé', utilisateur: 'Rasolonjatovo L.', details: 'Rapport de Jean R.', date: '23/05/2026 16:45' },
-    { action: 'Entreprise inscrite', utilisateur: 'Admin', details: 'Nouvelle entreprise : Tech Solutions', date: '23/05/2026 14:20' },
-    { action: 'Étudiant ajouté', utilisateur: 'Admin', details: 'Nouvel étudiant : Solofo Aina', date: '23/05/2026 11:05' },
+    { action: 'Système initialisé', utilisateur: 'Admin', details: 'Statistiques mises à jour avec la base de données', date: new Date().toLocaleDateString('fr-FR') },
   ];
 
   // ===== STATUT STAGES POUR CAMEMBERT =====
   const statutStagesPie = [
-    { name: 'En cours', value: 56, color: '#F59E0B' },
-    { name: 'Validés', value: 42, color: '#3B82F6' },
-    { name: 'Terminés', value: 22, color: '#22C55E' },
-    { name: 'Non démarrés', value: 22, color: '#9CA3AF' },
+    { name: 'En cours', value: ongoingCount, color: '#3B82F6' },
+    { name: 'À venir', value: upcomingCount, color: '#F59E0B' },
+    { name: 'Terminés', value: completedCount, color: '#22C55E' },
   ];
 
   // ===== ÉVALUATIONS =====
   const evaluationsData = [
-    { note: 'Excellent', intervalle: '17-20', count: 45, pourcentage: '28%' },
-    { note: 'Très bien', intervalle: '14-16', count: 62, pourcentage: '38%' },
-    { note: 'Bien', intervalle: '12-13', count: 38, pourcentage: '23%' },
-    { note: 'Passable', intervalle: '10-11', count: 15, pourcentage: '9%' },
-    { note: 'Insuffisant', intervalle: '0-9', count: 8, pourcentage: '5%' },
+    { note: 'Insertion pro', intervalle: 'Taux', count: Math.round(statsData?.dash?.employment?.insertionRate || 0), pourcentage: `${statsData?.dash?.employment?.insertionRate || 0}%` },
+    { note: 'En emploi', intervalle: 'Diplômés', count: statsData?.dash?.employment?.employed || 0, pourcentage: `${statsData?.dash?.employment?.employed || 0}` },
+    { note: 'En recherche', intervalle: 'Diplômés', count: statsData?.dash?.employment?.seekingEmployment || 0, pourcentage: `${statsData?.dash?.employment?.seekingEmployment || 0}` },
   ];
 
   const COLORS = ['#6BA9E6', '#F59E0B', '#22C55E', '#7C3AED', '#EF4444', '#3B82F6', '#EC4899', '#14B8A6','#162449'];

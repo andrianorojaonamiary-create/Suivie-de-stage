@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 
 import EtudiantForm from './components/EtudiantForm';
 import EtudiantDetail from './components/EtudiantDetail';
 import EtudiantDelete from './components/EtudiantDelete';
 import studentsApi from '../../api/studentsApi';
+import usersApi from '../../api/usersApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEtudiants() {
@@ -16,6 +18,7 @@ function AdminEtudiants() {
   const [filterFiliere, setFilterFiliere] = useState('Tous');
   const [filterPromotion, setFilterPromotion] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -27,10 +30,11 @@ function AdminEtudiants() {
     nom: '',
     prenom: '',
     email: '',
+    motDePasse: '',
     telephone: '',
-    filiere: '',
-    promotion: '',
-    niveau: '',
+    filiere: 'Génie Informatique',
+    promotion: '2026',
+    niveau: 'L3',
     statut: 'Actif'
   });
   const itemsPerPage = 5;
@@ -39,25 +43,27 @@ function AdminEtudiants() {
     try {
       setLoading(true);
       const res = await studentsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const list = Array.isArray(res) ? res : res?.data || res?.items || [];
 
       const mapped = list.map(item => ({
         id: item.id,
+        userId: item.userId || item.user?.id,
         matricule: item.matricule || 'ETU-00',
         nom: item.user?.nom || item.nom || 'Nom',
         prenom: item.user?.prenom || item.prenom || 'Prénom',
-        email: item.user?.email || item.email || 'email@emit.mg',
-        telephone: item.user?.telephone || item.telephone || '+261 34 00 000 00',
-        filiere: item.parcours || item.filiere || 'Génie Informatique',
+        email: item.user?.email || item.email || '—',
+        telephone: item.telephone || item.user?.telephone || '—',
+        filiere: item.formation || item.parcours || item.filiere || 'Informatique',
         promotion: item.promotion || '2026',
-        niveau: item.niveau || 'L3',
-        statut: item.statutEmploi === 'en_emploi' ? 'Diplômé' : 'Actif',
-        stage: item.internships?.[0]?.titre || '—',
-        entreprise: item.internships?.[0]?.entreprise?.nom || '—'
+        niveau: item.niveau || 'L1',
+        statut: (item.statutAcademique === 'DIPLOME' || item.statutEmploi === 'en_emploi') ? 'Diplômé' : 'Actif',
+        stage: item.internships?.[0]?.intitule || item.internships?.[0]?.titre || '—',
+        entreprise: item.internships?.[0]?.company?.nom || item.internships?.[0]?.entreprise?.nom || '—'
       }));
       setEtudiants(mapped);
     } catch (err) {
       console.error('Erreur chargement étudiants:', err);
+      toast.error('Erreur lors du chargement des étudiants');
     } finally {
       setLoading(false);
     }
@@ -117,12 +123,49 @@ function AdminEtudiants() {
       nom: '',
       prenom: '',
       email: '',
+      motDePasse: '',
       telephone: '',
-      filiere: '',
-      promotion: '',
-      niveau: '',
+      filiere: 'Génie Informatique',
+      promotion: '2026',
+      niveau: 'L3',
       statut: 'Actif'
     });
+  };
+
+  const handleCreate = async () => {
+    if (!formData.nom || !formData.prenom || !formData.email || !formData.matricule || !formData.motDePasse) {
+      toast.error('Veuillez remplir les champs obligatoires (*)');
+      return;
+    }
+    try {
+      // 1. Créer le compte utilisateur
+      const newUser = await usersApi.create({
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        motDePasse: formData.motDePasse,
+        role: 'ETUDIANT'
+      });
+
+      // 2. Créer le profil étudiant
+      await studentsApi.create({
+        userId: newUser.id,
+        matricule: formData.matricule,
+        formation: formData.filiere,
+        promotion: formData.promotion,
+        niveau: formData.niveau,
+        telephone: formData.telephone || undefined
+      });
+
+      toast.success('Étudiant créé avec succès !');
+      setShowCreateModal(false);
+      resetForm();
+      await loadStudents();
+    } catch (err) {
+      console.error('Erreur création étudiant:', err);
+      const msg = err.response?.data?.message || err.message || 'Erreur lors de la création';
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
+    }
   };
 
   const handleEdit = async () => {
@@ -130,12 +173,18 @@ function AdminEtudiants() {
       if (selectedEtudiant?.id) {
         await studentsApi.update(selectedEtudiant.id, {
           matricule: formData.matricule,
-          niveau: formData.niveau
+          formation: formData.filiere,
+          promotion: formData.promotion,
+          niveau: formData.niveau,
+          telephone: formData.telephone
         });
+        toast.success('Étudiant mis à jour !');
         await loadStudents();
       }
-    } catch {
-      setEtudiants(etudiants.map(e => e.id === selectedEtudiant?.id ? { ...e, ...formData } : e));
+    } catch (err) {
+      console.error('Erreur modification étudiant:', err);
+      const msg = err.response?.data?.message || err.message || 'Erreur lors de la modification';
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
     }
     setShowEditModal(false);
     resetForm();
@@ -145,13 +194,21 @@ function AdminEtudiants() {
     try {
       if (selectedEtudiant?.id) {
         await studentsApi.delete(selectedEtudiant.id);
+        toast.success('Étudiant supprimé');
         await loadStudents();
       }
-    } catch {
-      setEtudiants(etudiants.filter(e => e.id !== selectedEtudiant?.id));
+    } catch (err) {
+      console.error('Erreur suppression étudiant:', err);
+      const msg = err.response?.data?.message || err.message || 'Erreur lors de la suppression';
+      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
     }
     setShowDeleteModal(false);
     setSelectedEtudiant(null);
+  };
+
+  const openCreateModal = () => {
+    resetForm();
+    setShowCreateModal(true);
   };
 
   const openEditModal = (etudiant) => {
@@ -173,11 +230,29 @@ function AdminEtudiants() {
   return (
     <div className="admin-etudiants-page">
       {/* ===== HEADER ===== */}
-      <div className="admin-etudiants-header">
+      <div className="admin-etudiants-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
           <h1>Gestion des étudiants</h1>
           <p className="admin-etudiants-subtitle">Gérez les étudiants et leurs informations</p>
         </div>
+        <button 
+          className="admin-etudiants-btn-primary" 
+          onClick={openCreateModal}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            backgroundColor: '#6BA9E6',
+            color: '#fff',
+            border: 'none',
+            borderRadius: '8px',
+            padding: '10px 18px',
+            fontWeight: 600,
+            cursor: 'pointer'
+          }}
+        >
+          <FaPlus /> Ajouter un étudiant
+        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -265,7 +340,11 @@ function AdminEtudiants() {
             </tr>
           </thead>
           <tbody>
-            {paginatedEtudiants.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan="8" className="admin-etudiants-empty">Chargement des étudiants...</td>
+              </tr>
+            ) : paginatedEtudiants.length === 0 ? (
               <tr>
                 <td colSpan="8" className="admin-etudiants-empty">Aucun étudiant trouvé</td>
               </tr>
@@ -275,7 +354,7 @@ function AdminEtudiants() {
                   <td><span className="admin-etudiants-matricule">{etudiant.matricule}</span></td>
                   <td>
                     <div className="admin-etudiants-user">
-                      <span className="admin-etudiants-avatar">{etudiant.prenom[0]}{etudiant.nom[0]}</span>
+                      <span className="admin-etudiants-avatar">{(etudiant.prenom[0] || 'E')}{(etudiant.nom[0] || '')}</span>
                       <div>
                         <div className="admin-etudiants-name">{etudiant.prenom} {etudiant.nom}</div>
                         <div className="admin-etudiants-email">{etudiant.email}</div>
@@ -325,11 +404,28 @@ function AdminEtudiants() {
         )}
       </div>
 
-      {/* ===== MODALES (COMPOSANTS EXTERNES) ===== */}
+      {/* ===== MODALES ===== */}
+      {showCreateModal && (
+        <EtudiantForm
+          title="Ajouter un étudiant"
+          submitLabel="Créer"
+          isCreate={true}
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
+          onCancel={() => { setShowCreateModal(false); resetForm(); }}
+          filiereOptions={filiereOptions}
+          promotionOptions={promotionOptions}
+          niveauOptions={niveauOptions}
+          statutOptions={statutOptions}
+        />
+      )}
+
       {showEditModal && (
         <EtudiantForm
           title="Modifier l'étudiant"
           submitLabel="Modifier"
+          isCreate={false}
           formData={formData}
           setFormData={setFormData}
           onSubmit={handleEdit}

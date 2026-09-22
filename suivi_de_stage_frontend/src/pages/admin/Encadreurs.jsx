@@ -37,19 +37,23 @@ function AdminEncadreurs() {
     try {
       setLoading(true);
       const res = await supervisorsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const list = Array.isArray(res) ? res : res?.data || res?.items || [];
 
-      const mapped = list.map(item => ({
-        id: item.id,
-        nom: item.user?.nom || item.nom || 'NOM',
-        prenom: item.user?.prenom || item.prenom || 'Prénom',
-        email: item.user?.email || item.email || 'email@emit.mg',
-        telephone: item.user?.telephone || item.telephone || '+261 34 00 000 00',
-        type: item.type || 'professionnel',
-        fonction: item.grade || item.specialite || item.departement || 'Responsable technique',
-        entreprise: item.entreprise?.nom || (item.type === 'pedagogique' ? 'EMIT' : 'Entreprise'),
-        etudiants: item.internships ? item.internships.map(i => i.etudiant ? `${i.etudiant.prenom} ${i.etudiant.nom}` : 'Étudiant') : []
-      }));
+      const mapped = list.map(item => {
+        const u = item.user || {};
+        const isPedago = u.role === 'ENSEIGNANT' || u.role === 'ROLE_ENSEIGNANT';
+        return {
+          id: item.id,
+          nom: u.nom || item.nom || 'Nom',
+          prenom: u.prenom || item.prenom || 'Prénom',
+          email: u.email || item.email || '—',
+          telephone: item.telephone || u.telephone || '—',
+          type: isPedago ? 'pedagogique' : 'professionnel',
+          fonction: item.fonction || item.specialite || item.grade || (isPedago ? 'Tuteur pédagogique' : 'Encadreur pro'),
+          entreprise: item.entreprise?.nom || (isPedago ? 'EMIT' : 'Entreprise'),
+          etudiants: item.internships ? item.internships.map(i => i.student?.user ? `${i.student.user.prenom} ${i.student.user.nom}` : 'Étudiant') : []
+        };
+      });
       setEncadreurs(mapped);
     } catch (err) {
       console.error('Erreur chargement encadreurs:', err);

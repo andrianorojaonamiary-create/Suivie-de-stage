@@ -187,8 +187,11 @@ function RegisterForm({ onSwitchToLogin }) {
     try {
       const userData = { ...formData, role: selectedRole };
       await register(userData);
-      setSuccess('Inscription réussie ! Redirection...');
-      setTimeout(() => navigate('/login'), 2000);
+      if (onSwitchToLogin) {
+        onSwitchToLogin();
+      } else {
+        navigate('/login');
+      }
     } catch (err) {
       setError(getApiErrorMessage(err, "Erreur lors de l'inscription"));
     } finally {
