@@ -137,6 +137,8 @@ export function mapInternship(item = {}) {
     statutApi: item.statut,
     observations: item.observations || "",
     commentaireValidation: item.observations || null,
+    convention: item.convention || null,
+    conventionNom: item.conventionNom || null,
     latitude: item.latitude,
     longitude: item.longitude,
     dateCreation: item.dateCreation || null,

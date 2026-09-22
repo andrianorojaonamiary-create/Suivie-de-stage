@@ -22,30 +22,43 @@ function ChangeView({ center, zoom }) {
 import mapApi from '../api/mapApi';
 import SelectPersonnalise from '../components/Common/SelectPersonnalise';
 
+const MAP_STATUS_LABELS = {
+  EN_COURS: 'En cours',
+  EN_ATTENTE: 'En attente',
+  A_VENIR: 'En attente',
+  TERMINE: 'Terminé',
+  REFUSE: 'Refusé',
+  SUSPENDU: 'Terminé',
+  ANNULE: 'Terminé',
+};
+
 function CarteStages() {
   const { user } = useAuth();
   const [filterStatus, setFilterStatus] = useState('Tous');
   const [filterCity, setFilterCity] = useState('Toutes');
   const [stageMarkers, setStageMarkers] = useState([]);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchMapPoints = async () => {
       try {
-        setLoading(true);
         const data = await mapApi.getInternships();
         const rawList = Array.isArray(data) ? data : data?.items || [];
 
         if (rawList.length > 0) {
           const mapped = rawList.map(item => ({
             id: item.id,
-            student: item.etudiant ? `${item.etudiant.prenom} ${item.etudiant.nom}` : (item.student || 'Étudiant'),
-            company: item.entreprise?.nom || item.company || 'Entreprise',
-            city: item.entreprise?.ville || item.city || 'Antananarivo',
-            subject: item.titre || item.subject || 'Stage',
-            status: item.statut === 'en_cours' ? 'En cours' : item.statut === 'a_venir' ? 'En attente' : 'Terminé',
-            lat: parseFloat(item.latitude || item.entreprise?.latitude || -18.8792),
-            lng: parseFloat(item.longitude || item.entreprise?.longitude || 47.5079)
+            student: (item.prenomEtudiant || item.nomEtudiant)
+              ? `${item.prenomEtudiant ?? ''} ${item.nomEtudiant ?? ''}`.trim()
+              : (item.etudiant ? `${item.etudiant.prenom} ${item.etudiant.nom}` : 'Étudiant'),
+            tutor: (item.prenomTuteur && item.nomTuteur)
+              ? `${item.prenomTuteur} ${item.nomTuteur}`
+              : (item.tuteur ? `${item.tuteur.prenom} ${item.tuteur.nom}` : 'Non renseigné'),
+            company: item.nomEntreprise || item.entreprise?.nom || item.company || 'Entreprise',
+            city: item.ville || item.entreprise?.ville || item.city || 'Antananarivo',
+            subject: item.intitule || item.titre || item.subject || 'Stage',
+            status: MAP_STATUS_LABELS[item.statut] || 'En attente',
+            lat: parseFloat(item.latitude || -18.8792),
+            lng: parseFloat(item.longitude || 47.5079)
           }));
           setStageMarkers(mapped);
         } else {
@@ -54,8 +67,6 @@ function CarteStages() {
       } catch (err) {
         console.error('Erreur chargement carte:', err);
         setStageMarkers([]);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -66,6 +77,7 @@ function CarteStages() {
     'En cours': '#27AE60',
     'En attente': '#F39C12',
     'Terminé': '#6c7a8a',
+    'Refusé': '#E53E3E',
     'Validé': '#6BA9E6',
   };
 
@@ -73,6 +85,7 @@ function CarteStages() {
     'En cours': 'badge-en-cours',
     'En attente': 'badge-en-attente',
     'Terminé': 'badge-termine',
+    'Refusé': 'badge-refuse',
     'Validé': 'badge-valide',
   };
 
@@ -96,6 +109,7 @@ function CarteStages() {
     const role = user?.role;
     if (role === 'ROLE_ETUDIANT') return 'Votre stage est localisé sur la carte';
     if (role === 'ROLE_ENCADREUR') return `${stageMarkers.length} stage(s) que vous encadrez`;
+    if (role === 'ROLE_ENSEIGNANT') return `${stageMarkers.length} étudiant(s) encadré(s) localisé(s)`;
     return `${stageMarkers.length} stages localisés sur Madagascar`;
   };
 
@@ -120,6 +134,7 @@ function CarteStages() {
                   { value: 'En cours', label: 'En cours' },
                   { value: 'En attente', label: 'En attente' },
                   { value: 'Terminé', label: 'Terminé' },
+                  { value: 'Refusé', label: 'Refusé' },
                   { value: 'Validé', label: 'Validé' }
                 ]}
               />
@@ -185,6 +200,7 @@ function CarteStages() {
                 <Popup>
                   <div className="popup-content">
                     <h4>{marker.student}</h4>
+                    <p><strong>Tuteur pédagogique :</strong> {marker.tutor}</p>
                     <p><strong>Entreprise :</strong> {marker.company}</p>
                     <p><strong>Ville :</strong> {marker.city}</p>
                     <p><strong>Sujet :</strong> {marker.subject}</p>

@@ -25,7 +25,7 @@ import RejectModal from "./components/RejectModal";
 
 function StagesEnseignant() {
   const [loading, setLoading] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState("EN_ATTENTE");
+  const [selectedStatus, setSelectedStatus] = useState("tous");
   const [searchTerm, setSearchTerm] = useState("");
 
   // ===== MODALS =====
@@ -235,10 +235,10 @@ function StagesEnseignant() {
   };
 
   const statusOptions = [
+    { value: "tous", label: "Tous les statuts" },
     { value: "EN_ATTENTE", label: "En attente" },
     { value: "EN_COURS", label: "Validé" },
     { value: "REFUSE", label: "Refusé" },
-    { value: "tous", label: "Tous les statuts" },
   ];
 
   return (

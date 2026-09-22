@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   FaClipboardList,
@@ -18,12 +19,12 @@ import {
   mapInternshipList,
   STATUT_LABELS,
 } from "../../utils/internshipMapping";
-import ViewModal from "./components/ViewModal";
 import ValidateModal from "../enseignant/components/ValidateModal";
 import RejectModal from "../enseignant/components/RejectModal";
 import SelectPersonnalise from "../../components/Common/SelectPersonnalise";
 
 function EncadreurStages() {
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("tous");
@@ -31,7 +32,6 @@ function EncadreurStages() {
   const itemsPerPage = 5;
 
   // ===== MODALS =====
-  const [showViewModal, setShowViewModal] = useState(false);
   const [modalValidateOpen, setModalValidateOpen] = useState(false);
   const [modalRejectOpen, setModalRejectOpen] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
@@ -43,7 +43,7 @@ function EncadreurStages() {
   useEffect(() => {
     const fetchStages = async () => {
       try {
-        const res = await internshipsApi.getAll();
+        const res = await internshipsApi.getAll({ limit: 100 });
         const list = res?.data || (Array.isArray(res) ? res : []);
         setStages(mapInternshipList(list));
       } catch (err) {
@@ -114,7 +114,7 @@ function EncadreurStages() {
   // ===== BADGE STATUT =====
   const getStatusBadge = (statut) => {
     const badges = {
-      EN_COURS: { className: "status-badge status-valide", label: "Validé" },
+      EN_COURS: { className: "status-badge status-en-cours", label: "En cours" },
       REFUSE: { className: "status-badge status-refuse", label: "Refusé" },
       EN_ATTENTE: {
         className: "status-badge status-en-attente",
@@ -129,9 +129,8 @@ function EncadreurStages() {
   };
 
   // ===== ACTIONS =====
-  const openViewModal = (stage) => {
-    setSelectedStage(stage);
-    setShowViewModal(true);
+  const openView = (stage) => {
+    navigate(`/encadreur/stage/${stage.id}`);
   };
 
   const openValidateModal = (stage) => {
@@ -175,7 +174,7 @@ function EncadreurStages() {
             ? {
                 ...s,
                 statutApi: "EN_COURS",
-                statut: "Validé",
+                statut: "En cours",
                 commentaireValidation: commentaire,
               }
             : s,
@@ -226,11 +225,6 @@ function EncadreurStages() {
     }
   };
 
-  const handleCloseViewModal = () => {
-    setShowViewModal(false);
-    setSelectedStage(null);
-  };
-
   return (
     <div className="encadreur-stages">
       <div className="page-header">
@@ -265,7 +259,7 @@ function EncadreurStages() {
           </div>
           <div className="stat-info">
             <span className="stat-value">{stats.enCours}</span>
-            <span className="stat-label">Validés</span>
+            <span className="stat-label">En cours</span>
           </div>
         </div>
         <div className="stat-card">
@@ -291,7 +285,7 @@ function EncadreurStages() {
                   options={[
                     { value: "tous", label: "Tous les statuts" },
                     { value: "EN_ATTENTE", label: "En attente" },
-                    { value: "EN_COURS", label: "Validé" },
+                    { value: "EN_COURS", label: "En cours" },
                     { value: "REFUSE", label: "Refusé" },
                   ]}
                 />
@@ -374,7 +368,7 @@ function EncadreurStages() {
                         )}
                         <button
                           className="action-btn view"
-                          onClick={() => openViewModal(stage)}
+                          onClick={() => openView(stage)}
                           title="Voir les détails du stage"
                         >
                           <FaEye />
@@ -422,12 +416,6 @@ function EncadreurStages() {
       </div>
 
       {/* ===== MODALS ===== */}
-      <ViewModal
-        stage={selectedStage}
-        isOpen={showViewModal}
-        onClose={handleCloseViewModal}
-      />
-
       <ValidateModal
         stage={selectedStage}
         isOpen={modalValidateOpen}

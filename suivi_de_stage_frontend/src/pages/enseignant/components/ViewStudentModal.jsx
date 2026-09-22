@@ -1,13 +1,46 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
   FaTimes, FaUserGraduate, FaEnvelope, FaPhone, 
   FaMapMarkerAlt, FaGraduationCap, FaBuilding, 
   FaCalendarAlt, FaClock, FaFileAlt, FaStar, FaInfoCircle,
   FaFilePdf, FaFileWord, FaDownload, FaEye, FaComment
 } from 'react-icons/fa';
+import { reportsApi } from '../../../api';
+import {
+  mapReportStatus,
+  mapReportType,
+  formatReportSize,
+  formatReportDate,
+} from '../../../utils/reportMapping';
 
 function ViewStudentModal({ student, isOpen, onClose }) {
   const [activeTab, setActiveTab] = useState('info');
+  const [rapports, setRapports] = useState([]);
+  const [rapportsLoading, setRapportsLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isOpen || !student) return;
+    const stageId = student.stage?.id;
+    if (!stageId) return;
+    reportsApi
+      .byStage(stageId)
+      .then((res) => {
+        const items = Array.isArray(res) ? res : res?.data || res?.items || [];
+        setRapports(items.map(r => ({
+          id: r.id,
+          titre: mapReportType(r.type),
+          fileName: r.fileName,
+          date: formatReportDate(r.dateCreation),
+          statut: mapReportStatus(r.statut),
+          size: formatReportSize(r.size)
+        })));
+      })
+      .catch((err) => {
+        console.error('Erreur chargement rapports:', err);
+        setRapports([]);
+      })
+      .finally(() => setRapportsLoading(false));
+  }, [isOpen, student]);
 
   if (!isOpen || !student) return null;
 
@@ -69,32 +102,38 @@ function ViewStudentModal({ student, isOpen, onClose }) {
     { id: 3, type: 'Entreprise', date: '25 Mai 2024', statut: 'À faire', note: null, commentaire: null }
   ];
 
-  const rapports = [
-    { id: 1, titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-    { id: 3, titre: 'Rapport final', fileName: null, date: '—', statut: 'À déposer', size: '—' }
-  ];
-
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
     { id: 'evaluations', label: 'Évaluations', icon: <FaStar /> },
     { id: 'rapports', label: 'Rapports', icon: <FaFileAlt /> }
   ];
 
-  const handleViewFile = (fileName) => {
-    if (fileName) {
-      window.open(`/documents/${fileName}`, '_blank');
+  const handleViewFile = async (rapport) => {
+    if (!rapport?.id) return;
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur:', error);
     }
   };
 
-  const handleDownloadFile = (fileName) => {
-    if (fileName) {
+  const handleDownloadFile = async (rapport) => {
+    if (!rapport?.id) return;
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = `/documents/${fileName}`;
-      link.download = fileName;
+      link.href = url;
+      link.download = rapport.fileName || rapport.titre || 'rapport';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur:', error);
     }
   };
 
@@ -241,7 +280,12 @@ function ViewStudentModal({ student, isOpen, onClose }) {
           {/* ===== TAB RAPPORTS ===== */}
           {activeTab === 'rapports' && (
             <div className="view-rapports">
-              {rapports.length === 0 ? (
+              {rapportsLoading ? (
+                <div className="view-empty">
+                  <FaFileAlt className="view-empty-icon" />
+                  <p>Chargement des rapports...</p>
+                </div>
+              ) : rapports.length === 0 ? (
                 <div className="view-empty">
                   <FaFileAlt className="view-empty-icon" />
                   <p>Aucun rapport disponible</p>
@@ -265,10 +309,10 @@ function ViewStudentModal({ student, isOpen, onClose }) {
                       {getRapportBadge(rapport.statut)}
                       {rapport.fileName && (
                         <div className="view-rapport-actions">
-                          <button className="btn-view-action" onClick={() => handleViewFile(rapport.fileName)} title="Voir">
+                          <button className="btn-view-action" onClick={() => handleViewFile(rapport)} title="Voir">
                             <FaEye />
                           </button>
-                          <button className="btn-view-action" onClick={() => handleDownloadFile(rapport.fileName)} title="Télécharger">
+                          <button className="btn-view-action" onClick={() => handleDownloadFile(rapport)} title="Télécharger">
                             <FaDownload />
                           </button>
                         </div>

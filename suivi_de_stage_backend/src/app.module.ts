@@ -16,6 +16,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { StatisticsModule } from './statistics/statistics.module';
 import { ProfessionalSituationsModule } from './professional-situations/professional-situations.module';
 import { MapModule } from './map/map.module';
+import { ReportsModule } from './reports/reports.module';
 
 @Module({
   imports: [
@@ -62,6 +63,7 @@ import { MapModule } from './map/map.module';
     StatisticsModule,
     ProfessionalSituationsModule,
     MapModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

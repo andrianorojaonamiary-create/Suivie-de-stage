@@ -12,3 +12,6 @@ coverage/
 
 # logs
 npm-debug.log*
+
+# uploaded files
+uploads/

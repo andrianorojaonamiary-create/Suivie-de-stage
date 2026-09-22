@@ -6,8 +6,9 @@ import {
   FaFilePdf, FaFileWord, FaFile, FaCheck,
   FaFilter
 } from 'react-icons/fa';
-import { internshipsApi, trackingApi } from '../../api';
+import { internshipsApi, trackingApi, evaluationsApi, reportsApi } from '../../api';
 import { mapInternshipList, getStatutBadge } from '../../utils/internshipMapping';
+import { mapReportStatus, formatReportDate } from '../../utils/reportMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function SuiviStage() {
@@ -47,6 +48,10 @@ function SuiviStage() {
 
   // ===== OBSERVATIONS =====
   const [observations, setObservations] = useState([]);
+  // ===== DOCUMENTS (convention + rapports) =====
+  const [documents, setDocuments] = useState([]);
+  // ===== ÉVALUATION (étape) =====
+  const [hasEvaluation, setHasEvaluation] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -54,13 +59,61 @@ function SuiviStage() {
       const stage = getFilteredStages()[0] || stages[0];
       if (!stage) return;
       try {
-        const res = await trackingApi.getByInternship(stage.id);
+        const [obsRes, repRes, evalsRes] = await Promise.allSettled([
+          trackingApi.getByInternship(stage.id),
+          reportsApi.byStage(stage.id),
+          evaluationsApi.getByInternship(stage.id),
+        ]);
         if (!cancelled) {
-          setObservations(res?.data || (Array.isArray(res) ? res : []) || []);
+          if (obsRes.status === 'fulfilled') {
+            const res = obsRes.value;
+            setObservations(res?.data || (Array.isArray(res) ? res : []) || []);
+          } else {
+            setObservations([]);
+          }
+
+          if (repRes.status === 'fulfilled') {
+            const reports = Array.isArray(repRes.value)
+              ? repRes.value
+              : repRes.value?.data || [];
+            const convention = stage.conventionNom
+              ? [{ id: 'convention', name: stage.conventionNom, date: '—', status: 'Déposée', type: 'pdf' }]
+              : [];
+            setDocuments([
+              ...convention,
+              ...reports.map((r) => {
+                const fileName = r.originalName || r.fileName || '';
+                const ext = fileName.split('.').pop()?.toLowerCase();
+                return {
+                  id: r.id,
+                  name: fileName || 'Rapport',
+                  date: formatReportDate(r.dateCreation),
+                  status: mapReportStatus(r.statut),
+                  type: ext === 'pdf' ? 'pdf' : (ext === 'doc' || ext === 'docx') ? 'word' : 'other',
+                };
+              }),
+            ]);
+          } else {
+            setDocuments(stage.conventionNom
+              ? [{ id: 'convention', name: stage.conventionNom, date: '—', status: 'Déposée', type: 'pdf' }]
+              : []);
+          }
+
+          if (evalsRes.status === 'fulfilled') {
+            const ev = evalsRes.value;
+            const evalsList = Array.isArray(ev) ? ev : ev?.data || [];
+            setHasEvaluation(evalsList.length > 0);
+          } else {
+            setHasEvaluation(false);
+          }
         }
       } catch (err) {
         console.error('Erreur chargement observations:', err);
-        if (!cancelled) setObservations([]);
+        if (!cancelled) {
+          setObservations([]);
+          setDocuments([]);
+          setHasEvaluation(false);
+        }
       }
     };
     fetchObservations();
@@ -71,7 +124,11 @@ function SuiviStage() {
   // ===== INFOS TUTEUR / ENCADREUR =====
   const stageInfo = {
     tuteur: {
-      nom: 'Non renseigné',
+      nom: selectedStage?.tuteur
+        ? selectedStage.tuteur
+        : selectedStage?.tuteurId
+          ? 'Chargement...'
+          : 'Tuteur non assigné',
       role: '',
       email: ''
     },
@@ -82,11 +139,22 @@ function SuiviStage() {
     }
   };
 
-  // ===== ÉTAPES =====
-  const milestones = [];
-
-  // ===== DOCUMENTS =====
-  const documents = [];
+  // ===== ÉTAPES (6 étapes alignées sur le dashboard) =====
+  const stageStarted = selectedStage && (selectedStage.statut === 'En cours' || selectedStage.statut === 'Terminé');
+  const nowDate = new Date(); nowDate.setHours(0, 0, 0, 0);
+  const debutMs = selectedStage?.dateDebut ? new Date(selectedStage.dateDebut).getTime() : null;
+  const finMs = selectedStage?.dateFin ? new Date(selectedStage.dateFin).getTime() : null;
+  const milestones = selectedStage ? [
+    { label: 'Validation du thème', done: true },
+    { label: 'Début du stage', done: !!stageStarted },
+    { label: 'Mi-parcours', done: !!stageStarted && debutMs !== null && finMs !== null && nowDate.getTime() >= (debutMs + finMs) / 2 },
+    { label: 'Fin du stage', done: !!stageStarted && finMs !== null && nowDate.getTime() >= finMs },
+    { label: 'Évaluation', done: hasEvaluation },
+    { label: 'Validation finale', done: selectedStage.statut === 'Terminé' },
+  ] : [];
+  const stageProgress = milestones.length > 0
+    ? Math.round((milestones.filter((m) => m.done).length / milestones.length) * 100)
+    : 0;
 
   const getStatusBadge = (status) => getStatutBadge(status);
 
@@ -206,7 +274,6 @@ function SuiviStage() {
             </div>
           </div>
           <div className="stage-status-row">
-            <span className="stage-status-text">{selectedStage.statut}</span>
             <span className="stage-days-text">
               {selectedStage.joursEcoules} jours écoulés sur {selectedStage.joursTotal} jours
             </span>
@@ -226,13 +293,13 @@ function SuiviStage() {
                 stroke="#6BA9E6" 
                 strokeWidth="8"
                 strokeDasharray="364.42"
-                strokeDashoffset={364.42 - (364.42 * selectedStage.progression / 100)}
+                strokeDashoffset={364.42 - (364.42 * stageProgress / 100)}
                 strokeLinecap="round"
                 transform="rotate(-90 70 70)"
               />
             </svg>
             <div className="progress-text">
-              <span className="progress-percent">{selectedStage.progression}%</span>
+              <span className="progress-percent">{stageProgress}%</span>
               <span className="progress-label">Avancement global</span>
             </div>
           </div>

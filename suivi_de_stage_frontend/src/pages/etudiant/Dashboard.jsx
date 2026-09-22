@@ -5,15 +5,21 @@ import {
   FaArrowRight, FaClock, 
   FaChartLine,
   FaFilePdf, FaFileWord, FaFile, FaBell,
-  FaMapPin, FaEye, FaPlus
+  FaEye, FaPlus
 } from 'react-icons/fa';
 import mapImage from '../../assets/map.jpg';
-import { internshipsApi, notificationsApi } from '../../api';
+import { internshipsApi, notificationsApi, evaluationsApi } from '../../api';
 import { mapInternship, getStatutBadge } from '../../utils/internshipMapping';
+import {
+  mapReportStatus,
+  mapReportType,
+  formatReportDate,
+} from '../../utils/reportMapping';
 
 function EtudiantDashboard() {
   const [progress, setProgress] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [daysRemaining, setDaysRemaining] = useState(0);
 
   // ===== INFORMATIONS DU STAGE =====
   const [stageInfo, setStageInfo] = useState({
@@ -44,8 +50,13 @@ function EtudiantDashboard() {
         setLoading(true);
         const stagesRes = await internshipsApi.getAll();
         const stagesList = stagesRes?.data || (Array.isArray(stagesRes) ? stagesRes : []);
+        if (stagesList.length === 0) {
+          console.warn('Aucun stage retourné par l API pour cet utilisateur');
+          setLoading(false);
+          return;
+        }
+        const current = mapInternship(stagesList[0]);
         if (stagesList.length > 0) {
-          const current = mapInternship(stagesList[0]);
           setStageInfo({
             id: current.id,
             titre: current.titre,
@@ -62,11 +73,18 @@ function EtudiantDashboard() {
             duree: current.duree || '3 mois',
             joursEcoules: current.joursEcoules || 0
           });
-          setProgress(current.progression || 0);
+
+          const dateFin = current.dateFin ? new Date(current.dateFin) : null;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (dateFin) {
+            const diffMs = dateFin.getTime() - today.getTime();
+            setDaysRemaining(Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24))));
+          }
         }
 
         const notifsRes = await notificationsApi.getAll();
-        const notifsList = Array.isArray(notifsRes) ? notifsRes : notifsRes?.items || [];
+        const notifsList = Array.isArray(notifsRes) ? notifsRes : notifsRes?.data || notifsRes?.items || [];
         if (notifsList.length > 0) {
           setRecentNotifications(notifsList.slice(0, 3).map(n => ({
             text: n.title || n.message,
@@ -76,6 +94,56 @@ function EtudiantDashboard() {
             color: '#F59E0B',
             bg: '#FEF3C7'
           })));
+        }
+
+        if (stagesList.length > 0) {
+          const currentReports = stagesList[0].reports || [];
+          setReports(currentReports.map((r, i) => ({
+            id: r.id || i,
+            name: mapReportType(r.type),
+            status: mapReportStatus(r.statut),
+            date: formatReportDate(r.dateCreation),
+            fileName: r.originalName || r.fileName || '',
+          })));
+
+          let hasEvaluation = false;
+          try {
+            const evals = await evaluationsApi.getByInternship(current.id);
+            hasEvaluation = (Array.isArray(evals) ? evals : evals?.data || []).length > 0;
+          } catch {
+            hasEvaluation = false;
+          }
+
+          const stepsData = [
+            { label: 'Validation du thème', done: true },
+            {
+              label: 'Début du stage',
+              done: current.statut === 'En cours' || current.statut === 'Terminé',
+            },
+            {
+              label: 'Mi-parcours',
+              done: (current.statut === 'En cours' || current.statut === 'Terminé')
+                && current.dateDebut && current.dateFin
+                && new Date().getTime() >= (new Date(current.dateDebut).getTime() + new Date(current.dateFin).getTime()) / 2,
+            },
+            {
+              label: 'Fin du stage',
+              done: (current.statut === 'En cours' || current.statut === 'Terminé')
+                && current.dateFin
+                && new Date().getTime() >= new Date(current.dateFin).getTime(),
+            },
+            {
+              label: 'Évaluation',
+              done: hasEvaluation,
+            },
+            {
+              label: 'Validation finale',
+              done: current.statut === 'Terminé',
+            },
+          ];
+          setSteps(stepsData);
+          const doneCount = stepsData.filter((s) => s.done).length;
+          setProgress(Math.round((doneCount / stepsData.length) * 100));
         }
       } catch (err) {
         console.error('Erreur dashboard etudiant:', err);
@@ -124,7 +192,7 @@ function EtudiantDashboard() {
             <FaClock />
           </div>
           <div className="stat-content">
-            <span className="stat-value">0</span>
+            <span className="stat-value">{daysRemaining}</span>
             <span className="stat-label">Jours restants</span>
           </div>
         </div>
@@ -133,7 +201,7 @@ function EtudiantDashboard() {
             <FaFileAlt />
           </div>
           <div className="stat-content">
-            <span className="stat-value">{reports.filter(r => r.status === 'Validé').length} / 3</span>
+            <span className="stat-value">{reports.length} / 3</span>
             <span className="stat-label">Rapports déposés</span>
           </div>
         </div>
@@ -143,7 +211,7 @@ function EtudiantDashboard() {
           </div>
           <div className="stat-content">
             <span className="stat-value">{progress}%</span>
-            <span className="stat-label">Objectif atteint</span>
+            <span className="stat-label">Progression du stage</span>
           </div>
         </div>
         <div className="stat-card">
@@ -221,7 +289,11 @@ function EtudiantDashboard() {
                 src={mapImage}
                 alt="Carte de localisation du stage"
               />
-              <FaMapPin className="map-pin" />
+              <img
+                src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png"
+                alt="Localisation"
+                className="map-pin"
+              />
               <div className="map-pin-tooltip">
                 {stageInfo.entreprise} - {stageInfo.ville}
               </div>

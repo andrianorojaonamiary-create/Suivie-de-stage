@@ -1,62 +1,94 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  FaBuilding, FaMapMarkerAlt, FaPhone, FaEnvelope, 
+import {
+  FaBuilding, FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe,
   FaPlus, FaEdit, FaTrash, FaEye
 } from 'react-icons/fa';
-import { companiesApi } from '../../api';
+import { internshipsApi, companiesApi } from '../../api';
+import { mapInternshipList } from '../../utils/internshipMapping';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
 
 function MonEntreprise() {
   const navigate = useNavigate();
-  
+
   // ===== ÉTATS =====
+  const [loading, setLoading] = useState(true);
+  const [stages, setStages] = useState([]);
+  const [companies, setCompanies] = useState([]);
+  const [selectedStageId, setSelectedStageId] = useState('all');
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [entrepriseToDelete, setEntrepriseToDelete] = useState(null);
-  const [loading, setLoading] = useState(true);
-  
-  // ===== DONNÉES ENTREPRISES =====
-  const [entreprises, setEntreprises] = useState([]);
-
-  const fetchCompanies = async () => {
-    try {
-      setLoading(true);
-      const res = await companiesApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
-      if (list.length > 0) {
-        const mapped = list.map(item => ({
-          id: item.id,
-          nom: item.name || item.nom || 'Entreprise',
-          domaine: item.domain || item.sector || item.domaine || '',
-          adresse: item.address || item.adresse || '',
-          ville: item.city || item.ville || 'Antananarivo',
-          telephone: item.phone || item.telephone || '',
-          email: item.email || '',
-          site: item.website || item.site || '',
-          description: item.description || ''
-        }));
-        setEntreprises(mapped);
-      }
-    } catch (err) {
-      console.error('Erreur chargement entreprises:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
-    fetchCompanies();
+    const fetchData = async () => {
+      try {
+        const [stagesRes, companiesRes] = await Promise.allSettled([
+          internshipsApi.getAll(),
+          companiesApi.getAll({ limit: 100 }),
+        ]);
+        const stagesList = stagesRes.status === 'fulfilled'
+          ? stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : [])
+          : [];
+        setStages(mapInternshipList(stagesList));
+        const companiesList = companiesRes.status === 'fulfilled'
+          ? companiesRes.value?.data || (Array.isArray(companiesRes.value) ? companiesRes.value : [])
+          : [];
+        setCompanies(companiesList);
+      } catch (err) {
+        console.error('Erreur chargement entreprise:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  // ===== ACTIONS =====
-  const handleView = (id) => {
-    navigate(`/etudiant/entreprise/voir/${id}`,{state:{entreprise: entreprises.find(e => e.id === id)}});
-  };
-  
+  // ===== STAGE SÉLECTIONNÉ + ENTREPRISE ASSOCIÉE =====
+  const stageOptions = stages.map((stage) => ({
+    value: stage.id,
+    label: stage.titre,
+  }));
 
-  const handleEdit = (entreprise) => {
-    // On passe les données via state
-    navigate('/etudiant/entreprise/modifier', { state: { entreprise } });
+  const selectedStage = stages.find((s) => s.id === selectedStageId) || stages[0] || null;
+
+  const matchedCompany = selectedStage?.companyId
+    ? companies.find((c) => c.id === selectedStage.companyId) || null
+    : null;
+
+  const entreprise = matchedCompany
+    ? {
+        id: matchedCompany.id,
+        nom: matchedCompany.nom || selectedStage.entreprise || 'Entreprise',
+        domaine: matchedCompany.secteurActivite || '',
+        adresse: matchedCompany.adresse || '',
+        ville: matchedCompany.ville || selectedStage.ville || 'Antananarivo',
+        region: matchedCompany.region || '',
+        telephone: matchedCompany.telephone || '',
+        email: matchedCompany.email || '',
+        siteWeb: matchedCompany.siteWeb || '',
+        description: matchedCompany.description || '',
+      }
+    : {
+        id: selectedStage?.companyId || null,
+        nom: selectedStage?.entreprise || 'Entreprise',
+        domaine: '',
+        adresse: selectedStage?.adresse || '',
+        ville: selectedStage?.ville || 'Antananarivo',
+        region: '',
+        telephone: '',
+        email: '',
+        siteWeb: '',
+        description: '',
+      };
+
+  // ===== ACTIONS (masquées pour l'instant) =====
+  const handleView = (id) => {
+    navigate(`/etudiant/entreprise/voir/${id}`, { state: { entreprise: companies.find((e) => e.id === id) } });
+  };
+
+  const handleEdit = (entrepriseData) => {
+    navigate('/etudiant/entreprise/modifier', { state: { entreprise: entrepriseData } });
   };
 
   const handleDeleteClick = (id) => {
@@ -69,9 +101,9 @@ function MonEntreprise() {
       if (entrepriseToDelete) {
         await companiesApi.delete(entrepriseToDelete);
       }
-      const entreprise = entreprises.find(e => e.id === entrepriseToDelete);
-      setEntreprises(entreprises.filter(e => e.id !== entrepriseToDelete));
-      toast.success(`Entreprise "${entreprise?.nom}" supprimée !`);
+      const entrepriseData = companies.find((e) => e.id === entrepriseToDelete);
+      setCompanies(companies.filter((e) => e.id !== entrepriseToDelete));
+      toast.success(`Entreprise "${entrepriseData?.nom}" supprimée !`);
     } catch (err) {
       console.error('Erreur suppression entreprise:', err);
       toast.error('Erreur lors de la suppression de l\'entreprise');
@@ -92,53 +124,76 @@ function MonEntreprise() {
       <div className="page-header">
         <div>
           <h1>Mon entreprise</h1>
-          <p className="text-muted">{entreprises.length} entreprise(s) enregistrée(s)</p>
+          <p className="text-muted">
+            {selectedStage
+              ? `Entreprise associée au stage « ${selectedStage.titre} »`
+              : 'Aucun stage associé'}
+          </p>
         </div>
-        <Link to="/etudiant/entreprise/ajouter" className="btn-primary">
-          <FaPlus /> Ajouter une entreprise
-        </Link>
+        <div className="entreprise-header-actions">
+          <Link to="/etudiant/entreprise/ajouter" className="btn-primary">
+            <FaPlus /> Ajouter une entreprise
+          </Link>
+        </div>
       </div>
 
-      {/* ===== GRILLE DES ENTREPRISES ===== */}
+      {/* ===== SÉLECTEUR DE STAGE (si plusieurs) ===== */}
+      {stageOptions.length > 1 && (
+        <div className="entreprise-stage-selector">
+          <SelectPersonnalise
+            value={selectedStageId}
+            onChange={setSelectedStageId}
+            options={stageOptions}
+            placeholder="Choisir un stage"
+          />
+        </div>
+      )}
+
+      {/* ===== CONTENU ===== */}
       <div className="entreprise-grid">
-        {entreprises.length === 0 ? (
+        {loading && <p>Chargement...</p>}
+
+        {!loading && stageOptions.length === 0 && (
           <div className="empty-state">
-            <p>Aucune entreprise enregistrée</p>
-            <p className="empty-sub">Ajoutez votre entreprise d'accueil</p>
-            <Link to="/etudiant/entreprise/ajouter" className="btn-primary">
-              <FaPlus /> Ajouter
+            <p>Aucun stage défini</p>
+            <p className="empty-sub">Ajoutez votre stage pour associer votre entreprise d'accueil</p>
+            <Link to="/etudiant/ajouter-stage" className="btn-primary">
+              <FaPlus /> Ajouter un stage
             </Link>
           </div>
-        ) : (
-          entreprises.map((entreprise) => (
-            <div key={entreprise.id} className="entreprise-card">
-              <div className="entreprise-card-top">
-                <div className="entreprise-icon">
-                  <FaBuilding />
-                </div>
-                <div className="entreprise-info">
-                  <h3>{entreprise.nom}</h3>
-                  <span className="entreprise-domaine">{entreprise.domaine || 'Domaine non renseigné'}</span>
-                </div>
+        )}
+
+        {!loading && selectedStage && (
+          <div className="entreprise-card">
+            <div className="entreprise-card-top">
+              <div className="entreprise-icon">
+                <FaBuilding />
               </div>
-              <div className="entreprise-card-middle">
-                <p><FaMapMarkerAlt /> {entreprise.ville}</p>
-                <p><FaPhone /> {entreprise.telephone || 'Non renseigné'}</p>
-                <p><FaEnvelope /> {entreprise.email || 'Non renseigné'}</p>
-              </div>
-              <div className="entreprise-card-actions">
-                <button className="btn-action" onClick={() => handleView(entreprise.id)} title="Voir">
-                  <FaEye />
-                </button>
-                <button className="btn-action btn-edit" onClick={() => handleEdit(entreprise)} title="Modifier">
-                  <FaEdit />
-                </button>
-                <button className="btn-action btn-danger" onClick={() => handleDeleteClick(entreprise.id)} title="Supprimer">
-                  <FaTrash />
-                </button>
+              <div className="entreprise-info">
+                <h3>{entreprise.nom}</h3>
+                <span className="entreprise-domaine">{entreprise.domaine || 'Domaine non renseigné'}</span>
               </div>
             </div>
-          ))
+            <div className="entreprise-card-middle">
+              <p><FaMapMarkerAlt /> {[entreprise.ville, entreprise.region].filter(Boolean).join(', ')}</p>
+              {entreprise.adresse && <p><FaMapMarkerAlt /> {entreprise.adresse}</p>}
+              <p><FaPhone /> {entreprise.telephone || 'Non renseigné'}</p>
+              <p><FaEnvelope /> {entreprise.email || 'Non renseigné'}</p>
+              {entreprise.siteWeb && <p><FaGlobe /> {entreprise.siteWeb}</p>}
+              {entreprise.description && <p>{entreprise.description}</p>}
+            </div>
+            <div className="entreprise-card-actions">
+              <button className="btn-action" onClick={() => handleView(entreprise.id)} title="Voir">
+                <FaEye />
+              </button>
+              <button className="btn-action btn-edit" onClick={() => handleEdit(entreprise)} title="Modifier">
+                <FaEdit />
+              </button>
+              <button className="btn-action btn-danger" onClick={() => handleDeleteClick(entreprise.id)} title="Supprimer">
+                <FaTrash />
+              </button>
+            </div>
+          </div>
         )}
       </div>
 

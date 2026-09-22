@@ -117,6 +117,21 @@
   border-top: 1px solid #FAFBFF;
 }
 
+/* ===== SÉLECTEUR DE STAGE ===== */
+.entreprise-stage-selector {
+  margin: 0 0 16px;
+}
+
+.entreprise-stage-selector .select-personnalise {
+  max-width: 340px;
+}
+
+/* ===== ACTIONS MASQUÉES (réactivable plus tard) ===== */
+.entreprise-header-actions,
+.entreprise-card-actions {
+  display: none;
+}
+
 /* ============================================================
    EMPTY STATE
    ============================================================ */

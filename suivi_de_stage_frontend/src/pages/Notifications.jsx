@@ -22,14 +22,16 @@ function Notifications() {
       try {
         setLoading(true);
         const res = await notificationsApi.getAll();
-        const dataList = Array.isArray(res) ? res : res?.items || [];
+        const dataList = Array.isArray(res) ? res : res?.data || res?.items || [];
         
         const mapped = dataList.map(n => ({
           id: n.id,
           type: n.type || 'Info',
           text: n.titre ? `${n.titre} : ${n.message || ''}` : (n.message || 'Notification'),
-          time: n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : 'Récemment',
-          read: Boolean(n.estLue),
+          time: n.dateCreation || n.createdAt
+            ? new Date(n.dateCreation || n.createdAt).toLocaleDateString('fr-FR')
+            : 'Récemment',
+          read: Boolean(n.lu),
           icon: <FaBell />,
           color: n.type === 'alerte' ? '#E74C3C' : '#6BA9E6',
           bg: n.type === 'alerte' ? '#FEE2E2' : '#E1ECFE'

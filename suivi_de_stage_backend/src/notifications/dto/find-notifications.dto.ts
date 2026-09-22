@@ -1,4 +1,4 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   IsBoolean,
   IsEnum,
@@ -15,7 +15,10 @@ export class FindNotificationsDto {
   type?: NotificationType;
 
   @IsOptional()
-  @Type(() => Boolean)
+  @Transform(({ value }: { value: unknown }) => {
+    if (value === undefined || value === null) return value;
+    return typeof value === 'string' ? value === 'true' : Boolean(value);
+  })
   @IsBoolean()
   lu?: boolean;
 

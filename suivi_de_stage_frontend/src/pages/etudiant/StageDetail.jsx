@@ -62,6 +62,7 @@ function StageDetail() {
     supervisorId: '',
     tuteurId: '',
     encadreurProfessionnelNom: '',
+    convention: '',
   });
 
   useEffect(() => {
@@ -107,6 +108,10 @@ function StageDetail() {
               supervisorId: mapped.supervisorId || '',
               tuteurId: mapped.tuteurId || '',
               encadreurProfessionnelNom: mapped.encadreurProfessionnelNom || '',
+              convention: mapped.convention || '',
+              conventionNom: mapped.conventionNom || '',
+              createdAt: mapped.dateCreation || '',
+              updatedAt: mapped.dateModification || '',
             });
             if (res.latitude && res.longitude) {
               setLocationMap({ lat: res.latitude, lon: res.longitude });
@@ -141,27 +146,29 @@ function StageDetail() {
   const handleProfessionalSupervisorChange = (e) => {
     if (!isEditing) return;
     const value = e.target.value;
-    const selectedSupervisor = supervisors.find(
-      (supervisor) => supervisorLabel(supervisor) === value,
-    );
     setFormData((prev) => ({
       ...prev,
-      supervisorId: selectedSupervisor?.id ?? "",
-      encadreurProfessionnelNom: selectedSupervisor ? "" : value,
+      encadreurProfessionnelNom: value,
+      supervisorId: "",
     }));
+  };
+
+  const handleSupervisorBlur = () => {
+    setShowSupervisorSuggestions(false);
   };
 
   const handleCompanyChange = (e) => {
     if (!isEditing) return;
     const value = e.target.value;
-    const selectedCompany = companies.find(
-      (company) => companyLabel(company) === value,
-    );
     setFormData((prev) => ({
       ...prev,
-      companyId: selectedCompany?.id ?? "",
       companyNom: value,
+      companyId: "",
     }));
+  };
+
+  const handleCompanyBlur = () => {
+    setShowCompanySuggestions(false);
   };
 
   const selectCompany = (company) => {
@@ -224,8 +231,22 @@ function StageDetail() {
     }
   };
 
-  const handleDownload = () => {
-    toast.info('Téléchargement de la convention...');
+  const handleDownload = async () => {
+    try {
+      toast.info('Téléchargement de la convention...');
+      const blob = await internshipsApi.downloadConvention(id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = formData.conventionNom || `convention_${formData.titre || 'stage'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erreur téléchargement convention:', err);
+      toast.error(getApiErrorMessage(err, 'Impossible de télécharger la convention'));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -269,6 +290,9 @@ function StageDetail() {
         encadreurProfessionnelNom:
           (formData.encadreurProfessionnelNom || "").trim() || undefined,
       });
+      if (fichier) {
+        await internshipsApi.uploadConvention(id, fichier);
+      }
       toast.success('Stage modifié avec succès !');
       setIsEditing(false);
       navigate(`/etudiant/stage/${id}`, { state: { editMode: false } });
@@ -322,47 +346,19 @@ function StageDetail() {
       <div className="form-card">
         <form onSubmit={handleSubmit}>
           <div className="form-row">
-            <div className="form-group full-width">
-              <label><FaFileAlt /> Titre du stage {isEditing && '*'}</label>
+            <div className="form-group">
+              <label><FaFileAlt /> Titre du stage *</label>
               <input
                 type="text"
                 name="titre"
                 value={formData.titre}
                 onChange={handleChange}
                 placeholder="Ex: Développement d'une plateforme web"
-                required={isEditing}
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
             </div>
-          </div>
-
-          <div className="form-row">
-            <div className="form-group">
-              <label><FaCalendarAlt /> Date de début {isEditing && '*'}</label>
-              <DateField
-                name="dateDebut"
-                value={formData.dateDebut}
-                onChange={handleChange}
-                required={isEditing}
-                disabled={!isEditing}
-                className={!isEditing ? 'field-disabled' : ''}
-              />
-            </div>
-            <div className="form-group">
-              <label><FaCalendarAlt /> Date de fin {isEditing && '*'}</label>
-              <DateField
-                name="dateFin"
-                value={formData.dateFin}
-                onChange={handleChange}
-                required={isEditing}
-                disabled={!isEditing}
-                className={!isEditing ? 'field-disabled' : ''}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
             <div className="form-group">
               <label>
                 <FaUserGraduate /> Tuteur pédagogique
@@ -382,9 +378,94 @@ function StageDetail() {
                 ))}
               </select>
             </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label><FaCalendarAlt /> Date de début *</label>
+              <DateField
+                name="dateDebut"
+                value={formData.dateDebut}
+                onChange={handleChange}
+                required
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+            <div className="form-group">
+              <label><FaCalendarAlt /> Date de fin *</label>
+              <DateField
+                name="dateFin"
+                value={formData.dateFin}
+                onChange={handleChange}
+                required
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
+            </div>
+          </div>
+
+          <div className="form-row">
             <div className="form-group">
               <label>
-                <FaUserTie /> Encadreur professionnel {isEditing && '*'}
+                <FaBuilding /> Entreprise *
+                <span className="field-tooltip" role="tooltip">
+                  Sélectionnez l'entreprise qui accueille votre stage.
+                </span>
+              </label>
+              <div className="suggestion-field">
+                <input
+                  type="text"
+                  value={formData.companyNom}
+                  onChange={handleCompanyChange}
+                  onBlur={handleCompanyBlur}
+                  onFocus={() => isEditing && setShowCompanySuggestions(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setShowCompanySuggestions(false);
+                  }}
+                  placeholder="Sélectionner ou saisir une entreprise"
+                  className="smart-select-input"
+                  required
+                  disabled={!isEditing}
+                />
+                {isEditing && showCompanySuggestions && (
+                  <div className="suggestion-list">
+                    {(() => {
+                      const search = formData.companyNom.toLowerCase();
+                      const exactMatch = companies.find(
+                        (c) => companyLabel(c).toLowerCase() === search,
+                      );
+                      const filtered = exactMatch
+                        ? [exactMatch]
+                        : companies.filter((c) => c.nom.toLowerCase().includes(search));
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="suggestion-empty">
+                            Aucune entreprise correspondante.
+                            <span className="suggestion-empty-sub">
+                              Vérifiez l'orthographe ou saisissez le nom exact.
+                            </span>
+                          </div>
+                        );
+                      }
+                      return filtered.map((company) => (
+                        <button
+                          type="button"
+                          key={company.id}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectCompany(company)}
+                        >
+                          {companyLabel(company)}
+                        </button>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>
+                <FaUserTie /> Encadreur professionnel *
                 <span className="field-tooltip" role="tooltip">
                   Choisissez un encadreur existant ou saisissez le nom d'un
                   encadreur sans compte.
@@ -404,25 +485,49 @@ function StageDetail() {
                   }
                   onChange={handleProfessionalSupervisorChange}
                   onFocus={() => isEditing && setShowSupervisorSuggestions(true)}
-                  onBlur={() =>
-                    setTimeout(() => setShowSupervisorSuggestions(false), 150)
-                  }
+                  onBlur={handleSupervisorBlur}
                   placeholder="Sélectionner ou saisir un encadreur"
                   className="smart-select-input"
-                  required={isEditing}
+                  required
                   disabled={!isEditing}
                 />
                 {isEditing && showSupervisorSuggestions && (
                   <div className="suggestion-list">
-                    {supervisors.map((supervisor) => (
-                      <button
-                        type="button"
-                        key={supervisor.id}
-                        onClick={() => selectSupervisor(supervisor)}
-                      >
-                        {supervisorLabel(supervisor)}
-                      </button>
-                    ))}
+                    {(() => {
+                      const search = formData.encadreurProfessionnelNom.toLowerCase();
+                      const exactMatch = supervisors.find(
+                        (s) => supervisorLabel(s).toLowerCase() === search,
+                      );
+                      const filtered = exactMatch
+                        ? [exactMatch]
+                        : supervisors.filter((s) => {
+                            const name = [s.user?.nom, s.user?.prenom]
+                              .filter(Boolean)
+                              .join(" ")
+                              .toLowerCase();
+                            return name.includes(search);
+                          });
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="suggestion-empty">
+                            Aucun encadreur correspondant.
+                            <span className="suggestion-empty-sub">
+                              Vérifiez l'orthographe ou saisissez le nom exact.
+                            </span>
+                          </div>
+                        );
+                      }
+                      return filtered.map((supervisor) => (
+                        <button
+                          type="button"
+                          key={supervisor.id}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectSupervisor(supervisor)}
+                        >
+                          {supervisorLabel(supervisor)}
+                        </button>
+                      ));
+                    })()}
                   </div>
                 )}
               </div>
@@ -430,25 +535,9 @@ function StageDetail() {
           </div>
 
           <div className="form-row">
-            <div className="form-group full-width">
-              <label>Description {isEditing && '*'}</label>
-              <textarea
-                name="description"
-                rows="3"
-                value={formData.description}
-                onChange={handleChange}
-                placeholder="Description du stage..."
-                required={isEditing}
-                disabled={!isEditing}
-                className={!isEditing ? 'field-disabled' : ''}
-              />
-            </div>
-          </div>
-
-          <div className="form-row">
             <div className="form-group">
               <label>
-                <FaFileAlt /> Domaine {isEditing && '*'}
+                <FaFileAlt /> Domaine *
               </label>
               <input
                 type="text"
@@ -456,14 +545,14 @@ function StageDetail() {
                 value={formData.domaine}
                 onChange={handleChange}
                 placeholder="Ex: Informatique, Génie civil..."
-                required={isEditing}
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
             </div>
             <div className="form-group">
               <label>
-                <FaMapMarkerAlt /> Ville {isEditing && '*'}
+                <FaMapMarkerAlt /> Ville *
               </label>
               <input
                 type="text"
@@ -471,7 +560,7 @@ function StageDetail() {
                 value={formData.ville}
                 onChange={handleChange}
                 placeholder="Ville"
-                required={isEditing}
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
@@ -479,92 +568,59 @@ function StageDetail() {
           </div>
 
           <div className="form-row">
-            <div className="form-group">
-              <label>
-                <FaBuilding /> Entreprise {isEditing && '*'}
-                <span className="field-tooltip" role="tooltip">
-                  Sélectionnez l'entreprise qui accueille votre stage.
-                </span>
-              </label>
-              <div className="suggestion-field">
-                <input
-                  type="text"
-                  value={formData.companyNom}
-                  onChange={handleCompanyChange}
-                  onFocus={() => isEditing && setShowCompanySuggestions(true)}
-                  onBlur={() =>
-                    setTimeout(() => setShowCompanySuggestions(false), 150)
-                  }
-                  placeholder="Sélectionner ou saisir une entreprise"
-                  className="smart-select-input"
-                  required={isEditing}
-                  disabled={!isEditing}
-                />
-                {isEditing && showCompanySuggestions && (
-                  <div className="suggestion-list">
-                    {companies.length === 0 ? (
-                      <div className="suggestion-empty">
-                        Aucune entreprise disponible.
-                        <span className="suggestion-empty-sub">
-                          Contactez l'administration pour ajouter votre
-                          entreprise d'accueil.
-                        </span>
-                      </div>
-                    ) : (
-                      companies.map((company) => (
-                        <button
-                          type="button"
-                          key={company.id}
-                          onClick={() => selectCompany(company)}
-                        >
-                          {companyLabel(company)}
-                        </button>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
+            <div className="form-group full-width">
+              <label>Description *</label>
+              <textarea
+                name="description"
+                rows="3"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="Description du stage..."
+                required
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              />
             </div>
           </div>
 
           <div className="form-row">
-              <div className="form-group full-width">
-                <label><FaMapMarkerAlt /> Adresse</label>
-                <div className="address-input-group">
-                  <input
-                    type="text"
-                    name="adresse"
-                    value={formData.adresse}
-                    onChange={handleChange}
-                    placeholder="Rue de la Réunion, Antananarivo"
-                    className={`address-input ${!isEditing ? 'field-disabled' : ''}`}
-                    disabled={!isEditing}
-                  />
-                  {isEditing && (
-                    <button
-                      type="button"
-                      className="btn-geocode"
-                      onClick={handleGeocode}
-                      disabled={geocoding}
-                    >
-                      {geocoding ? <FaSpinner className="spinning" /> : <FaMapPin />}
-                      {geocoding ? 'Recherche...' : 'Localiser'}
-                    </button>
-                  )}
-                </div>
+            <div className="form-group full-width">
+              <label><FaMapMarkerAlt /> Adresse</label>
+              <div className="address-input-group">
+                <input
+                  type="text"
+                  name="adresse"
+                  value={formData.adresse}
+                  onChange={handleChange}
+                  placeholder="Rue de la Réunion, Antananarivo"
+                  className={`address-input ${!isEditing ? 'field-disabled' : ''}`}
+                  disabled={!isEditing}
+                />
                 {isEditing && (
-                  <small className="form-hint">
-                    Astuce : indiquez le nom de la rue ou du quartier, puis la
-                    ville (ex. : Rue de la Réunion, Antananarivo). Ajoutez
-                    « Madagascar » si besoin pour une meilleure localisation.
-                  </small>
-                )}
-                {isEditing && geocodeError && <span className="geocode-error">{geocodeError}</span>}
-                {isEditing && locationMap && (
-                  <span className="geocode-success">Localisé</span>
+                  <button
+                    type="button"
+                    className="btn-geocode"
+                    onClick={handleGeocode}
+                    disabled={geocoding}
+                  >
+                    {geocoding ? <FaSpinner className="spinning" /> : <FaMapPin />}
+                    {geocoding ? 'Recherche...' : 'Localiser'}
+                  </button>
                 )}
               </div>
+              {isEditing && (
+                <small className="form-hint">
+                  Astuce : indiquez le nom de la rue ou du quartier, puis la
+                  ville (ex. : Rue de la Réunion, Antananarivo). Ajoutez
+                  « Madagascar » si besoin pour une meilleure localisation.
+                </small>
+              )}
+              {isEditing && geocodeError && <span className="geocode-error">{geocodeError}</span>}
+              {isEditing && locationMap && (
+                <span className="geocode-success">Localisé</span>
+              )}
             </div>
+          </div>
 
             {(locationMap || (formData.lat && formData.lng)) && (
               <div className="form-row">
@@ -624,7 +680,7 @@ function StageDetail() {
                 ) : (
                   <div className="convention-file">
                     <FaFileAlt className="file-icon" />
-                    <span className="file-name">{formData.convention || 'Aucune convention déposée'}</span>
+                    <span className="file-name">{formData.conventionNom || formData.convention || 'Aucune convention déposée'}</span>
                     {formData.convention && (
                       <button type="button" className="btn-download" onClick={handleDownload}>
                         <FaDownload /> Télécharger
@@ -638,8 +694,8 @@ function StageDetail() {
           {/* ===== MÉTADONNÉES ===== */}
           {!isEditing && (
             <div className="form-metadata">
-              <span>Créé le : {formData.createdAt}</span>
-              <span>Dernière modification : {formData.updatedAt}</span>
+              <span>Créé le : {formData.createdAt ? new Date(formData.createdAt).toLocaleString('fr-FR') : '—'}</span>
+              <span>Dernière modification : {formData.updatedAt ? new Date(formData.updatedAt).toLocaleString('fr-FR') : '—'}</span>
             </div>
           )}
 

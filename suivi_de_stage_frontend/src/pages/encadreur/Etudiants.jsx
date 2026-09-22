@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { 
-  FaUsers, FaUserGraduate, FaEye, FaStar, FaFileAlt, 
-  FaSearch, FaFilter, FaChevronLeft, FaChevronRight, 
-  FaClock, FaCheckCircle, FaTimes, FaGraduationCap, 
+import {
+  FaUsers, FaUserGraduate, FaEye, FaStar, FaFileAlt,
+  FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
+  FaClock, FaCheckCircle, FaTimes, FaGraduationCap,
   FaComment
 } from 'react-icons/fa';
-import { studentsApi } from '../../api';
+import { studentsApi, internshipsApi, reportsApi } from '../../api';
+import mapInternship from '../../utils/internshipMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function EncadreurEtudiants() {
@@ -22,35 +23,84 @@ function EncadreurEtudiants() {
 
   useEffect(() => {
     const fetchStudents = async () => {
-      try {
-        setLoading(true);
-        const res = await studentsApi.getAll();
-        const list = res?.items || [];
-        const mapped = list.map(item => ({
-          id: item.id,
-          nom: `${item.user?.prenom || ''} ${item.user?.nom || ''}`.trim() || 'Étudiant',
-          matricule: item.matricule || '—',
-          filiere: item.formation || 'Non renseigné',
-          niveau: item.niveau || 'Non renseigné',
-          stage: { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
-          evaluation: 'À faire',
-          rapports: 0
-        }));
-        setStudents(mapped);
-      } catch (err) {
-        console.error('Erreur chargement étudiants encadreur:', err);
-      } finally {
-        setLoading(false);
-      }
+      setLoading(true);
+      const [stagesRes, studentsRes, reportsRes] = await Promise.allSettled([
+        internshipsApi.getAll({ limit: 100 }),
+        studentsApi.getAll({ limit: 100 }),
+        reportsApi.getAll({ limit: 100 }),
+      ]);
+
+      const stages = stagesRes.status === 'fulfilled'
+        ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+        : [];
+      const studentList = studentsRes.status === 'fulfilled'
+        ? (studentsRes.value?.items || studentsRes.value?.data || (Array.isArray(studentsRes.value) ? studentsRes.value : []))
+        : [];
+      const rapports = reportsRes.status === 'fulfilled'
+        ? (reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []))
+        : [];
+
+      const infosById = new Map(studentList.map((s) => [s.id, s]));
+      const stagesByStudent = new Map();
+      stages.forEach((s) => {
+        const sid = s.student?.id;
+        if (!sid) return;
+        if (!stagesByStudent.has(sid)) stagesByStudent.set(sid, []);
+        stagesByStudent.get(sid).push(s);
+      });
+
+      const prefer = (list) => {
+        const order = ['EN_COURS', 'TERMINE', 'A_VENIR'];
+        for (const statut of order) {
+          const found = list.find((s) => s.statut === statut);
+          if (found) return found;
+        }
+        return list[0];
+      };
+
+      const mapped = [...stagesByStudent.entries()].map(([studentId, list]) => {
+        const info = infosById.get(studentId);
+        const stage = prefer(list);
+        const m = mapInternship(stage);
+        const student = stage.student?.user
+          ? `${stage.student.user.prenom ?? ''} ${stage.student.user.nom ?? ''}`.trim()
+          : 'Étudiant';
+        const nbRapports = rapports.filter(
+          (r) => String(r.stage?.etudiantId) === String(studentId)
+        ).length;
+        const evaluation = stage.statut === 'TERMINE' ? 'À faire' : '—';
+        return {
+          id: studentId,
+          nom: info ? `${info.user?.prenom || ''} ${info.user?.nom || ''}`.trim() || student : student,
+          matricule: info?.matricule || '—',
+          filiere: info?.formation || 'Non renseigné',
+          niveau: info?.niveau || 'Non renseigné',
+          stage: {
+            id: m.id,
+            titre: m.titre,
+            entreprise: m.entreprise,
+            statut: m.statut,
+            statutApi: m.statutApi,
+            dateDebut: m.dateDebut,
+            dateFin: m.dateFin,
+            progression: m.progression,
+          },
+          evaluation,
+          rapports: nbRapports,
+        };
+      });
+
+      setStudents(mapped);
+      setLoading(false);
     };
     fetchStudents();
   }, []);
 
   const stats = {
     total: students.length,
-    enStage: 0,
-    termines: 0,
-    aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
+    enStage: students.filter((s) => s.stage.statutApi === 'EN_COURS').length,
+    termines: students.filter((s) => s.stage.statutApi === 'TERMINE').length,
+    aEvaluer: students.filter((s) => s.evaluation === 'À faire').length,
   };
 
   const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));
@@ -98,16 +148,23 @@ function EncadreurEtudiants() {
   const getStatusBadge = (statut) => {
     const badges = {
       'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
+      'En attente de validation': { className: 'status-badge status-en-attente', label: 'En attente' },
       'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
+      'À venir': { className: 'status-badge status-en-attente', label: 'À venir' },
       'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
       'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' },
+      'Suspendu': { className: 'status-badge status-refuse', label: 'Suspendu' },
+      'Annulé': { className: 'status-badge status-refuse', label: 'Annulé' },
     };
     const badge = badges[statut] || badges['En attente'];
     return <span className={badge.className}>{badge.label}</span>;
   };
 
   const getEvalBadge = (evalStatus) => {
+    if (evalStatus === '—') {
+      return <span className="eval-badge eval-neutral">—</span>;
+    }
     const badges = {
       'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
       'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
@@ -197,7 +254,7 @@ function EncadreurEtudiants() {
               </div>
             </div>
           </div>
-          
+
           <div className="search-wrapper">
             <div className="search-group">
               <FaSearch className="search-icon" />
@@ -217,7 +274,12 @@ function EncadreurEtudiants() {
           </div>
         </div>
 
-        {filteredStudents.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <FaUsers className="empty-icon" />
+            <h3>Chargement…</h3>
+          </div>
+        ) : filteredStudents.length === 0 ? (
           <div className="empty-state">
             <FaUsers className="empty-icon" />
             <h3>Aucun étudiant trouvé</h3>
@@ -266,29 +328,29 @@ function EncadreurEtudiants() {
                     <td>{getEvalBadge(student.evaluation)}</td>
                     <td>
                       <div className="action-buttons">
-                        <button 
-                          className="action-btn view" 
+                        <button
+                          className="action-btn view"
                           onClick={() => goToStudentDetail(student.id)}
                           title="Voir les détails"
                         >
                           <FaEye />
                         </button>
-                        <button 
-                          className="action-btn eval" 
+                        <button
+                          className="action-btn eval"
                           onClick={() => goToEvaluations(student.id)}
                           title="Évaluer"
                         >
                           <FaStar />
                         </button>
-                        <button 
-                          className="action-btn report" 
+                        <button
+                          className="action-btn report"
                           onClick={() => goToRapports(student.id)}
                           title="Voir les rapports"
                         >
                           <FaFileAlt />
                         </button>
-                        <button 
-                          className="action-btn observe" 
+                        <button
+                          className="action-btn observe"
                           onClick={() => goToObservations(student.id)}
                           title="Observations"
                         >
@@ -303,7 +365,7 @@ function EncadreurEtudiants() {
 
             {totalPages > 1 && (
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -319,7 +381,7 @@ function EncadreurEtudiants() {
                     {index + 1}
                   </button>
                 ))}
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}

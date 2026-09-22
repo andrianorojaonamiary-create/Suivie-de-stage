@@ -194,15 +194,6 @@
   margin-top: 20px;
 }
 
-.etudiant-suivi .suivi-stage-info .stage-status-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #27AE60;
-  padding: 5px 20px;
-  background: #D1FAE5;
-  border-radius: 5px;
-}
-
 .etudiant-suivi .suivi-stage-info .stage-days-text {
   font-size: 13px;
   color: #162449;
@@ -955,10 +946,6 @@
 
   .etudiant-suivi .suivi-stage-info {
     padding: 16px;
-  }
-
-  .etudiant-suivi .suivi-stage-info .stage-status-text {
-    font-size: 13px;
   }
 
   .etudiant-suivi .suivi-stage-info .stage-days-text {

@@ -16,6 +16,7 @@ import {
 } from "react-icons/fa";
 import { geocodeAddress } from "../../services/geocoding";
 import DateField from "../../components/Common/DateField";
+import SelectPersonnalise from "../../components/Common/SelectPersonnalise";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -113,26 +114,28 @@ function AjouterStage() {
 
   const handleProfessionalSupervisorChange = (e) => {
     const value = e.target.value;
-    const selectedSupervisor = supervisors.find(
-      (supervisor) => supervisorLabel(supervisor) === value,
-    );
     setFormData((prev) => ({
       ...prev,
-      supervisorId: selectedSupervisor?.id ?? "",
-      encadreurProfessionnelNom: selectedSupervisor ? "" : value,
+      encadreurProfessionnelNom: value,
+      supervisorId: "",
     }));
+  };
+
+  const handleSupervisorBlur = () => {
+    setShowSupervisorSuggestions(false);
   };
 
   const handleCompanyChange = (e) => {
     const value = e.target.value;
-    const selectedCompany = companies.find(
-      (company) => companyLabel(company) === value,
-    );
     setFormData((prev) => ({
       ...prev,
-      companyId: selectedCompany?.id ?? "",
       companyNom: value,
+      companyId: "",
     }));
+  };
+
+  const handleCompanyBlur = () => {
+    setShowCompanySuggestions(false);
   };
 
   const selectCompany = (company) => {
@@ -238,7 +241,7 @@ function AjouterStage() {
 
     setLoading(true);
     try {
-      await internshipsApi.create({
+      const created = await internshipsApi.create({
         intitule: formData.titre,
         description: formData.description,
         domaine: formData.domaine,
@@ -254,6 +257,9 @@ function AjouterStage() {
         encadreurProfessionnelNom:
           (formData.encadreurProfessionnelNom || "").trim() || undefined,
       });
+      if (fichier && created?.id) {
+        await internshipsApi.uploadConvention(created.id, fichier);
+      }
       toast.success(
         "Stage ajouté avec succès ! Il doit être validé par un encadreur.",
       );
@@ -267,11 +273,8 @@ function AjouterStage() {
     }
   };
 
-  const supervisorLabel = (s) => {
-    const name = [s.user?.nom, s.user?.prenom].filter(Boolean).join(" ");
-    const detail = [s.fonction, s.specialite].filter(Boolean).join(" - ");
-    return [name, detail].filter(Boolean).join(" — ");
-  };
+  const supervisorLabel = (s) =>
+    [s.user?.nom, s.user?.prenom].filter(Boolean).join(" ");
 
   const companyLabel = (company) =>
     [company.nom, company.ville].filter(Boolean).join(" — ");
@@ -311,18 +314,18 @@ function AjouterStage() {
               <label>
                 <FaUserGraduate /> Encadreur pédagogique
               </label>
-              <select
-                name="tuteurId"
+              <SelectPersonnalise
                 value={formData.tuteurId}
-                onChange={handleChange}
-              >
-                <option value="">Sélectionner un enseignant</option>
-                {enseignants.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {[u.nom, u.prenom].filter(Boolean).join(" ")}
-                  </option>
-                ))}
-              </select>
+                onChange={(v) =>
+                  setFormData((prev) => ({ ...prev, tuteurId: v }))
+                }
+                placeholder="Sélectionner un enseignant"
+                className="form-control"
+                options={enseignants.map((u) => ({
+                  value: u.id,
+                  label: [u.nom, u.prenom].filter(Boolean).join(" "),
+                }))}
+              />
             </div>
           </div>
 
@@ -364,35 +367,43 @@ function AjouterStage() {
                   type="text"
                   value={formData.companyNom}
                   onChange={handleCompanyChange}
+                  onBlur={handleCompanyBlur}
                   onFocus={() => setShowCompanySuggestions(true)}
-                  onBlur={() =>
-                    setTimeout(() => setShowCompanySuggestions(false), 150)
-                  }
                   placeholder="Sélectionner ou saisir une entreprise"
                   className="smart-select-input"
                   required
                 />
                 {showCompanySuggestions && (
                   <div className="suggestion-list">
-                    {companies.length === 0 ? (
-                      <div className="suggestion-empty">
-                        Aucune entreprise disponible.
-                        <span className="suggestion-empty-sub">
-                          Contactez l'administration pour ajouter votre
-                          entreprise d'accueil.
-                        </span>
-                      </div>
-                    ) : (
-                      companies.map((company) => (
+                    {(() => {
+                      const search = formData.companyNom.toLowerCase();
+                      const exactMatch = companies.find(
+                        (c) => companyLabel(c).toLowerCase() === search,
+                      );
+                      const filtered = exactMatch
+                        ? [exactMatch]
+                        : companies.filter((c) => c.nom.toLowerCase().includes(search));
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="suggestion-empty">
+                            Aucune entreprise correspondante.
+                            <span className="suggestion-empty-sub">
+                              Vérifiez l'orthographe ou saisissez le nom exact.
+                            </span>
+                          </div>
+                        );
+                      }
+                      return filtered.map((company) => (
                         <button
                           type="button"
                           key={company.id}
+                          onMouseDown={(e) => e.preventDefault()}
                           onClick={() => selectCompany(company)}
                         >
                           {companyLabel(company)}
                         </button>
-                      ))
-                    )}
+                      ));
+                    })()}
                   </div>
                 )}
               </div>
@@ -419,24 +430,48 @@ function AjouterStage() {
                   }
                   onChange={handleProfessionalSupervisorChange}
                   onFocus={() => setShowSupervisorSuggestions(true)}
-                  onBlur={() =>
-                    setTimeout(() => setShowSupervisorSuggestions(false), 150)
-                  }
+                  onBlur={handleSupervisorBlur}
                   placeholder="Sélectionner ou saisir un encadreur"
                   className="smart-select-input"
                   required
                 />
                 {showSupervisorSuggestions && (
                   <div className="suggestion-list">
-                    {supervisors.map((supervisor) => (
-                      <button
-                        type="button"
-                        key={supervisor.id}
-                        onClick={() => selectSupervisor(supervisor)}
-                      >
-                        {supervisorLabel(supervisor)}
-                      </button>
-                    ))}
+                    {(() => {
+                      const search = formData.encadreurProfessionnelNom.toLowerCase();
+                      const exactMatch = supervisors.find(
+                        (s) => supervisorLabel(s).toLowerCase() === search,
+                      );
+                      const filtered = exactMatch
+                        ? [exactMatch]
+                        : supervisors.filter((s) => {
+                            const name = [s.user?.nom, s.user?.prenom]
+                              .filter(Boolean)
+                              .join(" ")
+                              .toLowerCase();
+                            return name.includes(search);
+                          });
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="suggestion-empty">
+                            Aucun encadreur correspondant.
+                            <span className="suggestion-empty-sub">
+                              Vérifiez l'orthographe ou saisissez le nom exact.
+                            </span>
+                          </div>
+                        );
+                      }
+                      return filtered.map((supervisor) => (
+                        <button
+                          type="button"
+                          key={supervisor.id}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectSupervisor(supervisor)}
+                        >
+                          {supervisorLabel(supervisor)}
+                        </button>
+                      ));
+                    })()}
                   </div>
                 )}
               </div>

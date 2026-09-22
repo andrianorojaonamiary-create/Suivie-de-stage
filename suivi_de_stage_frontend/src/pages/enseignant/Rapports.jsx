@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaFileAlt, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
@@ -7,7 +7,14 @@ import {
   FaBuilding, FaCalendarAlt
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { reportsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import {
+  mapReportStatus,
+  mapReportType,
+  formatReportSize,
+  formatReportDate,
+} from '../../utils/reportMapping';
 
 function EnseignantRapports() {
   const { studentId } = useParams();
@@ -24,16 +31,47 @@ function EnseignantRapports() {
 
   // ===== DONNÉES =====
   const [allRapports, setAllRapports] = useState([]);
+  const [loadingRapports, setLoadingRapports] = useState(false);
+
+  useEffect(() => {
+    const fetchRapports = async () => {
+      setLoadingRapports(true);
+      try {
+        const res = await reportsApi.getAll({ limit: 100 });
+        const items = Array.isArray(res) ? res : res?.items || [];
+        setAllRapports(items.map(r => ({
+          id: r.id,
+          etudiantId: r.stage?.etudiantId,
+          etudiant: r.stage?.etudiant || 'Étudiant',
+          stage: r.stage?.intitule || 'Stage',
+          entreprise: r.stage?.entreprise || 'Entreprise',
+          titre: mapReportType(r.type),
+          fileName: r.fileName || r.originalName,
+          date: formatReportDate(r.dateCreation),
+          statut: mapReportStatus(r.statut),
+          size: formatReportSize(r.size),
+          commentaire: r.commentaire || '',
+          raison: r.commentaire || ''
+        })));
+      } catch (err) {
+        console.error('Erreur chargement rapports:', err);
+        toast.error('Erreur lors du chargement des rapports');
+      } finally {
+        setLoadingRapports(false);
+      }
+    };
+    fetchRapports();
+  }, []);
 
   // ===== FILTRER PAR ÉTUDIANT =====
   const rapports = studentId 
-    ? allRapports.filter(r => r.etudiantId === parseInt(studentId))
+    ? allRapports.filter(r => r.etudiantId === studentId)
     : allRapports;
 
   // Récupérer le nom de l'étudiant
   const getStudentName = () => {
     if (studentId) {
-      const student = allRapports.find(r => r.etudiantId === parseInt(studentId));
+      const student = allRapports.find(r => r.etudiantId === studentId);
       return student ? student.etudiant : '';
     }
     return '';
@@ -75,20 +113,45 @@ function EnseignantRapports() {
     }
   };
 
-  const handleViewFile = (fileName) => {
-    if (fileName) {
-      window.open(`/documents/${fileName}`, '_blank');
+  const handleViewFile = async (rapport) => {
+    if (!rapport?.id) {
+      window.open(`/documents/${rapport?.fileName}`, '_blank');
+      return;
+    }
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors de l\'ouverture du fichier');
     }
   };
 
-  const handleDownloadFile = (fileName) => {
-    if (fileName) {
+  const handleDownloadFile = async (rapport) => {
+    if (!rapport?.id) {
       const link = document.createElement('a');
-      link.href = `/documents/${fileName}`;
-      link.download = fileName;
+      link.href = `/documents/${rapport?.fileName}`;
+      link.download = rapport?.fileName;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      return;
+    }
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = rapport.fileName || rapport.titre || 'rapport';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors du téléchargement');
     }
   };
 
@@ -111,22 +174,50 @@ function EnseignantRapports() {
     setCommentaire('');
   };
 
-  const confirmValidate = () => {
-    setAllRapports(prev => prev.map(r =>
-      r.id === selectedRapport.id ? { ...r, statut: 'Validé' } : r
-    ));
-    toast.success(`Rapport "${selectedRapport.titre}" validé avec succès !`);
+  const confirmValidate = async () => {
+    if (!selectedRapport) return;
+    try {
+      await reportsApi.updateStatus(selectedRapport.id, {
+        statut: 'APPROUVE',
+        commentaire: commentaire.trim() || null,
+      });
+      setAllRapports(prev => prev.map(r =>
+        r.id === selectedRapport.id
+          ? { ...r, statut: 'Validé', commentaire: commentaire.trim() || '' }
+          : r
+      ));
+      toast.success(`Rapport "${selectedRapport.titre}" validé avec succès !`);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message ||
+        'Erreur lors de la validation';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
     setShowValidateModal(false);
     setSelectedRapport(null);
     setCommentaire('');
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!commentaire.trim()) return;
-    setAllRapports(prev => prev.map(r =>
-      r.id === selectedRapport.id ? { ...r, statut: 'Refusé', raison: commentaire } : r
-    ));
-    toast.success(`Rapport "${selectedRapport.titre}" refusé`);
+    if (!selectedRapport) return;
+    try {
+      await reportsApi.updateStatus(selectedRapport.id, {
+        statut: 'REJETE',
+        commentaire: commentaire.trim(),
+      });
+      setAllRapports(prev => prev.map(r =>
+        r.id === selectedRapport.id
+          ? { ...r, statut: 'Refusé', raison: commentaire }
+          : r
+      ));
+      toast.success(`Rapport "${selectedRapport.titre}" refusé`);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message ||
+        'Erreur lors du refus';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
     setShowRejectModal(false);
     setSelectedRapport(null);
     setCommentaire('');
@@ -247,7 +338,12 @@ function EnseignantRapports() {
           </div>
         </div>
 
-        {filteredRapports.length === 0 ? (
+        {loadingRapports ? (
+          <div className="empty-state">
+            <div className="empty-icon"><FaFileAlt /></div>
+            <h3>Chargement...</h3>
+          </div>
+        ) : filteredRapports.length === 0 ? (
           <div className="empty-state">
             <FaFileAlt className="empty-icon" />
             <h3>Aucun rapport</h3>
@@ -303,14 +399,14 @@ function EnseignantRapports() {
                           <>
                             <button 
                               className="action-btn view" 
-                              onClick={() => handleViewFile(rapport.fileName)}
+                              onClick={() => handleViewFile(rapport)}
                               title="Voir le fichier"
                             >
                               <FaEye />
                             </button>
                             <button 
                               className="action-btn download" 
-                              onClick={() => handleDownloadFile(rapport.fileName)}
+                              onClick={() => handleDownloadFile(rapport)}
                               title="Télécharger"
                             >
                               <FaDownload />

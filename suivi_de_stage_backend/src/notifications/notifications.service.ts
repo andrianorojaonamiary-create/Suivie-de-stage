@@ -191,6 +191,52 @@ export class NotificationsService {
     await this.notifyEvaluationRequired(stage);
   }
 
+  async notifyReportSubmitted(
+    stage: Internship,
+    report: { type: string },
+  ) {
+    const recipients = [
+      stage.tuteurId,
+      stage.supervisor?.user?.id,
+    ].filter((id): id is string => Boolean(id));
+    for (const userId of new Set(recipients)) {
+      await this.createNotification(
+        userId,
+        NotificationType.RAPPORT_DEPOSE,
+        'Rapport déposé',
+        `${this.getStudentName(stage)} a déposé un rapport ${this.getReportTypeLabel(report.type)} pour le stage « ${stage.intitule} ».`,
+        stage.id,
+      );
+    }
+  }
+
+  async notifyReportReviewed(
+    stage: Internship,
+    report: { type: string; commentaire: string | null },
+    statut: string,
+  ) {
+    const studentId = stage.student?.user?.id;
+    if (!studentId) return;
+    await this.createNotification(
+      studentId,
+      NotificationType.RAPPORT_REVU,
+      statut === 'APPROUVE' ? 'Rapport validé' : 'Rapport refusé',
+      statut === 'APPROUVE'
+        ? `Le rapport ${this.getReportTypeLabel(report.type)} du stage « ${stage.intitule} » a été validé.`
+        : `Le rapport ${this.getReportTypeLabel(report.type)} du stage « ${stage.intitule} » a été refusé.${report.commentaire ? ` Motif : ${report.commentaire}` : ''}`,
+      stage.id,
+    );
+  }
+
+  private getReportTypeLabel(type: string) {
+    const labels: Record<string, string> = {
+      PRISE_EN_MAIN: 'de prise en main',
+      INTERMEDIAIRE: 'intermédiaire',
+      FINAL: 'final',
+    };
+    return labels[type] || type.toLowerCase();
+  }
+
   private async notifyParticipants(
     stage: Internship,
     type: NotificationType,

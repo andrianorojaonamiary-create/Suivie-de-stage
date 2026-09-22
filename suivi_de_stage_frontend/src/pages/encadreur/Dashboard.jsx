@@ -7,7 +7,8 @@ import {
   FaMapMarkerAlt, FaPhone, FaEnvelope, FaGlobe
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { internshipsApi, evaluationsApi } from '../../api';
+import { internshipsApi, reportsApi, notificationsApi, companiesApi } from '../../api';
+import mapInternship from '../../utils/internshipMapping';
 
 // ============================================================
 // CUSTOM TOOLTIP
@@ -73,77 +74,124 @@ const renderCenterLabel = (totalStages) => {
 function EncadreurDashboard() {
   const { user } = useAuth();
   const [encadreurStages, setEncadreurStages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [stats, setStats] = useState({
+    etudiants: 0,
+    stagesEnCours: 0,
+    evaluationsEnAttente: 0,
+    rapportsRecus: 0,
+    totalStages: 0,
+  });
+  const [entrepriseInfo, setEntrepriseInfo] = useState(null);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        setLoading(true);
-        const res = await internshipsApi.getAll();
-        const list = Array.isArray(res) ? res : res?.items || [];
-        setEncadreurStages(list.map(s => ({
-          id: s.id,
-          etudiant: s.etudiant ? `${s.etudiant.prenom || ''} ${s.etudiant.nom || ''}`.trim() : (s.studentName || 'Étudiant'),
-          entreprise: s.entreprise?.nom || s.companyName || 'Entreprise',
-          ville: s.entreprise?.ville || s.city || 'Non renseignée',
-          statut: s.statut || s.status || 'En cours',
-          progression: s.progression || 50,
-          filiere: s.etudiant?.filiere || s.filiere || 'Informatique'
-        })));
-      } catch (err) {
-        console.error('Erreur chargement dashboard encadreur:', err);
-      } finally {
-        setLoading(false);
+      const [stagesRes, reportsRes, notifsRes, companyRes] = await Promise.allSettled([
+          internshipsApi.getAll({ limit: 100 }),
+          reportsApi.getAll({ limit: 100 }),
+          notificationsApi.getAll(),
+          companiesApi.getMe(),
+        ]);
+
+      // ===== STAGES (scopés à l'encadreur) =====
+      const stages = stagesRes.status === 'fulfilled'
+        ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+        : [];
+      const rapports = reportsRes.status === 'fulfilled'
+        ? (reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []))
+        : [];
+
+      const mappedStages = stages.map((s) => {
+        const m = mapInternship(s);
+        return {
+          id: m.id,
+          etudiantId: s.student?.id || null,
+          etudiant: m.etudiant,
+          entreprise: m.entreprise,
+          ville: m.ville,
+          statut: m.statut,
+          statutApi: m.statutApi,
+          progression: m.progression,
+          filiere: s.student?.formation || 'Non renseigné',
+        };
+      });
+      setEncadreurStages(mappedStages);
+
+      const enCours = mappedStages.filter((s) => s.statutApi === 'EN_COURS').length;
+      setStats({
+        etudiants: new Set(mappedStages.map((s) => s.etudiantId).filter(Boolean)).size,
+        stagesEnCours: enCours,
+        evaluationsEnAttente: enCours,
+        rapportsRecus: rapports.length,
+        totalStages: mappedStages.length,
+      });
+
+      // ===== MON ENTREPRISE =====
+      if (companyRes.status === 'fulfilled' && companyRes.value) {
+        const c = companyRes.value;
+        setEntrepriseInfo({
+          nom: c.nom || '',
+          adresse: [c.adresse, c.ville].filter(Boolean).join(', '),
+          telephone: c.telephone || '',
+          email: c.email || '',
+          site: c.siteWeb || c.site_web || '',
+          description: c.description || '',
+        });
+      }
+
+      // ===== ACTIVITÉS RÉCENTES =====
+      const notifsValue = notifsRes.status === 'fulfilled' ? notifsRes.value : null;
+      const notifs = Array.isArray(notifsValue) ? notifsValue : notifsValue?.data || notifsValue?.items || [];
+      if (notifs.length > 0) {
+        setRecentActivities(
+          notifs.slice(0, 4).map((n, idx) => {
+            const date = n.date_creation ?? n.dateCreation ?? n.createdAt;
+            return {
+              id: n.id || idx,
+              icon: <FaBell />,
+              text: n.titre || n.title || 'Notification',
+              detail: n.message || n.content || '',
+              time: date ? new Date(date).toLocaleDateString('fr-FR') : '',
+              color: '#6BA9E6',
+              bg: '#E1ECFE',
+            };
+          }),
+        );
       }
     };
+
     fetchData();
   }, []);
 
   // ===== STATISTIQUES =====
-  const stats = {
-    etudiants: encadreurStages.length,
-    etudiantsChange: '',
-    stagesEnCours: encadreurStages.filter(s => s.statut === 'En cours').length,
-    stagesActifs: encadreurStages.length > 0 ? `${Math.round((encadreurStages.filter(s => s.statut === 'En cours').length / encadreurStages.length) * 100)}%` : '0%',
-    evaluationsEnAttente: 0,
-    rapportsRecus: 0,
-    rapportsTotal: encadreurStages.length,
-    observations: 0
-  };
-
   // ===== DONNÉES CAMEMBERT =====
   const stageStatusData = [
-    { name: 'En cours', value: encadreurStages.filter(s => s.statut === 'En cours').length, color: '#6BA9E6' },
-    { name: 'En attente', value: encadreurStages.filter(s => s.statut === 'En attente').length, color: '#F39C12' },
-    { name: 'Terminés', value: encadreurStages.filter(s => s.statut === 'Terminé' || s.statut === 'Validé').length, color: '#27AE60' },
-    { name: 'Refusés', value: encadreurStages.filter(s => s.statut === 'Refusé').length, color: '#E74C3C' },
-  ].filter(item => item.value > 0);
+    { name: 'En cours', value: encadreurStages.filter(s => s.statutApi === 'EN_COURS').length, color: '#162449' },
+    { name: 'Terminés', value: encadreurStages.filter(s => s.statutApi === 'TERMINE').length, color: '#27AE60' },
+    { name: 'À venir', value: encadreurStages.filter(s => s.statutApi === 'EN_ATTENTE' || s.statutApi === 'A_VENIR').length, color: '#F39C12' },
+  ];
 
   // ===== DONNÉES HISTOGRAMME =====
   const filiereMap = {};
   encadreurStages.forEach(s => {
     filiereMap[s.filiere] = (filiereMap[s.filiere] || 0) + 1;
   });
+  const colors = ['#162449', '#6BA9E6', '#27AE60', '#F39C12', '#E53E3E', '#7C3AED', '#6c7a8a'];
   const filiereData = Object.keys(filiereMap).map((key, index) => ({
     name: key,
     value: filiereMap[key],
-    color: ['#6BA9E6', '#5BA3E6', '#7CB8F0', '#A0C8F5'][index % 4]
+    color: colors[index % colors.length],
   }));
-
-  // ===== INFORMATIONS DE L'ENTREPRISE =====
-  const entrepriseInfo = null;
-
-  // ===== ACTIVITÉS RÉCENTES =====
-  const recentActivities = [];
 
   const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
 
-  const stagesActifsPct = stats.rapportsTotal > 0
-    ? Math.min(100, Math.round((stats.stagesEnCours / stats.rapportsTotal) * 100)) : 0;
-  const evaluationsPct = stats.stagesEnCours > 0
-    ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.stagesEnCours) * 100)) : 0;
-  const rapportsPct = stats.rapportsTotal > 0
-    ? Math.min(100, Math.round((stats.rapportsRecus / stats.rapportsTotal) * 100)) : 0;
+  const stagesActifsPct = stats.totalStages > 0
+    ? Math.min(100, Math.round((stats.stagesEnCours / stats.totalStages) * 100)) : 0;
+  const evaluationsPct = stats.totalStages > 0
+    ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.totalStages) * 100)) : 0;
+  const rapportsAttendus = stats.totalStages * 2;
+  const rapportsPct = rapportsAttendus > 0
+    ? Math.min(100, Math.round((stats.rapportsRecus / rapportsAttendus) * 100)) : 0;
 
   return (
     <div className="encadreur-dashboard">
@@ -168,7 +216,7 @@ function EncadreurDashboard() {
             </div>
           </div>
           <div className="kpi-change" style={{ color: '#6BA9E6' }}>
-            {stats.etudiantsChange}
+            Cette période
           </div>
         </div>
 
@@ -183,7 +231,7 @@ function EncadreurDashboard() {
             </div>
           </div>
           <div className="kpi-change" style={{ color: '#27AE60' }}>
-            {stagesActifsPct}% <span className="kpi-vs">des étudiants</span>
+            {stagesActifsPct}% <span className="kpi-vs">des stages</span>
           </div>
         </div>
 
@@ -198,7 +246,7 @@ function EncadreurDashboard() {
             </div>
           </div>
           <div className="kpi-change" style={{ color: '#F39C12' }}>
-            {evaluationsPct}% <span className="kpi-vs">des stages en cours</span>
+            {evaluationsPct}% <span className="kpi-vs">des stages encadrés</span>
           </div>
         </div>
 
@@ -223,7 +271,7 @@ function EncadreurDashboard() {
         {/* ===== CAMEMBERT AVEC LÉGENDE À DROITE ===== */}
         <div className="chart-card">
           <div className="chart-header">
-            <h3>Avancement des stages</h3>
+            <h3>Avancement global des stages</h3>
           </div>
           <div className="chart-body pie-chart">
             <div className="pie-chart-wrapper">
@@ -284,7 +332,7 @@ function EncadreurDashboard() {
                   tick={{ fontSize: 11, fill: '#6c7a8a' }}
                   axisLine={{ stroke: '#E8EEF4' }}
                   tickLine={false}
-                  domain={[0, filiereData.length > 0 ? Math.max(...filiereData.map(d => d.value)) + 1 : 5]}
+                  domain={[0, 'auto']}
                 />
                 <Tooltip 
                   contentStyle={{ 
@@ -349,44 +397,46 @@ function EncadreurDashboard() {
             {entrepriseInfo ? (
               <>
                 <div className="entreprise-name">
-                  <FaBuilding className="entreprise-icon" />
+                  <span className="entreprise-icon-container">
+                    <FaBuilding className="entreprise-icon" />
+                  </span>
                   <span className="name">{entrepriseInfo.nom}</span>
                 </div>
-                <div className="entreprise-detail">
-                  <FaMapMarkerAlt className="detail-icon" />
-                  <span>{entrepriseInfo.adresse}</span>
-                </div>
-                <div className="entreprise-detail">
-                  <FaPhone className="detail-icon" />
-                  <span>{entrepriseInfo.telephone}</span>
-                </div>
-                <div className="entreprise-detail">
-                  <FaEnvelope className="detail-icon" />
-                  <span>{entrepriseInfo.email}</span>
-                </div>
-                <div className="entreprise-detail">
-                  <FaGlobe className="detail-icon" />
-                  <span>{entrepriseInfo.site}</span>
-                </div>
-                <div className="entreprise-description">
-                  <p>{entrepriseInfo.description}</p>
-                </div>
+                {entrepriseInfo.adresse && (
+                  <div className="entreprise-detail">
+                    <FaMapMarkerAlt className="detail-icon" />
+                    <span>{entrepriseInfo.adresse}</span>
+                  </div>
+                )}
+                {entrepriseInfo.telephone && (
+                  <div className="entreprise-detail">
+                    <FaPhone className="detail-icon" />
+                    <span>{entrepriseInfo.telephone}</span>
+                  </div>
+                )}
+                {entrepriseInfo.email && (
+                  <div className="entreprise-detail">
+                    <FaEnvelope className="detail-icon" />
+                    <span>{entrepriseInfo.email}</span>
+                  </div>
+                )}
+                {entrepriseInfo.site && (
+                  <div className="entreprise-detail">
+                    <FaGlobe className="detail-icon" />
+                    <span>{entrepriseInfo.site}</span>
+                  </div>
+                )}
+                {entrepriseInfo.description && (
+                  <div className="entreprise-description">
+                    <p>{entrepriseInfo.description}</p>
+                  </div>
+                )}
               </>
             ) : (
               <p className="detail-empty">
                 Aucune information sur votre entreprise n'est encore disponible sur la plateforme.
               </p>
             )}
-            <div className="entreprise-stats">
-              <div className="stat-item">
-                <span className="stat-number">{encadreurStages.length}</span>
-                <span className="stat-label">Étudiants encadrés</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{stats.stagesEnCours}</span>
-                <span className="stat-label">Stages en cours</span>
-              </div>
-            </div>
           </div>
         </div>
       </div>

@@ -1,15 +1,32 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-  FaArrowLeft, FaUserGraduate, FaBuilding, FaCalendarAlt, 
-  FaMapMarkerAlt, FaUserTie,FaInfoCircle, 
+import {
+  FaArrowLeft, FaUserGraduate, FaBuilding, FaCalendarAlt,
+  FaMapMarkerAlt, FaUserTie, FaInfoCircle,
 } from 'react-icons/fa';
+import { internshipsApi } from '../../api';
+import { mapInternship } from '../../utils/internshipMapping';
 
 function EncadreurStageDetail() {
-  useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
-  const [stage] = useState(null);
-  const [loading] = useState(false);
+  const [stage, setStage] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStage = async () => {
+      try {
+        setLoading(true);
+        const data = await internshipsApi.getById(id);
+        setStage(mapInternship(data));
+      } catch (err) {
+        console.error('Erreur chargement stage:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (id) fetchStage();
+  }, [id]);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
@@ -21,9 +38,13 @@ function EncadreurStageDetail() {
     const badges = {
       'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
       'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
+      'En attente de validation': { className: 'status-badge status-en-attente', label: 'En attente' },
+      'À venir': { className: 'status-badge status-en-attente', label: 'À venir' },
       'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
       'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' },
+      'Suspendu': { className: 'status-badge status-refuse', label: 'Suspendu' },
+      'Annulé': { className: 'status-badge status-refuse', label: 'Annulé' }
     };
     const badge = badges[statut] || badges['En attente'];
     return <span className={badge.className}>{badge.label}</span>;

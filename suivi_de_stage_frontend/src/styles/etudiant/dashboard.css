@@ -75,11 +75,11 @@
 }
 
 .dashboard-stage .stage-content {
-  padding: 25px;
+  padding: 12px 25px 25px;
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-top: 10px;
+  margin-top: 0;
 }
 
 .stage-layout {
@@ -177,6 +177,7 @@
   display: flex;
   justify-content: flex-end;
   margin-top: auto;
+  padding-top: 12px;
 }
 
 .stage-empty {
@@ -321,13 +322,14 @@
   object-fit: cover;
 }
 
-.map-pin {
+.localisation-map .map-pin {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 48px;
-  color: #162449;
+  width: 22px;
+  height: 36px;
+  object-fit: contain;
   filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
   cursor: pointer;
   transition: all 0.3s ease;
@@ -921,8 +923,9 @@
     height: 120px;
   }
 
-  .map-pin {
-    font-size: 36px;
+  .localisation-map .map-pin {
+    width: 18px;
+    height: 30px;
   }
 
   .report-notif-item {
@@ -1022,8 +1025,9 @@
     height: 100px;
   }
 
-  .map-pin {
-    font-size: 28px;
+  .localisation-map .map-pin {
+    width: 14px;
+    height: 23px;
   }
 
   .localisation-info h4 {

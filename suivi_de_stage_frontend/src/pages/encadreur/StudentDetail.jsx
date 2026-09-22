@@ -4,7 +4,15 @@ import {
   FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
   FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
 } from 'react-icons/fa';
-import { studentsApi } from '../../api';
+import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
+import { toast } from 'react-toastify';
+import {
+  mapReportType,
+  mapReportStatus,
+  formatReportSize,
+  formatReportDate,
+} from '../../utils/reportMapping';
+import { mapInternship } from '../../utils/internshipMapping';
 
 function EncadreurStudentDetail() {
   const { studentId } = useParams();
@@ -13,6 +21,8 @@ function EncadreurStudentDetail() {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
   const [rapports, setRapports] = useState([]);
+  const [stage, setStage] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     const fetchStudent = async () => {
@@ -39,15 +49,142 @@ function EncadreurStudentDetail() {
     if (studentId) fetchStudent();
   }, [studentId]);
 
-  const handleValiderRapport = (id) => {
-    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchStageAndEval = async () => {
+      try {
+        const res = await internshipsApi.getAll({ limit: 100 });
+        const items = res?.data || (Array.isArray(res) ? res : []);
+        const owned = items.filter((s) => String(s.student?.id) === String(studentId));
+        if (owned.length === 0) return;
+        const raw =
+          owned.find((s) => s.statut === 'EN_COURS') ||
+          owned.find((s) => s.statut === 'TERMINE') ||
+          owned.find((s) => s.statut === 'A_VENIR') ||
+          owned[0];
+        setStage(mapInternship(raw));
+
+        try {
+          const ev = await evaluationsApi.getByInternship(raw.id);
+          const evalsList = Array.isArray(ev) ? ev : ev?.data || [];
+          setEvaluations(
+            evalsList.map((e) => ({
+              id: e.id,
+              type: e.typeEvaluateur || 'Encadreur',
+              note: e.note,
+              date: e.dateEvaluation
+                ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR')
+                : '—',
+              statut: e.validee ? 'Validé' : 'À faire',
+              commentaire: e.commentaire || '',
+            })),
+          );
+        } catch (err) {
+          console.error('Erreur chargement évaluations étudiant:', err);
+          setEvaluations([]);
+        }
+      } catch (err) {
+        console.error('Erreur chargement stage étudiant:', err);
+      }
+    };
+    fetchStageAndEval();
+  }, [studentId]);
+
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchRapports = async () => {
+      try {
+        const res = await reportsApi.getAll({ limit: 100 });
+        const items = Array.isArray(res) ? res : res?.items || [];
+        const filtered = items
+          .filter((r) => String(r.stage?.etudiantId) === String(studentId))
+          .map((r) => ({
+            id: r.id,
+            titre: mapReportType(r.type),
+            fileName: r.fileName || r.originalName,
+            size: formatReportSize(r.size),
+            date: formatReportDate(r.dateCreation),
+            statut: mapReportStatus(r.statut),
+            commentaire: r.commentaire || '',
+            raison: r.commentaire || '',
+          }));
+        setRapports(filtered);
+      } catch (err) {
+        console.error('Erreur chargement rapports étudiant:', err);
+      }
+    };
+    fetchRapports();
+  }, [studentId]);
+
+  const handleValiderRapport = async (id) => {
+    try {
+      await reportsApi.updateStatus(id, { statut: 'APPROUVE' });
+      setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
+      toast.success('Rapport validé avec succès !');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la validation';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
   };
 
-  const handleRefuserRapport = (id) => {
-    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'À corriger' } : r));
+  const handleRefuserRapport = async (id) => {
+    try {
+      await reportsApi.updateStatus(id, { statut: 'REJETE' });
+      setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Refusé' } : r));
+      toast.success('Rapport refusé');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors du refus';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
   };
 
-  const evaluations = [];
+  const handleViewFile = async (rapport) => {
+    if (!rapport?.id) {
+      window.open(`/documents/${rapport?.fileName}`, '_blank');
+      return;
+    }
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erreur:', err);
+      toast.error("Erreur lors de l'ouverture du fichier");
+    }
+  };
+
+  const handleDownloadFile = async (rapport) => {
+    if (!rapport?.id) {
+      const link = document.createElement('a');
+      link.href = `/documents/${rapport?.fileName}`;
+      link.download = rapport?.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      return;
+    }
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = rapport.fileName || rapport.titre || 'rapport';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erreur:', err);
+      toast.error('Erreur lors du téléchargement');
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    const date = new Date(dateStr);
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR');
+  };
 
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
@@ -131,12 +268,23 @@ function EncadreurStudentDetail() {
               <span className="info-field-box">{student.statut}</span>
             </div>
             <div className="info-field info-field-full">
-              <span className="info-field-label">Formation</span>
-              <span className="info-field-box">{student.filiere}</span>
-            </div>
-            <div className="info-field info-field-full">
               <span className="info-field-label">Informations de stage</span>
-              <span className="info-field-box info-field-desc">Les informations du stage ne sont pas disponibles via cette vue.</span>
+              {stage ? (
+                <span className="info-field-box info-field-desc">
+                  {stage.intitule}
+                  {(stage.entreprise || stage.lieu) && (
+                    <span className="info-field-sub">
+                      {[stage.entreprise, stage.lieu].filter(Boolean).join(' · ')}
+                      {stage.encadreur && ` · Encadreur : ${stage.encadreur}`}
+                    </span>
+                  )}
+                  <span className="info-field-sub">
+                    Période : {formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)} · Statut : {stage.statut} · Progression : {stage.progression}%
+                  </span>
+                </span>
+              ) : (
+                <span className="info-field-box info-field-desc">Aucun stage enregistré</span>
+              )}
             </div>
           </div>
         )}
@@ -171,7 +319,7 @@ function EncadreurStudentDetail() {
                       </td>
                       <td className="eval-table-date" data-label="Date">{evalItem.date}</td>
                       <td data-label="Statut">
-                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
+                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : 'badge-en-attente'}`}>
                           {evalItem.statut}
                         </span>
                       </td>
@@ -222,8 +370,8 @@ function EncadreurStudentDetail() {
                     <div className="report-col-actions">
                       {rapport.fileName && (
                         <>
-                          <button className="btn-action-icon" title="Voir"><FaEye /></button>
-                          <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
+                          <button className="btn-action-icon" title="Voir" onClick={() => handleViewFile(rapport)}><FaEye /></button>
+                          <button className="btn-action-icon" title="Télécharger" onClick={() => handleDownloadFile(rapport)}><FaDownload /></button>
                           {rapport.statut !== 'Validé' && (
                             <>
                               <button className="btn-action-icon" title="Valider" onClick={() => handleValiderRapport(rapport.id)}><FaCheck /></button>

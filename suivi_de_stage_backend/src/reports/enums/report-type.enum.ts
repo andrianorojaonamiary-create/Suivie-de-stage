@@ -1,0 +1,5 @@
+export enum ReportType {
+  PRISE_EN_MAIN = 'PRISE_EN_MAIN',
+  INTERMEDIAIRE = 'INTERMEDIAIRE',
+  FINAL = 'FINAL',
+}

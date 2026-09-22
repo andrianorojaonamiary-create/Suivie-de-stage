@@ -173,6 +173,13 @@
   color: #475569;
 }
 
+.info-field-sub {
+  display: block;
+  margin-top: 6px;
+  color: #6c7a8a;
+  font-size: 13px;
+}
+
 .inline-progress {
   display: flex;
   align-items: center;

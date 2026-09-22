@@ -6,10 +6,12 @@ import {
   Index,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
 import { Company } from '../../companies/entities/company.entity';
+import { Report } from '../../reports/entities/report.entity';
 import { Student } from '../../students/entities/student.entity';
 import { Supervisor } from '../../supervisors/entities/supervisor.entity';
 import { User } from '../../users/entities/user.entity';
@@ -96,6 +98,17 @@ export class Internship {
   @Column({ type: 'text', nullable: true })
   observations: string | null;
 
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  convention: string | null;
+
+  @Column({
+    name: 'convention_nom',
+    type: 'varchar',
+    length: 255,
+    nullable: true,
+  })
+  conventionNom: string | null;
+
   @CreateDateColumn({ name: 'date_creation', type: 'timestamptz' })
   dateCreation: Date;
 
@@ -108,4 +121,7 @@ export class Internship {
     nullable: true,
   })
   dateSuppression: Date | null;
+
+  @OneToMany(() => Report, (report) => report.stage)
+  reports: Report[];
 }

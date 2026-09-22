@@ -6,8 +6,9 @@ import {
   FaChevronLeft, FaChevronRight, FaClock, FaCheckCircle,
   FaTimes, FaGraduationCap
 } from 'react-icons/fa';
-import { studentsApi } from '../../api';
+import { studentsApi, internshipsApi, reportsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import mapInternship from '../../utils/internshipMapping';
 
 function EnseignantEtudiants() {
   const navigate = useNavigate();
@@ -22,21 +23,83 @@ function EnseignantEtudiants() {
   const [students, setStudents] = useState([]);
 
   useEffect(() => {
-    const fetchStudents = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const res = await studentsApi.getAll();
-        const list = res?.items || [];
-        const mapped = list.map(item => ({
-          id: item.id,
-          nom: `${item.user?.prenom || ''} ${item.user?.nom || ''}`.trim() || 'Étudiant',
-          matricule: item.matricule || `ETU-${item.id}`,
-          filiere: item.formation || 'Non renseigné',
-          niveau: item.niveau || 'Non renseigné',
-          stage: { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
-          evaluation: 'À faire',
-          rapports: 0
-        }));
+        const [stagesRes, studentsRes, reportsRes] = await Promise.allSettled([
+          internshipsApi.getAll({ limit: 100 }),
+          studentsApi.getAll({ limit: 100 }),
+          reportsApi.getAll({ limit: 100 }),
+        ]);
+
+        const stages = stagesRes.status === 'fulfilled'
+          ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+          : [];
+        const studentInfos = studentsRes.status === 'fulfilled'
+          ? (studentsRes.value?.items || studentsRes.value?.data || (Array.isArray(studentsRes.value) ? studentsRes.value : []))
+          : [];
+        const rapports = reportsRes.status === 'fulfilled'
+          ? (reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []))
+          : [];
+
+        const infosById = new Map(studentInfos.map((s) => [s.id, s]));
+
+        const stagesByStudent = new Map();
+        stages.forEach((item) => {
+          const id = item.student?.id;
+          if (!id) return;
+          if (!stagesByStudent.has(id)) stagesByStudent.set(id, []);
+          stagesByStudent.get(id).push(item);
+        });
+
+        const rapportsByStudent = new Map();
+        rapports.forEach((r) => {
+          const sid = r.stage?.etudiantId;
+          if (!sid) return;
+          rapportsByStudent.set(sid, (rapportsByStudent.get(sid) || 0) + 1);
+        });
+
+        const preferStage = (list) => {
+          if (list.length === 0) return null;
+          return (
+            list.find((s) => s.statut === 'EN_COURS') ||
+            list.find((s) => s.statut === 'TERMINE') ||
+            list.find((s) => s.statut === 'A_VENIR') ||
+            list[0]
+          );
+        };
+
+        const emptyStage = { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 };
+
+        const mapped = [...stagesByStudent.entries()].map(([id, list]) => {
+          const info = infosById.get(id) || null;
+          const rawStage = preferStage(list);
+          const stage = rawStage ? mapInternship(rawStage) : null;
+          return {
+            id,
+            nom: info
+              ? `${info.user?.prenom || ''} ${info.user?.nom || ''}`.trim() || 'Étudiant'
+              : (stage ? stage.etudiant : 'Étudiant'),
+            matricule: info?.matricule || `ETU-${id}`,
+            filiere: info?.formation || 'Non renseigné',
+            niveau: info?.niveau || 'Non renseigné',
+            stage: stage
+              ? {
+                  id: stage.id,
+                  titre: stage.titre,
+                  entreprise: stage.entreprise,
+                  statut: stage.statut,
+                  statutApi: stage.statutApi,
+                  dateDebut: stage.dateDebut,
+                  dateFin: stage.dateFin,
+                  progression: stage.progression,
+                }
+              : { ...emptyStage },
+            evaluation: stage?.statutApi === 'TERMINE' ? 'À faire' : '',
+            rapports: rapportsByStudent.get(id) || 0,
+          };
+        });
+
         setStudents(mapped);
       } catch (err) {
         console.error('Erreur chargement étudiants enseignant:', err);
@@ -45,16 +108,16 @@ function EnseignantEtudiants() {
       }
     };
 
-    fetchStudents();
+    fetchData();
   }, []);
 
 
 
   const stats = {
     total: students.length,
-    enStage: 0,
-    termines: 0,
-    aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
+    enStage: students.filter(s => s.stage.statutApi === 'EN_COURS').length,
+    termines: students.filter(s => s.stage.statutApi === 'TERMINE').length,
+    aEvaluer: students.filter(s => s.stage.statutApi === 'TERMINE').length
   };
 
   const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));
@@ -104,15 +167,19 @@ function EnseignantEtudiants() {
     const badges = {
       'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
       'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
+      'En attente de validation': { className: 'status-badge status-en-attente', label: 'En attente' },
       'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
       'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' },
+      'Suspendu': { className: 'status-badge status-refuse', label: 'Suspendu' },
+      'Annulé': { className: 'status-badge status-refuse', label: 'Annulé' }
     };
     const badge = badges[statut] || badges['En attente'];
     return <span className={badge.className}>{badge.label}</span>;
   };
 
   const getEvalBadge = (evalStatus) => {
+    if (!evalStatus) return '—';
     const badges = {
       'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
       'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
@@ -227,7 +294,12 @@ function EnseignantEtudiants() {
         </div>
 
         {/* ===== TABLEAU ===== */}
-        {filteredStudents.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <FaUsers className="empty-icon" />
+            <h3>Chargement...</h3>
+          </div>
+        ) : filteredStudents.length === 0 ? (
           <div className="empty-state">
             <FaUsers className="empty-icon" />
             <h3>Aucun étudiant trouvé</h3>

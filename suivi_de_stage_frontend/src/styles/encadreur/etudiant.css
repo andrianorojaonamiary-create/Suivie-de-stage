@@ -333,6 +333,7 @@
 .encadreur-etudiants .eval-valide { background: #E8F5E9; color: #27AE60; }
 .encadreur-etudiants .eval-a-faire { background: #FFF3E0; color: #F39C12; }
 .encadreur-etudiants .eval-corriger { background: #FDE8E8; color: #E74C3C; }
+.encadreur-etudiants .eval-neutral { background: #F1F5F9; color: #6c7a8a; }
 
 .encadreur-etudiants .action-buttons {
   display: flex;

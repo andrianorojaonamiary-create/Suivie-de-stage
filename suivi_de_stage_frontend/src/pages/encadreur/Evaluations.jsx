@@ -1,15 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   FaStar, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
-  FaCheckCircle, FaClock, FaEye, 
+  FaCheckCircle, FaClock, FaEye,
   FaTimes, FaArrowLeft, FaInfoCircle,
   FaUserTie, FaCalendarAlt, FaComment, FaSave,
   FaCode, FaClipboardCheck, FaRocket, FaUsers,
-  FaChartLine, FaBuilding,FaUserGraduate
+  FaChartLine, FaBuilding, FaUserGraduate
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
+import { internshipsApi, evaluationsApi } from '../../api';
 
 // ============================================================
 // MODAL DÉTAILS ÉVALUATION
@@ -284,6 +285,40 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
 // ============================================================
 // PAGE PRINCIPALE
 // ============================================================
+async function loadAllEvaluations() {
+  const internshipsRes = await internshipsApi.getAll({ limit: 100 });
+  const internships = internshipsRes?.data || (Array.isArray(internshipsRes) ? internshipsRes : []);
+
+  const evalPromises = internships.map((s) =>
+    evaluationsApi.getByInternship(s.id).catch(() => ({ data: [] }))
+  );
+  const evalResults = await Promise.all(evalPromises);
+
+  const allEvs = [];
+  internships.forEach((s, i) => {
+    const evals = evalResults[i]?.data || [];
+    evals.forEach((e) => {
+      allEvs.push({
+        ...e,
+        stageId: s.id,
+        etudiantId: s.student?.id,
+        etudiant: s.student?.user
+          ? `${s.student.user.prenom ?? ''} ${s.student.user.nom ?? ''}`.trim()
+          : 'Étudiant',
+        stage: s.intitule,
+        entreprise: s.company?.nom || '',
+        type: e.typeEvaluateur,
+        statut: e.validee ? 'Validé' : 'À faire',
+        date: e.dateEvaluation ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR') : '',
+        note: e.note,
+        filiere: s.student?.formation || '',
+      });
+    });
+  });
+
+  return allEvs;
+}
+
 function EncadreurEvaluations() {
   const { studentId } = useParams();
   const navigate = useNavigate();
@@ -291,20 +326,34 @@ function EncadreurEvaluations() {
   const [selectedStatus, setSelectedStatus] = useState('tous');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [loading, setLoading] = useState(true);
 
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEvalForm, setShowEvalForm] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
+  const [allEvaluations, setAllEvaluations] = useState([]);
 
-  const allEvaluations = [];
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      try {
+        setLoading(true);
+        setAllEvaluations(await loadAllEvaluations());
+      } catch (err) {
+        console.error(' chargement évaluations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvaluations();
+  }, []);
 
-  const evaluations = studentId 
-    ? allEvaluations.filter(e => e.etudiantId === parseInt(studentId))
+  const evaluations = studentId
+    ? allEvaluations.filter(e => String(e.etudiantId) === String(studentId))
     : allEvaluations;
 
   const getStudentName = () => {
     if (studentId) {
-      const student = allEvaluations.find(e => e.etudiantId === parseInt(studentId));
+      const student = allEvaluations.find(e => String(e.etudiantId) === String(studentId));
       return student ? student.etudiant : '';
     }
     return '';
@@ -348,12 +397,6 @@ function EncadreurEvaluations() {
     return statut === 'Validé' ? 'badge-valide' : 'badge-en-attente';
   };
 
-  const getStars = (note) => {
-    if (!note) return null;
-    const stars = Math.round(note / 4);
-    return '★'.repeat(Math.min(stars, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(stars, 5)));
-  };
-
   const openDetailModal = (evaluation) => {
     setSelectedEvaluation(evaluation);
     setShowDetailModal(true);
@@ -364,13 +407,38 @@ function EncadreurEvaluations() {
     setShowEvalForm(true);
   };
 
-  const handleSaveEvaluation = (data) => {
-    toast.success(<>
-      <div>Évaluation enregistrée avec succès !</div>
-      <div>Note moyenne : {data.moyenne}/20</div>
-    </>);
-    setShowEvalForm(false);
-    setSelectedEvaluation(null);
+  const handleSaveEvaluation = async (data) => {
+    try {
+      if (!selectedEvaluation?.stageId) {
+        toast.error('Stage introuvable pour cette évaluation');
+        return;
+      }
+      await evaluationsApi.create({
+        stageId: selectedEvaluation.stageId,
+        note: data.moyenne,
+        commentaire: data.appreciation,
+        criteres: {
+          competenceTech: data.competenceTech,
+          qualiteTravail: data.qualiteTravail,
+          autonomie: data.autonomie,
+          respectDelais: data.respectDelais,
+          espritEquipe: data.espritEquipe,
+          communication: data.communication,
+          assiduite: data.assiduite,
+        },
+        type: 'ENCADREUR',
+      });
+      toast.success(<>
+        <div>Évaluation enregistrée avec succès !</div>
+        <div>Note moyenne : {data.moyenne}/20</div>
+      </>);
+      setShowEvalForm(false);
+      setSelectedEvaluation(null);
+      setAllEvaluations(await loadAllEvaluations());
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || "Erreur lors de l'enregistrement";
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
   };
 
   return (
@@ -452,7 +520,12 @@ function EncadreurEvaluations() {
           </div>
         </div>
 
-        {filteredEvals.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <FaStar className="empty-icon" />
+            <h3>Chargement...</h3>
+          </div>
+        ) : filteredEvals.length === 0 ? (
           <div className="empty-state">
             <FaStar className="empty-icon" />
             <h3>Aucune évaluation</h3>

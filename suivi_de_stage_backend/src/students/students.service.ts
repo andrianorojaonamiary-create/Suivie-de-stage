@@ -241,7 +241,8 @@ export class StudentsService {
           nom: student.user.nom,
           prenom: student.user.prenom,
           ...(actor?.role === Role.ADMINISTRATEUR ||
-          actor?.role === Role.ETUDIANT
+          actor?.role === Role.ETUDIANT ||
+          actor?.role === Role.ENSEIGNANT
             ? { email: student.user.email, role: student.user.role }
             : {}),
         }
@@ -270,6 +271,20 @@ export class StudentsService {
 
     if (actor?.role === Role.ETUDIANT) {
       return publicStudent;
+    }
+
+    if (actor?.role === Role.ENSEIGNANT) {
+      return {
+        ...publicStudent,
+        user: publicUser
+          ? {
+              id: publicUser.id,
+              nom: publicUser.nom,
+              prenom: publicUser.prenom,
+              email: publicUser.email,
+            }
+          : undefined,
+      };
     }
 
     return {

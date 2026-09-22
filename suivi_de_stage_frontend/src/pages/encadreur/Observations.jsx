@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   FaComment, FaPlus, FaEye, FaEdit, FaTrash,
   FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
   FaUserGraduate, FaBuilding, FaTimes, FaSave,
@@ -8,6 +8,13 @@ import {
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
+import { internshipsApi, trackingApi } from '../../api';
+
+const TYPE_LABELS = {
+  OBSERVATION: 'Observation',
+  ENTRETIEN: 'Entretien',
+  RAPPORT: 'Rapport',
+};
 
 function EncadreurObservations() {
   const { studentId } = useParams();
@@ -22,26 +29,84 @@ function EncadreurObservations() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedObs, setSelectedObs] = useState(null);
   const [obsToDelete, setObsToDelete] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   const [observations, setObservations] = useState([]);
+  const [stages, setStages] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [formData, setFormData] = useState({ etudiantId: '', contenu: '' });
+
+  const getPreferredStage = (studentIdTarget) => {
+    return stages.find((s) => String(s.student?.id) === String(studentIdTarget) && s.statut === 'EN_COURS') ||
+      stages.find((s) => String(s.student?.id) === String(studentIdTarget) && s.statut === 'TERMINE') ||
+      stages.find((s) => String(s.student?.id) === String(studentIdTarget)) || null;
+  };
+
+  useEffect(() => {
+    const fetchObservations = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll({ limit: 100 });
+        const internships = res?.data || (Array.isArray(res) ? res : []);
+        setStages(internships);
+
+        const followUpPromises = internships.map(async (s) => {
+          const followRes = await trackingApi.getByInternship(s.id).catch(() => ({ data: [] }));
+          const list = followRes?.data || (Array.isArray(followRes) ? followRes : []);
+          return list.map((f) => ({
+            id: f.id,
+            stageId: s.id,
+            etudiantId: s.student?.id,
+            etudiant: s.student?.user
+              ? `${s.student.user.prenom ?? ''} ${s.student.user.nom ?? ''}`.trim()
+              : 'Étudiant',
+            stage: s.intitule,
+            entreprise: s.company?.nom || '',
+            date: f.date ? new Date(f.date).toLocaleDateString('fr-FR') : '—',
+            contenu: f.contenu || '',
+            type: TYPE_LABELS[f.type] || f.type || 'Observation',
+            auteur: f.autorizedUser || f.auteur?.user
+              ? `${f.auteur?.user?.prenom ?? ''} ${f.auteur?.user?.nom ?? ''}`.trim()
+              : 'Encadreur',
+          }));
+        });
+
+        const results = await Promise.all(followUpPromises);
+        setObservations(results.flat());
+      } catch (err) {
+        console.error(' chargement observations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchObservations();
+  }, []);
 
   const allObservations = observations;
-  const filteredObs = studentId 
-    ? observations.filter(o => o.etudiantId === parseInt(studentId))
+  const filteredObs = studentId
+    ? observations.filter(o => String(o.etudiantId) === String(studentId))
     : observations;
 
   const getStudentName = () => {
     if (studentId) {
-      const student = allObservations.find(o => o.etudiantId === parseInt(studentId));
+      const student = allObservations.find(o => String(o.etudiantId) === String(studentId));
       return student ? student.etudiant : '';
     }
     return '';
   };
 
   const studentName = getStudentName();
-  const etudiants = ['tous', ...new Set(allObservations.map(o => o.etudiant))].map(v => ({ value: v, label: v === 'tous' ? 'Tous les étudiants' : v }));
-
-  const [formData, setFormData] = useState({ etudiant: '', contenu: '' });
+  const etudiantOptions = stages
+    .filter((s) => s.student?.id)
+    .map((s) => ({
+      value: String(s.student.id),
+      label: `${s.student.user?.prenom ?? ''} ${s.student.user?.nom ?? ''}`.trim() || 'Étudiant',
+    }))
+    .filter((o, index, arr) => arr.findIndex((x) => x.value === o.value) === index);
+  const etudiants = [
+    { value: 'tous', label: 'Tous les étudiants' },
+    ...etudiantOptions,
+  ];
 
   const filteredData = filteredObs.filter(o => {
     if (selectedEtudiant !== 'tous' && o.etudiant !== selectedEtudiant) return false;
@@ -79,46 +144,75 @@ function EncadreurObservations() {
     }).length
   };
 
-  const handleAdd = () => {
-    if (!formData.etudiant || !formData.contenu) {
-      alert('Veuillez remplir tous les champs');
+  const handleAdd = async () => {
+    if (!formData.etudiantId || !formData.contenu) {
+      toast.warning('Veuillez remplir tous les champs');
       return;
     }
-    const newObservation = {
-      id: Date.now(),
-      etudiant: formData.etudiant,
-      etudiantId: 1,
-      stage: 'Stage en cours',
-      entreprise: '',
-      date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
-      contenu: formData.contenu,
-      auteur: ''
-    };
-    setObservations([newObservation, ...observations]);
-    toast.success('Observation ajoutée avec succès !');
-    setShowAddModal(false);
-    setFormData({ etudiant: '', contenu: '' });
+    const stage = getPreferredStage(formData.etudiantId);
+    if (!stage) {
+      toast.error("Aucun stage trouvé pour cet étudiant");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const created = await trackingApi.create(stage.id, {
+        contenu: formData.contenu,
+        type: 'OBSERVATION',
+      });
+      const newObservation = {
+        id: created?.id || Date.now(),
+        stageId: stage.id,
+        etudiantId: stage.student?.id,
+        etudiant: stage.student?.user
+          ? `${stage.student.user.prenom ?? ''} ${stage.student.user.nom ?? ''}`.trim()
+          : 'Étudiant',
+        stage: stage.intitule,
+        entreprise: stage.company?.nom || '',
+        date: new Date().toLocaleDateString('fr-FR'),
+        contenu: formData.contenu,
+        type: 'Observation',
+        auteur: 'Encadreur',
+      };
+      setObservations([newObservation, ...observations]);
+      toast.success('Observation ajoutée avec succès !');
+      setShowAddModal(false);
+      setFormData({ etudiantId: '', contenu: '' });
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || "Erreur lors de l'ajout";
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleEdit = (obs) => {
     setSelectedObs(obs);
-    setFormData({ etudiant: obs.etudiant, contenu: obs.contenu });
+    setFormData({ etudiantId: String(obs.etudiantId), contenu: obs.contenu });
     setShowEditModal(true);
   };
 
-  const handleUpdate = () => {
-    if (!formData.etudiant || !formData.contenu) {
-      alert('Veuillez remplir tous les champs');
+  const handleUpdate = async () => {
+    if (!formData.contenu) {
+      toast.warning('Veuillez remplir le champ observation');
       return;
     }
-    const updated = observations.map(o => 
-      o.id === selectedObs.id ? { ...o, etudiant: formData.etudiant, contenu: formData.contenu } : o
-    );
-    setObservations(updated);
-    toast.success('Observation modifiée avec succès !');
-    setShowEditModal(false);
-    setSelectedObs(null);
-    setFormData({ etudiant: '', contenu: '' });
+    setSubmitting(true);
+    try {
+      await trackingApi.update(selectedObs.id, { contenu: formData.contenu });
+      setObservations(observations.map(o =>
+        o.id === selectedObs.id ? { ...o, contenu: formData.contenu } : o
+      ));
+      toast.success('Observation modifiée avec succès !');
+      setShowEditModal(false);
+      setSelectedObs(null);
+      setFormData({ etudiantId: '', contenu: '' });
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la modification';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleDelete = (obs) => {
@@ -126,10 +220,20 @@ function EncadreurObservations() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    setObservations(observations.filter(o => o.id !== obsToDelete.id));
-    setShowDeleteModal(false);
-    setObsToDelete(null);
+  const confirmDelete = async () => {
+    setSubmitting(true);
+    try {
+      await trackingApi.delete(obsToDelete.id);
+      setObservations(observations.filter(o => o.id !== obsToDelete.id));
+      toast.success('Observation supprimée');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la suppression';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+      setShowDeleteModal(false);
+      setObsToDelete(null);
+    }
   };
 
   const cancelDelete = () => {
@@ -211,7 +315,12 @@ function EncadreurObservations() {
           </div>
         </div>
 
-        {paginatedObs.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <FaComment className="empty-icon" />
+            <h3>Chargement...</h3>
+          </div>
+        ) : paginatedObs.length === 0 ? (
           <div className="empty-state">
             <FaComment className="empty-icon" />
             <h3>Aucune observation</h3>
@@ -243,7 +352,7 @@ function EncadreurObservations() {
                     <td>
                       <div className="observation-cell">
                         <span className="observation-text">{obs.contenu}</span>
-                        <span className="observation-author">{obs.auteur}</span>
+                        <span className="observation-author">{obs.type} · {obs.auteur}</span>
                       </div>
                     </td>
                     <td>{obs.date}</td>
@@ -267,7 +376,7 @@ function EncadreurObservations() {
 
             {totalPages > 1 && (
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -283,7 +392,7 @@ function EncadreurObservations() {
                     {index + 1}
                   </button>
                 ))}
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -312,16 +421,16 @@ function EncadreurObservations() {
                 <label><FaUserGraduate /> Étudiant *</label>
                 <SelectPersonnalise
                   className="form-control"
-                  value={formData.etudiant}
-                  onChange={(v) => setFormData({ ...formData, etudiant: v })}
+                  value={formData.etudiantId}
+                  onChange={(v) => setFormData({ ...formData, etudiantId: v })}
                   placeholder="Sélectionner un étudiant"
-                  options={etudiants.filter(e => e.value !== 'tous')}
+                  options={etudiantOptions}
                 />
               </div>
               <div className="form-group">
                 <label><FaComment /> Observation *</label>
-                <textarea 
-                  className="form-control" 
+                <textarea
+                  className="form-control"
                   rows="4"
                   placeholder="Rédigez votre observation..."
                   value={formData.contenu}
@@ -331,8 +440,8 @@ function EncadreurObservations() {
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancel" onClick={() => setShowAddModal(false)}>Annuler</button>
-              <button className="btn-modal-confirm btn-validate" onClick={handleAdd}>
-                <FaSave /> Enregistrer
+              <button className="btn-modal-confirm btn-validate" onClick={handleAdd} disabled={submitting}>
+                <FaSave /> {submitting ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             </div>
           </div>
@@ -349,19 +458,13 @@ function EncadreurObservations() {
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label><FaUserGraduate /> Étudiant *</label>
-                <SelectPersonnalise
-                  className="form-control"
-                  value={formData.etudiant}
-                  onChange={(v) => setFormData({ ...formData, etudiant: v })}
-                  placeholder="Sélectionner un étudiant"
-                  options={etudiants.filter(e => e.value !== 'tous')}
-                />
+                <label><FaUserGraduate /> Étudiant</label>
+                <span className="form-control-static">{selectedObs.etudiant} · {selectedObs.stage}</span>
               </div>
               <div className="form-group">
                 <label><FaComment /> Observation *</label>
-                <textarea 
-                  className="form-control" 
+                <textarea
+                  className="form-control"
                   rows="4"
                   placeholder="Rédigez votre observation..."
                   value={formData.contenu}
@@ -371,8 +474,8 @@ function EncadreurObservations() {
             </div>
             <div className="modal-footer">
               <button className="btn-modal-cancel" onClick={() => setShowEditModal(false)}>Annuler</button>
-              <button className="btn-modal-confirm btn-validate" onClick={handleUpdate}>
-                <FaSave /> Modifier
+              <button className="btn-modal-confirm btn-validate" onClick={handleUpdate} disabled={submitting}>
+                <FaSave /> {submitting ? 'Modification...' : 'Modifier'}
               </button>
             </div>
           </div>
@@ -406,7 +509,7 @@ function EncadreurObservations() {
               </div>
               <div className="view-row">
                 <span className="view-label"><FaUserGraduate /> Auteur</span>
-                <span className="view-value">{selectedObs.auteur}</span>
+                <span className="view-value">{selectedObs.type} · {selectedObs.auteur}</span>
               </div>
               <div className="view-row view-description">
                 <span className="view-label"><FaComment /> Observation</span>
@@ -429,8 +532,8 @@ function EncadreurObservations() {
               Voulez-vous vraiment supprimer cette observation de <strong>{obsToDelete.etudiant}</strong> ? Cette action est irréversible.
             </p>
             <div className="modal-actions">
-              <button className="btn-danger" onClick={confirmDelete}>
-                Supprimer
+              <button className="btn-danger" onClick={confirmDelete} disabled={submitting}>
+                {submitting ? 'Suppression...' : 'Supprimer'}
               </button>
               <button className="btn-secondary" onClick={cancelDelete}>
                 Annuler

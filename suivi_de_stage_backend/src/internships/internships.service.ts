@@ -108,7 +108,9 @@ export class InternshipsService {
       .innerJoinAndSelect('student.user', 'studentUser')
       .innerJoinAndSelect('internship.company', 'company')
       .leftJoinAndSelect('internship.supervisor', 'supervisor')
-      .leftJoinAndSelect('internship.tuteur', 'tuteur');
+      .leftJoinAndSelect('supervisor.user', 'supervisorUser')
+      .leftJoinAndSelect('internship.tuteur', 'tuteur')
+      .leftJoinAndSelect('internship.reports', 'reports');
 
     this.applyAccessScope(query, actor);
     if (dto.studentId)
@@ -285,6 +287,32 @@ export class InternshipsService {
     return savedInternship;
   }
 
+  async saveConvention(
+    id: string,
+    actor: AuthenticatedUser,
+    filename: string,
+    originalName: string,
+  ) {
+    const internship = await this.findEntity(id);
+    this.ensureCanModifyConvention(internship, actor);
+    internship.convention = filename;
+    internship.conventionNom = originalName;
+    await this.internshipsRepository.save(internship);
+    return { message: 'Convention de stage enregistrée avec succès.' };
+  }
+
+  async getConventionFilename(id: string, actor: AuthenticatedUser) {
+    const internship = await this.findEntity(id);
+    this.ensureCanAccess(internship, actor);
+    if (!internship.convention) {
+      throw new NotFoundException('Aucune convention de stage déposée.');
+    }
+    return {
+      filename: internship.convention,
+      originalName: internship.conventionNom,
+    };
+  }
+
   async remove(id: string, actor: AuthenticatedUser) {
     if (actor.role === Role.ETUDIANT) {
       const internship = await this.findEntity(id);
@@ -326,6 +354,7 @@ export class InternshipsService {
         company: { user: true },
         supervisor: { user: true },
         tuteur: true,
+        reports: true,
       },
     });
     if (!internship) throw new NotFoundException('Stage introuvable.');
@@ -395,6 +424,19 @@ export class InternshipsService {
       throw new ForbiddenException('Vous ne pouvez pas accéder à ce stage.');
   }
 
+  private ensureCanModifyConvention(
+    internship: Internship,
+    actor: AuthenticatedUser,
+  ) {
+    const isOwnerStudent =
+      actor.role === Role.ETUDIANT && internship.student.user?.id === actor.id;
+    if (actor.role !== Role.ADMINISTRATEUR && !isOwnerStudent) {
+      throw new ForbiddenException(
+        'Vous ne pouvez pas déposer la convention de ce stage.',
+      );
+    }
+  }
+
   private async saveAndSerialize(internship: Internship) {
     try {
       return this.toPublicInternship(
@@ -417,6 +459,8 @@ export class InternshipsService {
         ? {
             id: internship.student.id,
             matricule: internship.student.matricule,
+            formation: internship.student.formation,
+            niveau: internship.student.niveau,
             user: internship.student.user
               ? {
                   id: internship.student.user.id,
@@ -466,8 +510,27 @@ export class InternshipsService {
       dateFin: internship.dateFin,
       statut: internship.statut,
       observations: internship.observations,
+      convention: internship.convention,
+      conventionNom: internship.conventionNom,
       dateCreation: internship.dateCreation,
       dateModification: internship.dateModification,
+      reports: (internship.reports ?? [])
+        .sort(
+          (a, b) =>
+            new Date(b.dateCreation).getTime() -
+            new Date(a.dateCreation).getTime(),
+        )
+        .map((report) => ({
+          id: report.id,
+          type: report.type,
+          fileName: report.fileName,
+          originalName: report.originalName,
+          size: report.size,
+          statut: report.statut,
+          commentaire: report.commentaire,
+          dateCreation: report.dateCreation,
+          dateModification: report.dateModification,
+        })),
     };
   }
 }

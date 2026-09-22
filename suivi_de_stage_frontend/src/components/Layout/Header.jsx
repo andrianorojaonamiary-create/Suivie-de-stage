@@ -1,6 +1,8 @@
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignOutAlt, FaBell, FaBars } from 'react-icons/fa';
+import { notificationsApi } from '../../api';
 
 function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const { user, logout } = useAuth();
@@ -8,7 +10,24 @@ function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const location = useLocation();
   const handleToggle = onToggleMobileMenu || onMobileMenuToggle;
 
-  const unreadNotifications = 3;
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+    const fetchUnread = async () => {
+      try {
+        const res = await notificationsApi.getAll({ lu: false });
+        const total = res?.meta?.total ?? res?.data?.length ?? 0;
+        if (!cancelled) setUnreadCount(Number(total) || 0);
+      } catch {
+        if (!cancelled) setUnreadCount(0);
+      }
+    };
+    fetchUnread();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -100,8 +119,8 @@ function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
           title="Notifications"
         >
           <FaBell />
-          {unreadNotifications > 0 && (
-            <span className="header-notif-badge">{unreadNotifications}</span>
+          {unreadCount > 0 && (
+            <span className="header-notif-badge">{unreadCount}</span>
           )}
         </button>
 
