@@ -12,9 +12,11 @@ describe('NotificationsService', () => {
     createQueryBuilder: jest.fn(),
   };
   const usersRepository = { find: jest.fn() };
+  const mailService = { sendNewUserNotificationEmail: jest.fn() };
   const service = new NotificationsService(
     repository as never,
     usersRepository as never,
+    mailService as never,
   );
 
   beforeEach(() => jest.clearAllMocks());

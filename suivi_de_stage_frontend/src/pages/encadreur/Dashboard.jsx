@@ -135,7 +135,7 @@ function EncadreurDashboard() {
         (s) => s.statutApi === 'EN_COURS' || s.statutApi === 'TERMINE',
       );
       const evaluationsEnAttente = activeStages.filter(
-        (s) => !(evalByStage.get(s.id) || []).some((e) => e.validee),
+        (s) => (evalByStage.get(s.id) || []).length === 0,
       ).length;
 
       const rapportsByStage = new Map();

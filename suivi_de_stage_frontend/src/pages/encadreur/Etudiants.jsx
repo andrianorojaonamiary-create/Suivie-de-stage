@@ -74,7 +74,7 @@ function EncadreurEtudiants() {
       const deriveEval = (statutApi, evals) => {
         if (!statutApi) return '—';
         if (evals && evals.length > 0) {
-          return evals.some((ev) => ev.validee) ? 'Validé' : 'À faire';
+          return 'Évalué';
         }
         return statutApi === 'EN_COURS' || statutApi === 'TERMINE' ? 'À faire' : '—';
       };
@@ -187,7 +187,7 @@ function EncadreurEtudiants() {
       return <span className="eval-badge eval-neutral">—</span>;
     }
     const badges = {
-      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
+      'Évalué': { className: 'eval-badge eval-valide', label: 'Évalué' },
       'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
       'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
     };

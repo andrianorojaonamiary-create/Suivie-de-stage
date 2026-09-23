@@ -26,7 +26,7 @@ function EvalDetailModal({ evaluation, onClose }) {
   };
 
   const getStatusClass = (statut) => {
-    return statut === 'Validé' ? 'badge-valide' : 'badge-en-attente';
+    return statut === 'Évalué' ? 'badge-valide' : 'badge-en-attente';
   };
 
   return (
@@ -328,7 +328,7 @@ async function loadAllEvaluations() {
         stage: s.intitule,
         entreprise: s.company?.nom || '',
         type: e.typeEvaluateur,
-        statut: e.validee ? 'Validé' : 'À faire',
+        statut: 'Évalué',
         date: e.dateEvaluation ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR') : '',
         note: e.note,
         filiere: s.student?.formation || '',
@@ -386,7 +386,7 @@ function EncadreurEvaluations() {
 
   const stats = {
     total: evaluations.length,
-    valides: evaluations.filter(e => e.statut === 'Validé').length,
+    valides: evaluations.filter(e => e.statut === 'Évalué').length,
     enAttente: new Set(
       evaluations.filter(e => e.pending).map(e => String(e.etudiantId))
     ).size
@@ -419,7 +419,7 @@ function EncadreurEvaluations() {
   };
 
   const getStatusClass = (statut) => {
-    return statut === 'Validé' ? 'badge-valide' : 'badge-en-attente';
+    return statut === 'Évalué' ? 'badge-valide' : 'badge-en-attente';
   };
 
   const openDetailModal = (evaluation) => {
@@ -503,7 +503,7 @@ function EncadreurEvaluations() {
           <div className="stat-icon done"><FaCheckCircle /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Validées</span>
+            <span className="stat-label">Évaluées</span>
           </div>
         </div>
         <div className="stat-card">
@@ -526,7 +526,7 @@ function EncadreurEvaluations() {
                   onChange={setSelectedStatus}
                   options={[
                     { value: 'tous', label: 'Tous les statuts' },
-                    { value: 'Validé', label: 'Validé' },
+                    { value: 'Évalué', label: 'Évalué' },
                     { value: 'À faire', label: 'À faire' }
                   ]}
                 />

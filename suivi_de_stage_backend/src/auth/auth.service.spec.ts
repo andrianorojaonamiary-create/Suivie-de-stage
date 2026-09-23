@@ -14,9 +14,11 @@ describe('AuthService', () => {
   const jwtService = { signAsync: jest.fn() };
   const configService = { get: jest.fn().mockReturnValue('1h') };
   const mailService = { sendPasswordResetEmail: jest.fn() };
+  const notificationsService = { notifyNewUserRegistration: jest.fn() };
   const studentsRepository = {
     create: jest.fn((value) => value),
     save: jest.fn(),
+    findOne: jest.fn(),
   };
   const supervisorsRepository = {
     create: jest.fn((value) => value),
@@ -27,6 +29,7 @@ describe('AuthService', () => {
     jwtService as never,
     configService as never,
     mailService as never,
+    notificationsService as never,
     studentsRepository as never,
     supervisorsRepository as never,
   );

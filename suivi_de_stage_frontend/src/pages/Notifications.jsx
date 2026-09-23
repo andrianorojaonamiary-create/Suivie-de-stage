@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCheck, FaBell, FaUpload } from 'react-icons/fa';
+import { FaCheck, FaBell, FaUpload, FaUserPlus } from 'react-icons/fa';
 
 import { useEffect } from 'react';
 import notificationsApi from '../api/notificationsApi';
@@ -25,9 +25,9 @@ function Notifications() {
             ? new Date(n.dateCreation || n.createdAt).toLocaleDateString('fr-FR')
             : 'Récemment',
           read: Boolean(n.lu),
-          icon: <FaBell />,
-          color: n.type === 'alerte' ? '#E74C3C' : '#6BA9E6',
-          bg: n.type === 'alerte' ? '#FEE2E2' : '#E1ECFE'
+          icon: n.type === 'NOUVEL_INSCRIT' ? <FaUserPlus /> : <FaBell />,
+          color: n.type === 'NOUVEL_INSCRIT' ? '#27AE60' : n.type === 'alerte' ? '#E74C3C' : '#6BA9E6',
+          bg: n.type === 'NOUVEL_INSCRIT' ? '#E8F8F0' : n.type === 'alerte' ? '#FEE2E2' : '#E1ECFE'
         }));
         setItems(mapped);
       } catch (err) {

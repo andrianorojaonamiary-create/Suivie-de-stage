@@ -124,7 +124,7 @@ function EnseignantDashboard() {
         );
         const evaluationsEnAttente = list.filter(
           (s) => (s.statut === 'EN_COURS' || s.statut === 'TERMINE') &&
-            !(evalByStage.get(s.id) || []).some((e) => e.validee),
+            (evalByStage.get(s.id) || []).length === 0,
         ).length;
 
         setStats((prev) => ({

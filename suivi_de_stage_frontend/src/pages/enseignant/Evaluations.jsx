@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   FaStar, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
-  FaCheckCircle, FaClock, FaEye, FaUserGraduate,
+  FaCheckCircle, FaEye, FaUserGraduate,
   FaBuilding, FaTimes, FaArrowLeft, FaInfoCircle,
   FaUserTie, FaCalendarAlt, FaComment
 } from 'react-icons/fa';
@@ -16,14 +16,10 @@ import { internshipsApi, evaluationsApi } from '../../api';
 function EvalDetailModal({ evaluation, onClose }) {
   if (!evaluation) return null;
 
-  const getStars = (note) => {
-    if (!note) return null;
-    const stars = Math.round(note / 4);
-    return '★'.repeat(Math.min(stars, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(stars, 5)));
-  };
+  
 
   const getStatusClass = (statut) => {
-    return statut === 'Validé' ? 'eval-badge-valide' : 'eval-badge-en-attente';
+    return statut === 'Évalué' ? 'eval-badge-valide' : 'eval-badge-en-attente';
   };
 
   return (
@@ -58,10 +54,7 @@ function EvalDetailModal({ evaluation, onClose }) {
             <span className="eval-detail-label"><FaStar /> Note</span>
             <span className="eval-detail-value">
               {evaluation.note ? (
-                <>
-                  <span className="eval-detail-note">{evaluation.note} / 20</span>
-                  <span className="eval-detail-stars">{getStars(evaluation.note)}</span>
-                </>
+                <span className="eval-detail-note">{evaluation.note} / 20</span>
               ) : (
                 <span className="eval-detail-empty">Non évalué</span>
               )}
@@ -132,7 +125,7 @@ function EnseignantEvaluations() {
               : '—',
             note: e.note,
             commentaire: e.commentaire || '',
-            statut: e.validee ? 'Validé' : 'En attente',
+            statut: 'Évalué',
           }));
         });
 
@@ -166,8 +159,7 @@ function EnseignantEvaluations() {
   // ===== STATISTIQUES =====
   const stats = {
     total: evaluations.length,
-    valides: evaluations.filter(e => e.statut === 'Validé').length,
-    enAttente: evaluations.filter(e => e.statut === 'En attente').length
+    valides: evaluations.filter(e => e.statut === 'Évalué').length
   };
 
   // ===== FILTRAGE =====
@@ -199,18 +191,12 @@ function EnseignantEvaluations() {
   };
 
   const getStatusClass = (statut) => {
-    return statut === 'Validé' ? 'eval-badge-valide' : 'eval-badge-en-attente';
+    return statut === 'Évalué' ? 'eval-badge-valide' : 'eval-badge-en-attente';
   };
 
   const openDetailModal = (evaluation) => {
     setSelectedEvaluation(evaluation);
     setShowDetailModal(true);
-  };
-
-  const getStars = (note) => {
-    if (!note) return null;
-    const stars = Math.round(note / 4);
-    return '★'.repeat(Math.min(stars, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(stars, 5)));
   };
 
   return (
@@ -243,14 +229,7 @@ function EnseignantEvaluations() {
           <div className="stat-icon done"><FaCheckCircle /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Validées</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enAttente}</span>
-            <span className="stat-label">En attente</span>
+            <span className="stat-label">Évaluées</span>
           </div>
         </div>
       </div>
@@ -268,8 +247,7 @@ function EnseignantEvaluations() {
                   onChange={setSelectedStatus}
                   options={[
                     { value: 'tous', label: 'Tous les statuts' },
-                    { value: 'Validé', label: 'Validé' },
-                    { value: 'En attente', label: 'En attente' }
+                    { value: 'Évalué', label: 'Évalué' }
                   ]}
                 />
               </div>
@@ -344,7 +322,6 @@ function EnseignantEvaluations() {
                       {evalItem.note ? (
                         <div className="note-cell">
                           <span className="note-value">{evalItem.note}/20</span>
-                          <span className="note-stars">{getStars(evalItem.note)}</span>
                         </div>
                       ) : (
                         <span className="note-empty">—</span>

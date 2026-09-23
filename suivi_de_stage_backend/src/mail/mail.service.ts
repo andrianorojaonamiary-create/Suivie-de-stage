@@ -42,6 +42,24 @@ export class MailService {
     });
   }
 
+  /**
+   * Envoie un email aux administrateurs pour les notifier d'un nouvel inscrit
+   */
+  async sendNewUserNotificationEmail(to: string, userInfo: string): Promise<void> {
+    if (!this.transporter) {
+      throw new Error(
+        'SMTP non configuré. Renseignez SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS et SMTP_FROM dans le fichier .env.',
+      );
+    }
+
+    await this.transporter.sendMail({
+      from: this.smtpConfig().from,
+      to,
+      subject: 'Nouvel inscrit sur la plateforme EMIT',
+      html: this.buildNewUserTemplate(userInfo),
+    });
+  }
+
   private buildTransporter(): Transporter | null {
     const config = this.smtpConfig();
 
@@ -87,6 +105,26 @@ export class MailService {
           </p>
           <p style="color: #999; font-size: 13px; line-height: 1.5;">
             Ce code est valable <strong>15 minutes</strong>. Si vous n'êtes pas à l'origine de cette demande, ignorez simplement cet email.
+          </p>
+        </div>
+      </div>
+    `;
+  }
+
+  private buildNewUserTemplate(userInfo: string): string {
+    return `
+      <div style="font-family: Arial, Helvetica, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border-top: 4px solid #27AE60;">
+        <div style="padding: 24px 32px; text-align: center;">
+          <h2 style="color: #162449; margin: 0 0 8px;">Nouvel inscrit sur EMIT</h2>
+          <p style="color: #444; line-height: 1.6;">
+            Bonjour,<br/>
+            Un nouvel utilisateur vient de s'inscrire sur la plateforme de suivi de stages <strong>EMIT Fianarantsoa</strong>.
+          </p>
+          <div style="display: inline-block; background: #E8F8F0; border: 2px solid #27AE60; color: #162449; font-size: 16px; padding: 14px 26px; border-radius: 10px; margin: 20px 0; text-align: left;">
+            ${userInfo}
+          </div>
+          <p style="color: #999; font-size: 13px; line-height: 1.5;">
+            Cet email est envoyé automatiquement. Merci de ne pas y répondre.
           </p>
         </div>
       </div>

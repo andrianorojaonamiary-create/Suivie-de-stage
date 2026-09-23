@@ -74,7 +74,7 @@ function EnseignantStudentDetail() {
             date: e.dateEvaluation
               ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR')
               : '—',
-            statut: e.validee ? 'Validé' : 'À faire',
+            statut: 'Évalué',
             commentaire: e.commentaire || '',
           })),
         );
@@ -318,7 +318,7 @@ function EnseignantStudentDetail() {
                       </td>
                       <td className="eval-table-date" data-label="Date">{evalItem.date}</td>
                       <td data-label="Statut">
-                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
+                        <span className={`badge ${evalItem.statut === 'Évalué' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
                           {evalItem.statut}
                         </span>
                       </td>

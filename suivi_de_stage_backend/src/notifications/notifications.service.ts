@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { FindNotificationsDto } from './dto/find-notifications.dto';
 import { Notification } from './entities/notification.entity';
 import { NotificationType } from './enums/notification-type.enum';
+import { MailService } from '../mail/mail.service';
 
 interface AuthenticatedUser {
   id: string;
@@ -21,6 +22,7 @@ export class NotificationsService {
     private readonly notificationsRepository: Repository<Notification>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    private readonly mailService: MailService,
   ) {}
 
   async findAll(dto: FindNotificationsDto, actor: AuthenticatedUser) {
@@ -311,6 +313,34 @@ export class NotificationsService {
         message,
         referenceId: referenceId ?? null,
       }),
+    );
+  }
+
+  async notifyNewUserRegistration(user: Omit<User, 'motDePasse'>) {
+    const admins = await this.usersRepository.find({
+      where: { role: Role.ADMINISTRATEUR, actif: true },
+    });
+
+    const message = `${user.prenom} ${user.nom} (${user.email}) s'est inscrit en tant que ${user.role}.`;
+
+    // 1. Notifications in-app pour chaque admin
+    await Promise.all(
+      admins.map((admin) =>
+        this.createNotification(
+          admin.id,
+          NotificationType.NOUVEL_INSCRIT,
+          'Nouvel inscrit',
+          message,
+          user.id,
+        ),
+      ),
+    );
+
+    // 2. Emails aux admins (fire-and-forget, on ignore les erreurs d'envoi)
+    await Promise.all(
+      admins.map((admin) =>
+        this.mailService.sendNewUserNotificationEmail(admin.email, message).catch(() => {}),
+      ),
     );
   }
 

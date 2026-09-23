@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   ServiceUnavailableException,
   UnauthorizedException,
@@ -9,11 +10,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { compare } from 'bcryptjs';
 import { createHash } from 'crypto';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { CreateUserDto } from '../users/dto/create-user.dto';
 import { Role } from '../users/enums/role.enum';
 import { UsersService } from '../users/users.service';
 import { MailService } from '../mail/mail.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { Student } from '../students/entities/student.entity';
 import { StudentLevel } from '../students/enums/student-level.enum';
 import { Supervisor } from '../supervisors/entities/supervisor.entity';
@@ -36,6 +38,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly mailService: MailService,
+    private readonly notificationsService: NotificationsService,
     @InjectRepository(Student)
     private readonly studentsRepository: Repository<Student>,
     @InjectRepository(Supervisor)
@@ -75,6 +78,11 @@ export class AuthService {
           }
         : {}),
     };
+
+    if (role === Role.ETUDIANT && registerDto.matricule) {
+      await this.ensureMatriculeAvailable(registerDto.matricule);
+    }
+
     const user = await this.usersService.create(createUserDto);
 
     try {
@@ -86,6 +94,17 @@ export class AuthService {
     } catch (error) {
       await this.usersService.remove(user.id);
       throw error;
+    }
+
+    // Notification aux administrateurs (fire-and-forget : un échec d'envoi ne
+    // doit jamais bloquer la création du compte).
+    try {
+      await this.notificationsService.notifyNewUserRegistration(user);
+    } catch (error) {
+      console.error(
+        'Impossible d’envoyer la notification de nouvel inscrit :',
+        error,
+      );
     }
 
     return this.issueToken(user);
@@ -104,7 +123,15 @@ export class AuthService {
       telephone: dto.telephone ?? null,
       adresse: dto.adresse ?? null,
     });
-    await this.studentsRepository.save(student);
+    try {
+      await this.studentsRepository.save(student);
+    } catch (error) {
+      this.throwFriendlyIfDuplicate(
+        error,
+        'Ce numéro étudiant (matricule) est déjà utilisé.',
+      );
+      throw error;
+    }
   }
 
   private async createSupervisorProfile(
@@ -118,7 +145,34 @@ export class AuthService {
       telephone: dto.telephone ?? null,
       entreprise: dto.entreprise ?? null,
     });
-    await this.supervisorsRepository.save(supervisor);
+    try {
+      await this.supervisorsRepository.save(supervisor);
+    } catch (error) {
+      this.throwFriendlyIfDuplicate(
+        error,
+        'Ce profil d’encadreur existe déjà.',
+      );
+      throw error;
+    }
+  }
+
+  private async ensureMatriculeAvailable(matricule: string) {
+    const existing = await this.studentsRepository.findOne({
+      where: { matricule },
+    });
+    if (existing) {
+      throw new ConflictException(
+        'Ce numéro étudiant (matricule) est déjà utilisé.',
+      );
+    }
+  }
+
+  private throwFriendlyIfDuplicate(error: unknown, message: string): void {
+    const driverError = (error as QueryFailedError).driverError as
+      { code?: string } | undefined;
+    if (error instanceof QueryFailedError && driverError?.code === '23505') {
+      throw new ConflictException(message);
+    }
   }
 
   async login(loginDto: LoginDto) {

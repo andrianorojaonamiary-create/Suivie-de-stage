@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import type { SignOptions } from 'jsonwebtoken';
 import { UsersModule } from '../users/users.module';
 import { MailModule } from '../mail/mail.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { Student } from '../students/entities/student.entity';
 import { Supervisor } from '../supervisors/entities/supervisor.entity';
 import { AuthController } from './auth.controller';
@@ -18,6 +19,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   imports: [
     UsersModule,
     MailModule,
+    NotificationsModule,
     TypeOrmModule.forFeature([Student, Supervisor]),
     PassportModule,
     JwtModule.registerAsync({
