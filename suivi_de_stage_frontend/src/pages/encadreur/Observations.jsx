@@ -274,7 +274,7 @@ function EncadreurObservations() {
           </p>
         </div>
         <button className="btn-primary" onClick={() => setShowAddModal(true)}>
-          <FaPlus /> Ajouter
+          <FaPlus /> Ajouter une observation
         </button>
       </div>
 

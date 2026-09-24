@@ -245,13 +245,9 @@
   color: #162449;
 }
 .admin-entreprises-domaine-badge {
-  background: #E1ECFE;
   color: #162449;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  display: inline-block;
 }
 .admin-entreprises-ville-icon,
 .admin-entreprises-phone-icon,

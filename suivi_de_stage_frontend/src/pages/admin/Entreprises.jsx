@@ -21,17 +21,17 @@ function AdminEntreprises() {
   const loadCompanies = async () => {
     try {
       const res = await companiesApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const list = Array.isArray(res) ? res : res?.data ?? res?.items ?? [];
 
       const mapped = list.map(item => ({
         id: item.id,
         nom: item.nom || 'Entreprise',
-        domaine: item.secteur || item.domaine || 'Technologies',
+        domaine: item.secteurActivite || item.domaine || 'Technologies',
         adresse: item.adresse || 'Madagascar',
         ville: item.ville || 'Antananarivo',
         telephone: item.telephone || '+261 34 00 000 00',
         email: item.email || 'contact@entreprise.mg',
-        stagiaires: item.internships?.length || item.stagiaires || 0,
+        stagiaires: item.internshipsCount || item.internships?.length || item.stagiaires || 0,
         latitude: item.latitude || '-18.8792',
         longitude: item.longitude || '47.5079'
       }));

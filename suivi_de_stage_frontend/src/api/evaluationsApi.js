@@ -16,6 +16,12 @@ export const evaluationsApi = {
     unwrap(apiClient.get(`/evaluations/internships/${stageId}`, { params })),
 
   /**
+   * Consulter toutes les évaluations (Admin)
+   * @param {Object} [params] - { typeEvaluateur, validee, search, dateDebut, dateFin, page, limit }
+   */
+  getAllAdmin: (params) => unwrap(apiClient.get('/evaluations', { params })),
+
+  /**
    * Consulter une évaluation par son ID
    * @param {string} id
    */

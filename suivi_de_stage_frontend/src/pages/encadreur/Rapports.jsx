@@ -63,6 +63,8 @@ function EncadreurRapports() {
             : 'Étudiant';
           return {
             id: r.id,
+            stageId: r.stage?.id,
+            type: r.type,
             etudiantId: r.stage?.etudiantId,
             etudiant,
             stage: r.stage?.intitule || 'Stage',
@@ -100,15 +102,27 @@ function EncadreurRapports() {
 
   const studentName = getStudentName();
 
-  const stagesAttendus = studentId
-    ? allStages.filter(s => String(s.student?.id) === String(studentId)).length
-    : allStages.length;
+  const typesDeposesParStage = new Map();
+  allRapports.forEach(r => {
+    if (!r.type || !r.stageId) return;
+    if (!typesDeposesParStage.has(r.stageId)) {
+      typesDeposesParStage.set(r.stageId, new Set());
+    }
+    typesDeposesParStage.get(r.stageId).add(r.type);
+  });
+  const stagesActifs = allStages.filter(
+    (s) => (s.statut === 'EN_COURS' || s.statut === 'TERMINE') &&
+      (!studentId || String(s.student?.id) === String(studentId))
+  );
 
   const stats = {
     total: rapports.length,
     valides: rapports.filter(r => r.statut === 'Validé').length,
     revision: rapports.filter(r => r.statut === 'En révision').length,
-    deposer: Math.max(0, stagesAttendus * 2 - rapports.length)
+    deposer: stagesActifs.reduce(
+      (acc, st) => acc + Math.max(0, 3 - (typesDeposesParStage.get(st.id)?.size || 0)),
+      0
+    )
   };
 
   const filteredRapports = rapports.filter(r => {

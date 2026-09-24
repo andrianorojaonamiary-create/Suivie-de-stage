@@ -8,7 +8,9 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
 import { Student } from '../students/entities/student.entity';
+import { Internship } from '../internships/entities/internship.entity';
 import { Role } from '../users/enums/role.enum';
+import { User } from '../users/entities/user.entity';
 import { UsersService } from '../users/users.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { FindCompaniesDto } from './dto/find-companies.dto';
@@ -28,13 +30,17 @@ export class CompaniesService {
     private readonly companiesRepository: Repository<Company>,
     @InjectRepository(Student)
     private readonly studentsRepository: Repository<Student>,
+    @InjectRepository(Internship)
+    private readonly internshipsRepository: Repository<Internship>,
     private readonly usersService: UsersService,
   ) {}
 
   async create(dto: CreateCompanyDto, actor: AuthenticatedUser) {
     let ownerId: string;
-    if (actor.role === Role.ENCADREUR) {
+    let ownerUser: User | null = null;
+    if (actor.role === Role.ENCADREUR || actor.role === Role.ETUDIANT) {
       ownerId = actor.id;
+      ownerUser = (await this.usersService.findActiveById(actor.id)) ?? null;
     } else {
       this.ensureAdmin(actor);
       if (!dto.userId) {
@@ -43,12 +49,15 @@ export class CompaniesService {
         );
       }
       ownerId = dto.userId;
+      ownerUser = await this.findCompanyOwner(ownerId);
     }
-    const user = await this.findCompanyOwner(ownerId);
+    if (!ownerUser) {
+      throw new NotFoundException('Utilisateur introuvable.');
+    }
     const company = this.companiesRepository.create({
       ...dto,
       userId: ownerId,
-      user,
+      user: ownerUser,
       region: dto.region ?? dto.ville ?? 'Non renseignée',
     });
     return this.saveAndSerialize(company);
@@ -66,7 +75,10 @@ export class CompaniesService {
     const limit = dto.limit ?? 10;
     const query = this.companiesRepository
       .createQueryBuilder('company')
-      .innerJoinAndSelect('company.user', 'user');
+      .innerJoinAndSelect('company.user', 'user')
+      .leftJoin('internships', 'internship', 'internship.company_id = company.id')
+      .addSelect('COUNT(internship.id)', 'internshipsCount')
+      .groupBy('company.id, user.id');
 
     if (actor.role === Role.ETUDIANT) {
       query.andWhere('company.statut = :statut', {
@@ -128,6 +140,23 @@ export class CompaniesService {
     return this.toPublicCompany(company);
   }
 
+  async findSupervisedCompanies(actor: AuthenticatedUser) {
+    const internships = await this.internshipsRepository.find({
+      where: { supervisor: { userId: actor.id } },
+      relations: { company: { user: true } },
+      order: { dateCreation: 'DESC' },
+    });
+    const seen = new Set<string>();
+    const companies = [];
+    for (const internship of internships) {
+      const company = internship.company;
+      if (!company || seen.has(company.id)) continue;
+      seen.add(company.id);
+      companies.push(this.toPublicCompany(company));
+    }
+    return { data: companies };
+  }
+
   async update(id: string, dto: UpdateCompanyDto, actor: AuthenticatedUser) {
     const company = await this.findEntity(id);
     await this.ensureCanAccess(company, actor);
@@ -145,8 +174,12 @@ export class CompaniesService {
   }
 
   async deactivate(id: string, actor: AuthenticatedUser) {
-    this.ensureAdmin(actor);
     const company = await this.findEntity(id);
+    if (actor.role !== Role.ADMINISTRATEUR && company.userId !== actor.id) {
+      throw new ForbiddenException(
+        'Seul un administrateur ou le propriétaire peut désactiver cette entreprise.',
+      );
+    }
     company.statut = CompanyStatus.INACTIVE;
     return this.saveAndSerialize(company);
   }
@@ -277,6 +310,7 @@ export class CompaniesService {
   }
 
   private toPublicCompany(company: Company) {
+    const rawCompany = company as Company & { internshipsCount?: string };
     return {
       id: company.id,
       nom: company.nom,
@@ -302,6 +336,7 @@ export class CompaniesService {
         : undefined,
       dateCreation: company.dateCreation,
       dateModification: company.dateModification,
+      internshipsCount: rawCompany.internshipsCount ? parseInt(rawCompany.internshipsCount, 10) : 0,
     };
   }
 }

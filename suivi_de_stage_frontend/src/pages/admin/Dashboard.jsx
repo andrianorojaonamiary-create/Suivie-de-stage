@@ -1,61 +1,137 @@
-
 import {
   BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 import {
   FaUsers, FaClock, FaPlayCircle, FaCheckCircle,
-  FaBuilding, FaArrowUp, FaArrowDown
+  FaBuilding, FaUserTie, FaBell, FaArrowUp, FaArrowDown
 } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 import { useState, useEffect } from 'react';
 import statisticsApi from '../../api/statisticsApi';
+import { notificationsApi, internshipsApi, reportsApi } from '../../api';
+
+const getAnneeScolaire = () => {
+  const year = new Date().getFullYear();
+  return `${year - 1}-${year}`;
+};
 
 function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [attentionStages, setAttentionStages] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await statisticsApi.getDashboard();
-        setDashboardData(data);
-      } catch (err) {
-        console.error('Erreur chargement statistiques admin:', err);
+    const fetchData = async () => {
+      const [statsRes, notifsRes, stagesRes, reportsRes] = await Promise.allSettled([
+        statisticsApi.getDashboard(),
+        notificationsApi.getAll(),
+        internshipsApi.getAll({ limit: 100 }),
+        reportsApi.getAll({ limit: 100 }),
+      ]);
+
+      if (statsRes.status === 'fulfilled' && statsRes.value) {
+        setDashboardData(statsRes.value);
       }
+
+      const notifsValue = notifsRes.status === 'fulfilled' ? notifsRes.value : null;
+      const notifs = Array.isArray(notifsValue)
+        ? notifsValue
+        : notifsValue?.data || notifsValue?.items || [];
+      if (notifs.length > 0) {
+        setRecentActivities(
+          notifs.slice(0, 5).map((n, idx) => {
+            const date = n.date_creation ?? n.dateCreation ?? n.createdAt;
+            return {
+              id: n.id || idx,
+              icon: <FaBell />,
+              text: n.titre || n.title || 'Notification',
+              detail: n.message || n.content || '',
+              time: date ? new Date(date).toLocaleDateString('fr-FR') : '',
+              bg: '#E1ECFE',
+              color: '#6BA9E6',
+            };
+          }),
+        );
+      }
+
+      const stages = stagesRes.status === 'fulfilled'
+        ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+        : [];
+      const reports = reportsRes.status === 'fulfilled'
+        ? (reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []))
+        : [];
+
+      const typesParStage = new Map();
+      reports.forEach((r) => {
+        const sid = r.stage?.id;
+        if (!sid || !r.type) return;
+        if (!typesParStage.has(sid)) typesParStage.set(sid, new Set());
+        typesParStage.get(sid).add(r.type);
+      });
+
+      const attention = stages
+        .filter((s) => s.statut === 'EN_COURS' || s.statut === 'TERMINE')
+        .map((s) => ({
+          stage: s,
+          manquants: Math.max(0, 3 - (typesParStage.get(s.id)?.size || 0)),
+        }))
+        .filter((x) => x.manquants > 0)
+        .sort((a, b) => b.manquants - a.manquants)
+        .slice(0, 5)
+        .map((x) => ({
+          id: x.stage.id,
+          student: `${x.stage.student?.prenom ?? ''} ${x.stage.student?.nom ?? ''}`.trim() || 'Étudiant',
+          company: x.stage.company?.nom || 'Entreprise',
+          status: x.stage.statut === 'EN_COURS' ? 'En cours' : 'Terminé',
+          issue: `${x.manquants} rapport(s) manquant(s)`,
+        }));
+      setAttentionStages(attention);
     };
-    fetchStats();
+    fetchData();
   }, []);
 
-  const totalEtudiants = dashboardData?.totalEtudiants ?? 0;
-  const totalEnAttente = dashboardData?.totalEnAttente ?? 0;
-  const totalEnCours = dashboardData?.totalEnCours ?? 0;
-  const totalTermines = dashboardData?.totalTermines ?? 0;
-  const totalEntreprises = dashboardData?.totalEntreprises ?? 0;
+  const totalEtudiants = dashboardData?.counts?.students ?? 0;
+  const totalEnAttente = dashboardData?.internships?.upcoming ?? 0;
+  const totalEnCours = dashboardData?.internships?.ongoing ?? 0;
+  const totalTermines = dashboardData?.internships?.completed ?? 0;
+  const totalEntreprises = dashboardData?.counts?.companies ?? 0;
+  const totalEncadreurs = dashboardData?.counts?.supervisors ?? 0;
 
   const kpis = [
-    { label: 'Étudiants total', value: totalEtudiants, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
-    { label: 'Stages en attente', value: totalEnAttente, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
-    { label: 'Stages en cours', value: totalEnCours, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
-    { label: 'Stages terminés', value: totalTermines, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#E1ECFE', trendColor: '#1F2937' },
-    { label: 'Entreprises', value: totalEntreprises, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
+    { label: 'Étudiants total', value: totalEtudiants, up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
+    { label: 'Stages en attente', value: totalEnAttente, up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
+    { label: 'Stages en cours', value: totalEnCours, up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
+    { label: 'Stages terminés', value: totalTermines, up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#E1ECFE', trendColor: '#1F2937' },
+    { label: 'Entreprises', value: totalEntreprises, up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
+    { label: 'Encadreurs', value: totalEncadreurs, up: true, icon: <FaUserTie />, color: '#7C3AED', bg: '#EFE7FD', trendColor: '#7C3AED' },
   ];
 
-  const monthlyData = dashboardData?.monthlyData || [];
+  const byYear = (dashboardData?.byYear || [])
+    .map((row) => ({ year: Number(row.year), count: Number(row.count) }))
+    .sort((a, b) => a.year - b.year);
 
-  const statusData = dashboardData?.statusData || [];
+  const statusColors = {
+    'En attente': '#F59E0B',
+    'En cours': '#162449',
+    'Terminé': '#27AE60',
+  };
+  const statusData = (dashboardData?.statusData || []).map((s) => ({
+    name: s.name,
+    value: s.value,
+    color: statusColors[s.name] || '#6c7a8a',
+  }));
 
-  const cityData = dashboardData?.cityData || [];
-
-  const attentionStages = [];
-
-  const recentActivities = [];
+  const cityData = (dashboardData?.byCity || []).map((row) => ({
+    city: row.city,
+    count: Number(row.count),
+  }));
 
   const getStatusBadge = (status) => {
     const classes = {
       'En cours': 'badge-en-cours',
-      'En attente': 'badge-en-attente',
       'Terminé': 'badge-termine',
-      'Validé': 'badge-valide',
     };
     return classes[status] || 'badge-en-attente';
   };
@@ -66,7 +142,7 @@ function AdminDashboard() {
       <div className="dashboard-header">
         <div className="dashboard-header-left">
           <h2>Tableau de bord</h2>
-          <p className="dashboard-subtitle">Vue générale du suivi des stages — Année universitaire 2023–2024</p>
+          <p className="dashboard-subtitle">Vue générale du suivi des stages — Année universitaire {getAnneeScolaire()}</p>
         </div>
       </div>
 
@@ -85,9 +161,6 @@ function AdminDashboard() {
             <div className="kpi-content">
               <div className="kpi-value">{kpi.value}</div>
               <div className="kpi-label">{kpi.label}</div>
-              <div className="kpi-change" style={{ color: kpi.trendColor || kpi.color }}>
-                {kpi.change}
-              </div>
             </div>
           </div>
         ))}
@@ -97,17 +170,14 @@ function AdminDashboard() {
       <div className="dashboard-grid-2-3">
         {/* Line Chart */}
         <div className="card-emit chart-card chart-line">
-          <h3 className="card-title">Évolution des stages</h3>
+          <h3 className="card-title">Nombre de stages par année</h3>
           <ResponsiveContainer width="100%" height={280}>
-            <LineChart data={monthlyData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+            <LineChart data={byYear} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E1ECFE" vertical={false} />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: '#192543' }} axisLine={false} tickLine={false} />
+              <XAxis dataKey="year" tick={{ fontSize: 12, fill: '#192543' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 12, fill: '#192543' }} axisLine={false} tickLine={false} />
               <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: '1px solid #E1ECFE', boxShadow: '0 4px 12px rgba(22, 36, 73, 0.08)' }} />
-              <Legend wrapperStyle={{ fontSize: 12, paddingTop: 15 }} />
-              <Line type="monotone" dataKey="stages" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6', strokeWidth: 2, stroke: '#ffffff' }} name="Déclarés" />
-              <Line type="monotone" dataKey="termines" stroke="#6B7280" strokeWidth={3} dot={{ r: 4, fill: '#6B7280', strokeWidth: 2, stroke: '#ffffff' }} name="Terminés" />
-              <Line type="monotone" dataKey="valides" stroke="#22C55E" strokeWidth={3} dot={{ r: 4, fill: '#22C55E', strokeWidth: 2, stroke: '#ffffff' }} name="Validés" />
+              <Line type="monotone" dataKey="count" stroke="#3B82F6" strokeWidth={3} dot={{ r: 4, fill: '#3B82F6', strokeWidth: 2, stroke: '#ffffff' }} name="Stages" />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -168,17 +238,22 @@ function AdminDashboard() {
         <div className="card-emit">
           <h3 className="card-title">Activités récentes</h3>
           <div className="activity-list">
-            {recentActivities.map((act, index) => (
-              <div key={index} className="activity-item">
-                <div className="activity-icon" style={{ backgroundColor: act.bg, color: act.color }}>
-                  {act.icon}
+            {recentActivities.length > 0 ? (
+              recentActivities.map((act) => (
+                <div key={act.id} className="activity-item">
+                  <div className="activity-icon" style={{ backgroundColor: act.bg, color: act.color }}>
+                    {act.icon}
+                  </div>
+                  <div className="activity-content">
+                    <p className="activity-text">{act.text}</p>
+                    <span className="activity-detail">{act.detail}</span>
+                    <span className="activity-time">{act.time}</span>
+                  </div>
                 </div>
-                <div className="activity-content">
-                  <p className="activity-text">{act.text}</p>
-                  <span className="activity-time">{act.time}</span>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="detail-empty">Aucune activité récente pour le moment.</p>
+            )}
           </div>
         </div>
 
@@ -188,19 +263,25 @@ function AdminDashboard() {
             <span className="attention-badge">{attentionStages.length} à traiter</span>
           </h3>
           <div className="attention-list">
-            {attentionStages.map((stage, index) => (
-              <div key={index} className="attention-item">
-                <div className="attention-info">
-                  <div className="attention-student">{stage.student}</div>
-                  <div className="attention-company">{stage.company}</div>
+            {attentionStages.length > 0 ? (
+              attentionStages.map((stage, index) => (
+                <div key={stage.id || index} className="attention-item">
+                  <div className="attention-info">
+                    <div className="attention-student">{stage.student}</div>
+                    <div className="attention-company">{stage.company}</div>
+                  </div>
+                  <div className="attention-status">
+                    <span className={getStatusBadge(stage.status)}>{stage.status}</span>
+                    <span className="attention-issue">{stage.issue}</span>
+                  </div>
+                  <Link to="/admin/stages" className="attention-action">
+                    Voir →
+                  </Link>
                 </div>
-                <div className="attention-status">
-                  <span className={getStatusBadge(stage.status)}>{stage.status}</span>
-                  <span className="attention-issue">{stage.issue}</span>
-                </div>
-                <button className="attention-action">Voir →</button>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="detail-empty">Aucun stage ne nécessite d'attention.</p>
+            )}
           </div>
         </div>
       </div>

@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { Company } from '../companies/entities/company.entity';
+import { Evaluation } from '../evaluations/entities/evaluation.entity';
 import { Internship } from '../internships/entities/internship.entity';
 import { Student } from '../students/entities/student.entity';
 import { User } from '../users/entities/user.entity';
@@ -17,6 +18,7 @@ import { StatisticsService } from './statistics.service';
       Company,
       Internship,
       ProfessionalSituation,
+      Evaluation,
     ]),
     AuthModule,
   ],

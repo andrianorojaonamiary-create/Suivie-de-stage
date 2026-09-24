@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaCheck, FaBell, FaUpload, FaUserPlus } from 'react-icons/fa';
+import { FaCheck, FaBell, FaUpload, FaUserPlus, FaTrash } from 'react-icons/fa';
 
 import { useEffect } from 'react';
 import notificationsApi from '../api/notificationsApi';
@@ -14,7 +14,7 @@ function Notifications() {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const res = await notificationsApi.getAll();
+        const res = await notificationsApi.getAll({ limit: 100 });
         const dataList = Array.isArray(res) ? res : res?.data || res?.items || [];
         
         const mapped = dataList.map(n => ({
@@ -56,6 +56,16 @@ function Notifications() {
       setItems(prev => prev.map(n => ({ ...n, read: true })));
     } catch {
       setItems(prev => prev.map(n => ({ ...n, read: true })));
+    }
+  };
+
+  const deleteNotification = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await notificationsApi.delete(id);
+      setItems(prev => prev.filter(n => n.id !== id));
+    } catch {
+      setItems(prev => prev.filter(n => n.id !== id));
     }
   };
 
@@ -147,6 +157,13 @@ function Notifications() {
                 </Link>
               )}
             </div>
+            <button
+              className="notification-delete"
+              title="Supprimer"
+              onClick={(e) => deleteNotification(notif.id, e)}
+            >
+              <FaTrash />
+            </button>
             {/* ===== POINT POUR NON LU ===== */}
             {!notif.read && <span className="unread-dot"></span>}
           </div>

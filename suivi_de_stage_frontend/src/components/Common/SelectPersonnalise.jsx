@@ -50,14 +50,14 @@ function SelectPersonnalise({
       if (spaceBelow >= DROPDOWN_MAX_HEIGHT) {
         top = rect.bottom + DROPDOWN_GAP;
         maxHeight = DROPDOWN_MAX_HEIGHT;
+        setPosition({ top, bottom: null, left: rect.left, width: rect.width, maxHeight });
       } else {
         maxHeight = Math.min(
           DROPDOWN_MAX_HEIGHT,
-          Math.max(120, rect.top - DROPDOWN_GAP),
+          Math.max(0, rect.top - DROPDOWN_GAP),
         );
-        top = rect.top - DROPDOWN_GAP - maxHeight;
+        setPosition({ top: null, bottom: window.innerHeight - rect.top + DROPDOWN_GAP, left: rect.left, width: rect.width, maxHeight });
       }
-      setPosition({ top, left: rect.left, width: rect.width, maxHeight });
     };
 
     computePosition();
@@ -97,7 +97,8 @@ function SelectPersonnalise({
           ref={listRef}
           style={{
             position: 'fixed',
-            top: position.top,
+            top: position.top ?? 'auto',
+            bottom: position.bottom ?? 'auto',
             left: position.left,
             width: position.width,
             maxHeight: position.maxHeight,

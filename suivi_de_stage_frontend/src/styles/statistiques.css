@@ -259,6 +259,10 @@
   margin-bottom: 25px;
 }
 
+.admin-stats-page .stats-card-2-3 {
+  max-width: 800px;
+}
+
 .admin-stats-page .stats-row-1-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -320,6 +324,12 @@
 
 .admin-stats-page .stats-card-body {
   padding: 14px 16px;
+}
+
+/* Largeur max du diagramme « Stages par mois » */
+.admin-stats-page .stats-diagramme-max {
+  max-width: 880px;
+  margin: 0 auto;
 }
 
 /* ============================================================

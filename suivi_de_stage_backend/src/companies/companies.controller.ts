@@ -31,7 +31,7 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ETUDIANT)
   create(@Body() dto: CreateCompanyDto, @Req() request: AuthenticatedRequest) {
     return this.companiesService.create(dto, request.user);
   }
@@ -49,6 +49,12 @@ export class CompaniesController {
   @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
   findMe(@Req() request: AuthenticatedRequest) {
     return this.companiesService.findMe(request.user);
+  }
+
+  @Get('encadreur')
+  @Roles(Role.ENCADREUR)
+  findSupervisedCompanies(@Req() request: AuthenticatedRequest) {
+    return this.companiesService.findSupervisedCompanies(request.user);
   }
 
   @Get(':id/students')
@@ -70,7 +76,7 @@ export class CompaniesController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ETUDIANT)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateCompanyDto,
@@ -89,7 +95,7 @@ export class CompaniesController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT)
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,

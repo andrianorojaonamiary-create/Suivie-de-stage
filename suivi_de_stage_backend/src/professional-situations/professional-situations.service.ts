@@ -9,6 +9,7 @@ import { Repository } from 'typeorm';
 import { Student } from '../students/entities/student.entity';
 import { Role } from '../users/enums/role.enum';
 import { ProfessionalSituationType } from './enums/professional-situation-type.enum';
+import { AcademicStatus } from '../students/enums/academic-status.enum';
 import { CreateProfessionalSituationDto } from './dto/create-professional-situation.dto';
 import { UpdateProfessionalSituationDto } from './dto/update-professional-situation.dto';
 import { ProfessionalSituation } from './entities/professional-situation.entity';
@@ -65,11 +66,25 @@ export class ProfessionalSituationsService {
   }
 
   async findAll() {
-    const situations = await this.situationsRepository.find({
-      relations: { student: { user: true } },
-      order: { dateCreation: 'DESC' },
-    });
-    return situations.map((situation) => this.serialize(situation, true));
+    const latestSituations = await this.situationsRepository
+      .createQueryBuilder('situation')
+      .innerJoin(Student, 'student', 'student.id = situation.student_id')
+      .where('student.statut_academique = :status', {
+        status: AcademicStatus.DIPLOME,
+      })
+      .andWhere(
+        `situation.date_creation = (
+          SELECT MAX(previous.date_creation)
+          FROM professional_situations previous
+          WHERE previous.student_id = situation.student_id
+        )`,
+      )
+      .leftJoinAndSelect('situation.student', 'student')
+      .leftJoinAndSelect('student.user', 'user')
+      .orderBy('situation.date_creation', 'DESC')
+      .getMany();
+
+    return latestSituations.map((situation) => this.serialize(situation, true));
   }
 
   async findStudentHistory(studentId: string) {

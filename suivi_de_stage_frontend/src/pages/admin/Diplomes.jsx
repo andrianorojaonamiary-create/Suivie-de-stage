@@ -180,7 +180,10 @@ function AdminDiplomes() {
   };
 
   // ===== FORMAT PERSONNALISÉ POUR LES LABELS DU CAMEMBERT =====
+  const MIN_PERCENT = 0.08;
   const renderCustomLabel = ({ cx, cy, midAngle,  outerRadius, percent, name }) => {
+    if (percent < MIN_PERCENT) return null;
+
     const RADIAN = Math.PI / 180;
     const radius = outerRadius * 1.15;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -295,6 +298,15 @@ function AdminDiplomes() {
               />
             </PieChart>
           </ResponsiveContainer>
+          <div className="admin-diplome-chart-legend">
+            {situationData.map((item) => (
+              <div className="admin-diplome-legend-item" key={item.name}>
+                <span className="admin-diplome-legend-dot" style={{ background: item.color }} />
+                <span className="admin-diplome-legend-label">{item.name}</span>
+                <span className="admin-diplome-legend-count">{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="admin-diplome-chart-card">
           <h3><FaChartBar /> Répartition par promotion</h3>

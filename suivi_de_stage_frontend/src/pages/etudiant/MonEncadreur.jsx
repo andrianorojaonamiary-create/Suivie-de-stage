@@ -1,24 +1,18 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
-  FaUserTie, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaClipboardCheck,
-  FaPlus, FaEdit, FaTrash, FaEye
+  FaUserTie, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaClipboardCheck, FaPlus
 } from 'react-icons/fa';
 import { internshipsApi, supervisorsApi } from '../../api';
 import { mapInternshipList } from '../../utils/internshipMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
-import { toast } from 'react-toastify';
 
 function MonEncadreur() {
-  const navigate = useNavigate();
-
   // ===== ÉTATS =====
   const [loading, setLoading] = useState(true);
   const [stages, setStages] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [selectedStageId, setSelectedStageId] = useState('all');
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [encadreurToDelete, setEncadreurToDelete] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -78,45 +72,6 @@ function MonEncadreur() {
         telephone: '',
       };
 
-  // ===== ACTIONS (masquées pour l'instant) =====
-  const handleView = (id) => {
-    navigate(`/etudiant/encadreur/voir/${id}`, { state: { encadreur: supervisors.find((e) => e.id === id) } });
-  };
-
-  const handleEdit = (encadreurData) => {
-    navigate('/etudiant/encadreur/modifier', { state: { encadreur: encadreurData } });
-  };
-
-  const handleDeleteClick = (id) => {
-    setEncadreurToDelete(id);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = async () => {
-    try {
-      if (encadreurToDelete) {
-        await supervisorsApi.delete(encadreurToDelete);
-      }
-      const encadreurData = supervisors.find((e) => e.id === encadreurToDelete);
-      setSupervisors(supervisors.filter((e) => e.id !== encadreurToDelete));
-      const name = encadreurData?.user
-        ? `${encadreurData.user.prenom || ''} ${encadreurData.user.nom || ''}`.trim()
-        : 'Encadreur';
-      toast.success(`Encadreur "${name}" supprimé !`);
-    } catch (err) {
-      console.error('Erreur suppression encadreur:', err);
-      toast.error('Erreur lors de la suppression de l\'encadreur');
-    } finally {
-      setShowDeleteModal(false);
-      setEncadreurToDelete(null);
-    }
-  };
-
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setEncadreurToDelete(null);
-  };
-
   return (
     <div className="etudiant-encadreur-page">
       {/* ===== HEADER ===== */}
@@ -128,11 +83,6 @@ function MonEncadreur() {
               ? `Encadreur associé au stage « ${selectedStage.titre} »`
               : 'Aucun stage associé'}
           </p>
-        </div>
-        <div className="encadreur-header-actions">
-          <Link to="/etudiant/encadreur/ajouter" className="btn-primary">
-            <FaPlus /> Ajouter un encadreur
-          </Link>
         </div>
       </div>
 
@@ -180,38 +130,9 @@ function MonEncadreur() {
               {encadreur.specialite && <p><FaBriefcase /> {encadreur.specialite}</p>}
               <p><FaClipboardCheck /> Stage : {selectedStage.titre}</p>
             </div>
-            <div className="encadreur-card-actions">
-              <button className="btn-action" onClick={() => handleView(encadreur.id)} title="Voir">
-                <FaEye />
-              </button>
-              <button className="btn-action btn-edit" onClick={() => handleEdit(encadreur)} title="Modifier">
-                <FaEdit />
-              </button>
-              <button className="btn-action btn-danger" onClick={() => handleDeleteClick(encadreur.id)} title="Supprimer">
-                <FaTrash />
-              </button>
-            </div>
           </div>
         )}
       </div>
-
-      {/* ===== MODALE DE SUPPRESSION ===== */}
-      {showDeleteModal && (
-        <div className="modal-overlay" onClick={cancelDelete}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Confirmer la suppression</h3>
-            <p>Voulez-vous vraiment supprimer cet encadreur ? Cette action est irréversible.</p>
-            <div className="modal-actions">
-              <button className="btn-danger" onClick={confirmDelete}>
-                Supprimer
-              </button>
-              <button className="btn-secondary" onClick={cancelDelete}>
-                Annuler
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

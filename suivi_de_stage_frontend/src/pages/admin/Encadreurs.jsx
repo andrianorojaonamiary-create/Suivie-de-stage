@@ -7,6 +7,8 @@ import {
 
 import EncadreurDetail from './components/EncadreurDetail';
 import supervisorsApi from '../../api/supervisorsApi';
+import usersApi from '../../api/usersApi';
+import internshipsApi from '../../api/internshipsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEncadreurs() {
@@ -21,21 +23,83 @@ function AdminEncadreurs() {
 
   const loadSupervisors = async () => {
     try {
-      const res = await supervisorsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const getList = (res, value) => {
+        if (!res || res !== 'fulfilled') return [];
+        return Array.isArray(value) ? value : value?.data ?? value?.items ?? [];
+      };
 
-      const mapped = list.map(item => ({
+      const fetchAllInternships = async () => {
+        const all = [];
+        let page = 1;
+        let total = Infinity;
+        while (all.length < total) {
+          const res = await internshipsApi.getAll({ limit: 100, page });
+          const items = Array.isArray(res) ? res : res?.data ?? res?.items ?? [];
+          all.push(...items);
+          total = res?.meta?.total ?? all.length;
+          if (items.length === 0) break;
+          page += 1;
+        }
+        return all;
+      };
+
+      const [prosResult, tuteursResult] = await Promise.allSettled([
+        supervisorsApi.getAll({ limit: 100 }),
+        usersApi.getAll({ role: 'ENSEIGNANT', limit: 100 }),
+      ]);
+
+      const namesBySupervisor = new Map();
+      const namesByTuteur = new Map();
+      try {
+        const internships = await fetchAllInternships();
+        internships.forEach((internship) => {
+          const student = internship.student;
+          if (!student) return;
+          const name = student.user ? `${student.user.prenom} ${student.user.nom}` : 'Étudiant';
+          if (internship.supervisor?.user?.id) {
+            const key = internship.supervisor.user.id;
+            if (!namesBySupervisor.has(key)) namesBySupervisor.set(key, new Map());
+            namesBySupervisor.get(key).set(student.id, name);
+          }
+          if (internship.tuteur?.id) {
+            const key = internship.tuteur.id;
+            if (!namesByTuteur.has(key)) namesByTuteur.set(key, new Map());
+            namesByTuteur.get(key).set(student.id, name);
+          }
+        });
+      } catch (err) {
+        console.error('Erreur chargement des stages:', err);
+      }
+
+      const professionnels = getList(prosResult.status, prosResult.value).map(item => {
+        const userId = item.user?.id;
+        return {
+          id: item.id,
+          userId,
+          nom: item.user?.nom || item.nom || 'NOM',
+          prenom: item.user?.prenom || item.prenom || 'Prénom',
+          email: item.user?.email || item.email || 'email@emit.mg',
+          telephone: item.telephone || item.user?.telephone || '+261 34 00 000 00',
+          type: item.user?.role === 'ENSEIGNANT' ? 'pedagogique' : 'professionnel',
+          fonction: item.fonction || item.specialite || 'Responsable technique',
+          entreprise: item.entreprise || 'Entreprise',
+          etudiants: userId ? Array.from((namesBySupervisor.get(userId) || new Map()).values()) : []
+        };
+      });
+
+      const pedagogiques = getList(tuteursResult.status, tuteursResult.value).map(item => ({
         id: item.id,
-        nom: item.user?.nom || item.nom || 'NOM',
-        prenom: item.user?.prenom || item.prenom || 'Prénom',
-        email: item.user?.email || item.email || 'email@emit.mg',
-        telephone: item.user?.telephone || item.telephone || '+261 34 00 000 00',
-        type: item.type || 'professionnel',
-        fonction: item.grade || item.specialite || item.departement || 'Responsable technique',
-        entreprise: item.entreprise?.nom || (item.type === 'pedagogique' ? 'EMIT' : 'Entreprise'),
-        etudiants: item.internships ? item.internships.map(i => i.etudiant ? `${i.etudiant.prenom} ${i.etudiant.nom}` : 'Étudiant') : []
+        nom: item.nom || 'NOM',
+        prenom: item.prenom || 'Prénom',
+        email: item.email || 'email@emit.mg',
+        telephone: item.telephone || '+261 34 00 000 00',
+        type: 'pedagogique',
+        fonction: item.grade || "Enseignant à l'EMIT",
+        entreprise: 'EMIT',
+        etudiants: Array.from((namesByTuteur.get(item.id) || new Map()).values())
       }));
-      setEncadreurs(mapped);
+
+      setEncadreurs([...professionnels, ...pedagogiques]);
     } catch (err) {
       console.error('Erreur chargement encadreurs:', err);
     }

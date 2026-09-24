@@ -17,6 +17,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { FindEvaluationsDto } from './dto/find-evaluations.dto';
+import { FindAllEvaluationsDto } from './dto/find-all-evaluations.dto';
 import { UpdateEvaluationDto } from './dto/update-evaluation.dto';
 import { EvaluationsService } from './evaluations.service';
 
@@ -36,6 +37,12 @@ export class EvaluationsController {
     @Req() request: AuthenticatedRequest,
   ) {
     return this.evaluationsService.create(dto, request.user);
+  }
+
+  @Get()
+  @Roles(Role.ADMINISTRATEUR)
+  findAllAdmin(@Query() dto: FindAllEvaluationsDto) {
+    return this.evaluationsService.findAllAdmin(dto);
   }
 
   @Get('internships/:stageId')

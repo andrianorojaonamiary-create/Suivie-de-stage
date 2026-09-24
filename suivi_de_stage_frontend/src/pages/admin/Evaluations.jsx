@@ -7,7 +7,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
-import { evaluationsApi, internshipsApi } from '../../api';
+import { evaluationsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
 
@@ -29,40 +29,32 @@ function AdminEvaluations() {
   useEffect(() => {
     const fetchEvaluations = async () => {
       try {
-        // Try fetching internships to aggregate evaluations
-        const internshipsRes = await internshipsApi.getAll();
-        const internshipsList = Array.isArray(internshipsRes) ? internshipsRes : internshipsRes?.items || [];
+        const res = await evaluationsApi.getAllAdmin({ limit: 100 });
+        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
         
-        let loadedEvals = [];
-        for (const stage of internshipsList) {
-          if (stage.id) {
-            try {
-              const evals = await evaluationsApi.getByInternship(stage.id);
-              const evalsList = Array.isArray(evals) ? evals : evals?.items || [];
-              evalsList.forEach((ev, idx) => {
-                loadedEvals.push({
-                  id: ev.id || `${stage.id}-${idx}`,
-                  etudiant: stage.student ? `${stage.student.firstName || ''} ${stage.student.lastName || ''}`.trim() : 'Étudiant',
-                  stage: stage.title || 'Stage',
-                  entreprise: stage.company?.name || 'Entreprise',
-                  encadreur: ev.evaluatorName || (stage.supervisor ? `${stage.supervisor.firstName || ''} ${stage.supervisor.lastName || ''}`.trim() : 'Encadreur'),
-                  type: ev.type || 'Maître de stage',
-                  date: ev.createdAt ? new Date(ev.createdAt).toLocaleDateString('fr-FR') : 'Date',
-                  status: ev.status || (ev.isValidated ? 'Validé' : 'En attente'),
-                  note: ev.note || ev.score || null,
-                  commentaire: ev.commentaire || ev.comment || '',
-                  criteres: ev.criteres || ev.criteria || []
-                });
-              });
-            } catch {
-              // Ignore single stage eval fetch errors
-            }
-          }
-        }
+        const mapped = list.map((ev) => {
+          const student = ev.student;
+          const stage = ev.stage;
+          const company = stage?.company;
+          const supervisor = stage?.supervisor;
+          
+          return {
+            id: ev.id,
+            etudiant: student?.user ? `${student.user.prenom || ''} ${student.user.nom || ''}`.trim() : 'Étudiant',
+            stage: stage?.intitule || 'Stage',
+            entreprise: company?.nom || 'Entreprise',
+            encadreur: supervisor?.user ? `${supervisor.user.prenom || ''} ${supervisor.user.nom || ''}`.trim() : 
+                       ev.evaluateur ? `${ev.evaluateur.prenom || ''} ${ev.evaluateur.nom || ''}`.trim() : 'Évaluateur',
+            type: ev.typeEvaluateur,
+            date: ev.dateEvaluation ? new Date(ev.dateEvaluation).toLocaleDateString('fr-FR') : 'Date',
+            status: ev.validee ? 'Validé' : 'En attente',
+            note: ev.note,
+            commentaire: ev.commentaire,
+            criteres: ev.criteres || []
+          };
+        });
         
-        if (loadedEvals.length > 0) {
-          setEvaluations(loadedEvals);
-        }
+        setEvaluations(mapped);
       } catch (err) {
         console.error('Erreur chargement évaluations:', err);
       }
@@ -90,9 +82,8 @@ function AdminEvaluations() {
 
   // ===== DONNÉES POUR LE GRAPHIQUE PAR TYPE =====
   const typeData = [
-    { type: 'Maître de stage', count: evaluations.filter(e => e.type === 'Maître de stage').length },
-    { type: 'Tuteur pédagogique', count: evaluations.filter(e => e.type === 'Tuteur pédagogique').length },
-    { type: 'Entreprise', count: evaluations.filter(e => e.type === 'Entreprise').length },
+    { type: 'MAITRE_DE_STAGE', label: 'Encadreur professionnel', count: evaluations.filter(e => e.type === 'MAITRE_DE_STAGE').length },
+    { type: 'TUTEUR_PEDAGOGIQUE', label: 'Tuteur pédagogique', count: evaluations.filter(e => e.type === 'TUTEUR_PEDAGOGIQUE').length },
   ];
 
   // ===== FILTRES =====
@@ -117,9 +108,8 @@ function AdminEvaluations() {
   // ===== TYPES D'ÉVALUATION =====
   const typeOptions = [
     { value: 'Tous', label: 'Tous les types' },
-    { value: 'Maître de stage', label: 'Maître de stage' },
-    { value: 'Tuteur pédagogique', label: 'Tuteur pédagogique' },
-    { value: 'Entreprise', label: 'Entreprise' }
+    { value: 'MAITRE_DE_STAGE', label: 'Encadreur professionnel' },
+    { value: 'TUTEUR_PEDAGOGIQUE', label: 'Tuteur pédagogique' }
   ];
 
   // ===== STATUTS =====
@@ -138,6 +128,22 @@ function AdminEvaluations() {
       'En révision': 'admin-eval-badge-revision',
     };
     return classes[status] || 'admin-eval-badge-attente';
+  };
+
+  const getTypeLabel = (type) => {
+    switch (type) {
+      case 'MAITRE_DE_STAGE': return 'Encadreur professionnel';
+      case 'TUTEUR_PEDAGOGIQUE': return 'Tuteur pédagogique';
+      default: return type;
+    }
+  };
+
+  const getTypeBadge = (type) => {
+    const classes = {
+      'MAITRE_DE_STAGE': 'admin-eval-type-badge-maitre',
+      'TUTEUR_PEDAGOGIQUE': 'admin-eval-type-badge-tuteur',
+    };
+    return classes[type] || 'admin-eval-type-badge';
   };
 
   // ===== AFFICHAGE DES ÉTOILES =====
@@ -197,7 +203,10 @@ function AdminEvaluations() {
   };
 
   // ===== FORMAT PERSONNALISÉ POUR LES LABELS DU CAMEMBERT =====
+  const MIN_PERCENT = 0.08;
   const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name }) => {
+    if (percent < MIN_PERCENT) return null;
+
     const RADIAN = Math.PI / 180;
     const radius = outerRadius * 1.15;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -312,13 +321,22 @@ function AdminEvaluations() {
               />
             </PieChart>
           </ResponsiveContainer>
+          <div className="admin-eval-chart-legend">
+            {statusData.map((item) => (
+              <div className="admin-eval-legend-item" key={item.name}>
+                <span className="admin-eval-legend-dot" style={{ background: item.color }} />
+                <span className="admin-eval-legend-label">{item.name}</span>
+                <span className="admin-eval-legend-count">{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="admin-eval-chart-card">
           <h3><FaChartBar /> Répartition par type</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={typeData} barSize={32} barGap={12}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F5F8FC" />
-              <XAxis dataKey="type" tick={{ fontSize: 11, fill: '#6c7a8a' }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6c7a8a' }} />
               <YAxis tick={{ fontSize: 11, fill: '#6c7a8a' }} />
               <Tooltip 
                 contentStyle={{ 
@@ -388,7 +406,7 @@ function AdminEvaluations() {
                   <td><strong>{evalItem.etudiant}</strong></td>
                   <td>{evalItem.stage}</td>
                   <td>{evalItem.entreprise}</td>
-                  <td><span className="admin-eval-type-badge">{evalItem.type}</span></td>
+                  <td><span className={getTypeBadge(evalItem.type)}>{getTypeLabel(evalItem.type)}</span></td>
                   <td>{evalItem.date}</td>
                   <td>
                     {evalItem.note ? (
@@ -461,7 +479,7 @@ function AdminEvaluations() {
                 <div className="admin-eval-modal-info-item">
                   <span className="admin-eval-modal-info-label">Évaluateur</span>
                   <span className="admin-eval-modal-info-value">{selectedEvaluation.encadreur}</span>
-                  <span className="admin-eval-modal-info-sub">{selectedEvaluation.type}</span>
+                  <span className="admin-eval-modal-info-sub">{getTypeLabel(selectedEvaluation.type)}</span>
                 </div>
                 <div className="admin-eval-modal-info-item">
                   <span className="admin-eval-modal-info-label">Date d'évaluation</span>

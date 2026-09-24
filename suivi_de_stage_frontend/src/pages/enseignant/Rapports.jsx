@@ -7,7 +7,7 @@ import {
   FaBuilding, FaCalendarAlt
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
-import { reportsApi } from '../../api';
+import { internshipsApi, reportsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import {
   mapReportStatus,
@@ -31,16 +31,26 @@ function EnseignantRapports() {
 
   // ===== DONNÉES =====
   const [allRapports, setAllRapports] = useState([]);
+  const [allStages, setAllStages] = useState([]);
   const [loadingRapports, setLoadingRapports] = useState(false);
 
   useEffect(() => {
     const fetchRapports = async () => {
       setLoadingRapports(true);
       try {
-        const res = await reportsApi.getAll({ limit: 100 });
-        const items = Array.isArray(res) ? res : res?.items || [];
+        const [reportsRes, stagesRes] = await Promise.allSettled([
+          reportsApi.getAll({ limit: 100 }),
+          internshipsApi.getAll({ limit: 100 }),
+        ]);
+        const items = reportsRes.status === 'fulfilled'
+          ? (reportsRes.value?.items ||
+            reportsRes.value?.data ||
+            (Array.isArray(reportsRes.value) ? reportsRes.value : []))
+          : [];
         setAllRapports(items.map(r => ({
           id: r.id,
+          stageId: r.stage?.id,
+          type: r.type,
           etudiantId: r.stage?.etudiantId,
           etudiant: r.stage?.etudiant || 'Étudiant',
           stage: r.stage?.intitule || 'Stage',
@@ -53,6 +63,11 @@ function EnseignantRapports() {
           commentaire: r.commentaire || '',
           raison: r.commentaire || ''
         })));
+        const stages = stagesRes.status === 'fulfilled'
+          ? (stagesRes.value?.data ||
+            (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+          : [];
+        setAllStages(stages);
       } catch (err) {
         console.error('Erreur chargement rapports:', err);
         toast.error('Erreur lors du chargement des rapports');
@@ -79,11 +94,27 @@ function EnseignantRapports() {
 
   const studentName = getStudentName();
 
+  const typesDeposesParStage = new Map();
+  allRapports.forEach(r => {
+    if (!r.type || !r.stageId) return;
+    if (!typesDeposesParStage.has(r.stageId)) {
+      typesDeposesParStage.set(r.stageId, new Set());
+    }
+    typesDeposesParStage.get(r.stageId).add(r.type);
+  });
+  const stagesActifs = allStages.filter(
+    (s) => (s.statut === 'EN_COURS' || s.statut === 'TERMINE') &&
+      (!studentId || String(s.student?.id) === String(studentId))
+  );
+
   const stats = {
     total: rapports.length,
     valides: rapports.filter(r => r.statut === 'Validé').length,
     revision: rapports.filter(r => r.statut === 'En révision').length,
-    deposer: rapports.filter(r => r.statut === 'À déposer').length
+    deposer: stagesActifs.reduce(
+      (acc, st) => acc + Math.max(0, 3 - (typesDeposesParStage.get(st.id)?.size || 0)),
+      0
+    )
   };
 
   const filteredRapports = rapports.filter(r => {
@@ -311,7 +342,6 @@ function EnseignantRapports() {
                     { value: 'tous', label: 'Tous les statuts' },
                     { value: 'Validé', label: 'Validé' },
                     { value: 'En révision', label: 'En révision' },
-                    { value: 'À déposer', label: 'À déposer' },
                     { value: 'Refusé', label: 'Refusé' }
                   ]}
                 />

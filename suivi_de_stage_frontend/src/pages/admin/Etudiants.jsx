@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
-import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus,
+import {
+  FaSearch, FaFilter, FaEye,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 
 import EtudiantDetail from './components/EtudiantDetail';
-import EtudiantForm from './components/EtudiantForm';
-import EtudiantDelete from './components/EtudiantDelete';
 import studentsApi from '../../api/studentsApi';
-import usersApi from '../../api/usersApi';
+import { internshipsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEtudiants() {
@@ -18,22 +16,19 @@ function AdminEtudiants() {
   const [filterPromotion, setFilterPromotion] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedEtudiant, setSelectedEtudiant] = useState(null);
-  const [editEtudiant, setEditEtudiant] = useState(null);
-  const [deleteEtudiant, setDeleteEtudiant] = useState(null);
-  const [formData, setFormData] = useState({
-    matricule: '', nom: '', prenom: '', email: '',
-    telephone: '', formation: '', promotion: '', niveau: '', statutAcademique: 'ACTIF'
-  });
   const [etudiants, setEtudiants] = useState([]);
+  const [enStage, setEnStage] = useState(0);
   const itemsPerPage = 5;
 
   const loadStudents = async () => {
     try {
-      const res = await studentsApi.getAll();
+      const [studentsRes, stagesRes] = await Promise.allSettled([
+        studentsApi.getAll(),
+        internshipsApi.getAll({ limit: 100 }),
+      ]);
+
+      const res = studentsRes.status === 'fulfilled' ? studentsRes.value : null;
       const list = res?.items || [];
 
       const mapped = list.map(item => ({
@@ -49,6 +44,18 @@ function AdminEtudiants() {
         statut: item.statutAcademique || 'ACTIF',
       }));
       setEtudiants(mapped);
+
+      const stagesList = stagesRes.status === 'fulfilled'
+        ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+        : [];
+      setEnStage(
+        new Set(
+          stagesList
+            .filter((s) => s.statut === 'EN_COURS')
+            .map((s) => s.student?.id || s.student?.user?.id)
+            .filter(Boolean),
+        ).size,
+      );
     } catch (err) {
       console.error('Erreur chargement étudiants:', err);
     }
@@ -65,7 +72,7 @@ function AdminEtudiants() {
     total: etudiants.length,
     actifs: etudiants.filter(e => e.statut === 'ACTIF').length,
     diplomes: etudiants.filter(e => e.statut === 'DIPLOME').length,
-    enStage: 0
+    enStage
   };
 
   const filteredEtudiants = etudiants.filter(e => {
@@ -88,24 +95,11 @@ function AdminEtudiants() {
 
   const filiereOptions = [
     { value: 'Tous', label: 'Toutes les formations' },
-    ...new Set(etudiants.map(e => e.formation).filter(Boolean)).map(v => ({ value: v, label: v }))
+    ...[...new Set(etudiants.map(e => e.formation).filter(Boolean))].map(v => ({ value: v, label: v }))
   ];
   const promotionOptions = [
     { value: 'Tous', label: 'Toutes les promotions' },
-    ...new Set(etudiants.map(e => e.promotion).filter(Boolean)).map(v => ({ value: v, label: v }))
-  ];
-  const niveauOptions = [
-    { value: 'L1', label: 'Licence 1' },
-    { value: 'L2', label: 'Licence 2' },
-    { value: 'L3', label: 'Licence 3' },
-    { value: 'M1', label: 'Master 1' },
-    { value: 'M2', label: 'Master 2' }
-  ];
-  const statutOptions = [
-    { value: 'ACTIF', label: 'Actif' },
-    { value: 'DIPLOME', label: 'Diplômé' },
-    { value: 'SUSPENDU', label: 'Suspendu' },
-    { value: 'ABANDONNE', label: 'Abandonné' }
+    ...[...new Set(etudiants.map(e => e.promotion).filter(Boolean))].map(v => ({ value: v, label: v }))
   ];
 
   const getStatusBadge = (statut) => {
@@ -118,91 +112,6 @@ function AdminEtudiants() {
     setShowDetailModal(true);
   };
 
-  const openCreateModal = () => {
-    setFormData({
-      matricule: '', nom: '', prenom: '', email: '',
-      telephone: '', formation: '', promotion: '', niveau: '', statutAcademique: 'ACTIF'
-    });
-    setShowCreateModal(true);
-  };
-
-  const openEditModal = (etudiant) => {
-    setEditEtudiant(etudiant);
-    setFormData({
-      matricule: etudiant.matricule,
-      nom: etudiant.nom,
-      prenom: etudiant.prenom,
-      email: etudiant.email,
-      telephone: etudiant.telephone === '—' ? '' : etudiant.telephone,
-      formation: etudiant.formation,
-      promotion: etudiant.promotion,
-      niveau: etudiant.niveau,
-      statutAcademique: etudiant.statut
-    });
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (etudiant) => {
-    setDeleteEtudiant(etudiant);
-    setShowDeleteModal(true);
-  };
-
-  const handleCreate = async () => {
-    try {
-      const defaultPassword = `EMIT@${formData.promotion || new Date().getFullYear()}`;
-      const user = await usersApi.create({
-        nom: formData.nom,
-        prenom: formData.prenom,
-        email: formData.email,
-        motDePasse: defaultPassword,
-        role: 'ETUDIANT',
-      });
-      await studentsApi.create({
-        userId: user.id,
-        matricule: formData.matricule,
-        formation: formData.formation,
-        niveau: formData.niveau,
-        promotion: formData.promotion,
-        telephone: formData.telephone || undefined,
-      });
-      setShowCreateModal(false);
-      loadStudents();
-    } catch (err) {
-      console.error('Erreur création étudiant:', err);
-    }
-  };
-
-  const handleEdit = async () => {
-    if (!editEtudiant) return;
-    try {
-      await studentsApi.update(editEtudiant.id, {
-        matricule: formData.matricule,
-        formation: formData.formation,
-        niveau: formData.niveau,
-        promotion: formData.promotion,
-        telephone: formData.telephone || undefined,
-        statutAcademique: formData.statutAcademique,
-      });
-      setShowEditModal(false);
-      setEditEtudiant(null);
-      loadStudents();
-    } catch (err) {
-      console.error('Erreur modification étudiant:', err);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteEtudiant) return;
-    try {
-      await studentsApi.delete(deleteEtudiant.id);
-      setShowDeleteModal(false);
-      setDeleteEtudiant(null);
-      loadStudents();
-    } catch (err) {
-      console.error('Erreur suppression étudiant:', err);
-    }
-  };
-
   return (
     <div className="admin-etudiants-page">
       {/* ===== HEADER ===== */}
@@ -211,9 +120,6 @@ function AdminEtudiants() {
           <h1>Gestion des étudiants</h1>
           <p className="admin-etudiants-subtitle">Gérez les étudiants et leurs informations</p>
         </div>
-        <button className="admin-etudiants-btn-add" onClick={openCreateModal}>
-          <FaPlus /> Ajouter
-        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -326,12 +232,6 @@ function AdminEtudiants() {
                       <button className="admin-etudiants-btn-view" onClick={() => openDetailModal(etudiant)} title="Voir">
                         <FaEye /> Voir
                       </button>
-                      <button className="admin-etudiants-btn-edit" onClick={() => openEditModal(etudiant)} title="Modifier">
-                        <FaEdit />
-                      </button>
-                      <button className="admin-etudiants-btn-delete" onClick={() => openDeleteModal(etudiant)} title="Supprimer">
-                        <FaTrash />
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -354,49 +254,11 @@ function AdminEtudiants() {
         )}
       </div>
 
-      {/* ===== MODALES (COMPOSANTS EXTERNES) ===== */}
+      {/* ===== MODALE DÉTAIL ===== */}
       {showDetailModal && (
         <EtudiantDetail
           etudiant={selectedEtudiant}
           onClose={() => { setShowDetailModal(false); setSelectedEtudiant(null); }}
-        />
-      )}
-
-      {showCreateModal && (
-        <EtudiantForm
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleCreate}
-          onCancel={() => setShowCreateModal(false)}
-          title="Ajouter un étudiant"
-          submitLabel="Créer"
-          filiereOptions={filiereOptions}
-          promotionOptions={promotionOptions}
-          niveauOptions={niveauOptions}
-          statutOptions={statutOptions}
-        />
-      )}
-
-      {showEditModal && (
-        <EtudiantForm
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); setEditEtudiant(null); }}
-          title="Modifier l'étudiant"
-          submitLabel="Enregistrer"
-          filiereOptions={filiereOptions}
-          promotionOptions={promotionOptions}
-          niveauOptions={niveauOptions}
-          statutOptions={statutOptions}
-        />
-      )}
-
-      {showDeleteModal && (
-        <EtudiantDelete
-          etudiant={deleteEtudiant}
-          onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setDeleteEtudiant(null); }}
         />
       )}
     </div>

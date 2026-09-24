@@ -11,6 +11,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { toast } from 'react-toastify';
+import { companiesApi, getApiErrorMessage } from '../../api';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -40,7 +41,7 @@ function AjouterEntreprise() {
     ville: entrepriseData?.ville || '',
     telephone: entrepriseData?.telephone || '',
     email: entrepriseData?.email || '',
-    site: entrepriseData?.site || '',
+    site: entrepriseData?.siteWeb || entrepriseData?.site || '',
     description: entrepriseData?.description || ''
   });
 
@@ -80,25 +81,56 @@ function AjouterEntreprise() {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (isViewMode) return;
-    
-    if (!formData.nom || !formData.ville) {
-      alert('Veuillez remplir tous les champs obligatoires (*)');
+
+    const required = [
+      ['nom', 'le nom de l\'entreprise'],
+      ['domaine', 'le domaine d\'activité'],
+      ['ville', 'la ville'],
+      ['adresse', 'l\'adresse'],
+      ['email', 'l\'email'],
+    ];
+    const emptyField = required.find(([key]) => !formData[key]?.trim());
+    if (emptyField) {
+      toast.error(`Veuillez renseigner ${emptyField[1]} (*)`);
       return;
     }
 
+    const payload = {
+      nom: formData.nom.trim(),
+      secteurActivite: formData.domaine.trim(),
+      adresse: formData.adresse.trim(),
+      ville: formData.ville.trim(),
+      email: formData.email.trim(),
+    };
+    if (formData.telephone?.trim()) payload.telephone = formData.telephone.trim();
+    if (formData.site?.trim()) payload.siteWeb = formData.site.trim();
+    if (formData.description?.trim()) payload.description = formData.description.trim();
+    if (locationMap) {
+      payload.latitude = locationMap.lat;
+      payload.longitude = locationMap.lon;
+    } else if (entrepriseData?.lat && entrepriseData?.lng) {
+      payload.latitude = entrepriseData.lat;
+      payload.longitude = entrepriseData.lng;
+    }
+
     setLoading(true);
-    setTimeout(() => {
+    try {
       if (isEditing) {
+        await companiesApi.update(entrepriseData.id, payload);
         toast.success('Entreprise modifiée avec succès !');
       } else {
+        await companiesApi.create(payload);
         toast.success('Entreprise ajoutée avec succès !');
       }
-      setLoading(false);
       navigate('/etudiant/entreprise');
-    }, 1500);
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Erreur lors de l\'enregistrement de l\'entreprise'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   const getTitle = () => {

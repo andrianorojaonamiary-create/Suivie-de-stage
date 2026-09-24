@@ -82,7 +82,7 @@ function EncadreurDashboard() {
     rapportsAttendus: 0,
     totalStages: 0,
   });
-  const [entrepriseInfo, setEntrepriseInfo] = useState(null);
+  const [entreprisesInfo, setEntreprisesInfo] = useState([]);
   const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
@@ -91,7 +91,7 @@ function EncadreurDashboard() {
           internshipsApi.getAll({ limit: 100 }),
           reportsApi.getAll({ limit: 100 }),
           notificationsApi.getAll(),
-          companiesApi.getMe(),
+          companiesApi.getSupervised(),
         ]);
 
       // ===== STAGES (scopés à l'encadreur) =====
@@ -159,17 +159,22 @@ function EncadreurDashboard() {
         totalStages: mappedStages.length,
       });
 
-      // ===== MON ENTREPRISE =====
+      // ===== MES ENTREPRISES (sociétés de mes stages encadrés) =====
       if (companyRes.status === 'fulfilled' && companyRes.value) {
-        const c = companyRes.value;
-        setEntrepriseInfo({
-          nom: c.nom || '',
-          adresse: [c.adresse, c.ville].filter(Boolean).join(', '),
-          telephone: c.telephone || '',
-          email: c.email || '',
-          site: c.siteWeb || c.site_web || '',
-          description: c.description || '',
-        });
+        const items = Array.isArray(companyRes.value)
+          ? companyRes.value
+          : companyRes.value.data || [];
+        setEntreprisesInfo(
+          items.map((c) => ({
+            id: c.id || '',
+            nom: c.nom || '',
+            adresse: [c.adresse, c.ville].filter(Boolean).join(', '),
+            telephone: c.telephone || '',
+            email: c.email || '',
+            site: c.siteWeb || c.site_web || '',
+            description: c.description || '',
+          })),
+        );
       }
 
       // ===== ACTIVITÉS RÉCENTES =====
@@ -424,50 +429,55 @@ function EncadreurDashboard() {
         {/* ===== INFORMATIONS ENTREPRISE ===== */}
         <div className="entreprise-info-card">
           <div className="entreprise-info-header">
-            <h3><FaBuilding /> Mon entreprise</h3>
+            <h3><FaBuilding /> Mes entreprises</h3>
           </div>
           <div className="entreprise-info-body">
-            {entrepriseInfo ? (
+            {entreprisesInfo.length > 0 ? (
               <>
-                <div className="entreprise-name">
-                  <span className="entreprise-icon-container">
-                    <FaBuilding className="entreprise-icon" />
-                  </span>
-                  <span className="name">{entrepriseInfo.nom}</span>
-                </div>
-                {entrepriseInfo.adresse && (
-                  <div className="entreprise-detail">
-                    <FaMapMarkerAlt className="detail-icon" />
-                    <span>{entrepriseInfo.adresse}</span>
+                {entreprisesInfo.map((ent, idx) => (
+                  <div key={ent.id || idx} className="entreprise-item">
+                    {idx > 0 && <hr className="entreprise-separator" />}
+                    <div className="entreprise-name">
+                      <span className="entreprise-icon-container">
+                        <FaBuilding className="entreprise-icon" />
+                      </span>
+                      <span className="name">{ent.nom}</span>
+                    </div>
+                    {ent.adresse && (
+                      <div className="entreprise-detail">
+                        <FaMapMarkerAlt className="detail-icon" />
+                        <span>{ent.adresse}</span>
+                      </div>
+                    )}
+                    {ent.telephone && (
+                      <div className="entreprise-detail">
+                        <FaPhone className="detail-icon" />
+                        <span>{ent.telephone}</span>
+                      </div>
+                    )}
+                    {ent.email && (
+                      <div className="entreprise-detail">
+                        <FaEnvelope className="detail-icon" />
+                        <span>{ent.email}</span>
+                      </div>
+                    )}
+                    {ent.site && (
+                      <div className="entreprise-detail">
+                        <FaGlobe className="detail-icon" />
+                        <span>{ent.site}</span>
+                      </div>
+                    )}
+                    {ent.description && (
+                      <div className="entreprise-description">
+                        <p>{ent.description}</p>
+                      </div>
+                    )}
                   </div>
-                )}
-                {entrepriseInfo.telephone && (
-                  <div className="entreprise-detail">
-                    <FaPhone className="detail-icon" />
-                    <span>{entrepriseInfo.telephone}</span>
-                  </div>
-                )}
-                {entrepriseInfo.email && (
-                  <div className="entreprise-detail">
-                    <FaEnvelope className="detail-icon" />
-                    <span>{entrepriseInfo.email}</span>
-                  </div>
-                )}
-                {entrepriseInfo.site && (
-                  <div className="entreprise-detail">
-                    <FaGlobe className="detail-icon" />
-                    <span>{entrepriseInfo.site}</span>
-                  </div>
-                )}
-                {entrepriseInfo.description && (
-                  <div className="entreprise-description">
-                    <p>{entrepriseInfo.description}</p>
-                  </div>
-                )}
+                ))}
               </>
             ) : (
               <p className="detail-empty">
-                Aucune information sur votre entreprise n'est encore disponible sur la plateforme.
+                Vous n'encadrez pas encore de stages en entreprise.
               </p>
             )}
           </div>

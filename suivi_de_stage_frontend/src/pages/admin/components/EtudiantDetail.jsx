@@ -21,12 +21,12 @@ function EtudiantDetail({ etudiant, onClose }) {
         <div className="modal-body">
           <div className="detail-grid">
             <div className="detail-item">
-              <label>Matricule</label>
-              <span>{etudiant.matricule}</span>
-            </div>
-            <div className="detail-item">
               <label>Nom complet</label>
               <span>{etudiant.prenom} {etudiant.nom}</span>
+            </div>
+            <div className="detail-item">
+              <label>Matricule</label>
+              <span>{etudiant.matricule}</span>
             </div>
             <div className="detail-item">
               <label>Email</label>

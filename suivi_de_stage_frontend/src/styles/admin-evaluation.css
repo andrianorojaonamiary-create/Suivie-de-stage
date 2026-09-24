@@ -173,6 +173,41 @@
   color: #162449;
 }
 
+.admin-eval-page .admin-eval-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E1ECFE;
+}
+
+.admin-eval-page .admin-eval-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-eval-page .admin-eval-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.admin-eval-page .admin-eval-legend-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #162449;
+}
+
+.admin-eval-page .admin-eval-legend-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #192543;
+  margin-left: auto;
+}
+
 /* ============================================================
    FILTRES + RECHERCHE
    ============================================================ */

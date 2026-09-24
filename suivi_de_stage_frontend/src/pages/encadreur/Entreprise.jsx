@@ -20,6 +20,7 @@ function EncadreurEntreprise() {
   const [isEditing, setIsEditing] = useState(false);
   const [chargement, setChargement] = useState(true);
   const [entrepriseIntrouvable, setEntrepriseIntrouvable] = useState(false);
+  const [societesEncadrees, setSocietesEncadrees] = useState([]);
   const [companyId, setCompanyId] = useState("");
 
   const [formData, setFormData] = useState({
@@ -55,6 +56,13 @@ function EncadreurEntreprise() {
         if (status === 404) {
           setEntrepriseIntrouvable(true);
           setCompanyId("");
+          try {
+            const res = await companiesApi.getSupervised();
+            const items = Array.isArray(res) ? res : res?.data || [];
+            setSocietesEncadrees(items);
+          } catch {
+            setSocietesEncadrees([]);
+          }
         } else {
           console.error("Erreur chargement entreprise:", err);
           toast.error(
@@ -158,6 +166,22 @@ function EncadreurEntreprise() {
           </button>
         )}
       </div>
+
+      {entrepriseIntrouvable && societesEncadrees.length > 0 && (
+        <div className="form-card societes-encadrees-card">
+          <h3 className="societes-encadrees-title">
+            <FaBuilding /> Sociétés de vos stages encadrés
+          </h3>
+          <ul className="societes-encadrees-list">
+            {societesEncadrees.map((ent, idx) => (
+              <li key={ent.id || idx} className="societe-encadree-item">
+                <strong>{ent.nom}</strong>
+                {ent.adresse && <span> · {ent.adresse}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="form-card">
         {!entrepriseIntrouvable && !isEditing ? (

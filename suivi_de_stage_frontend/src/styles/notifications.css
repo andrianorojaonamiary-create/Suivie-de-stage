@@ -163,6 +163,36 @@
   flex-shrink: 0;
 }
 
+/* ===== BOUTON SUPPRIMER ===== */
+.notification-delete {
+  position: absolute;
+  top: 36px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  color: #A0B8D0;
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.notification-item:hover .notification-delete,
+.notification-delete:focus-visible {
+  opacity: 1;
+}
+
+.notification-delete:hover {
+  background: #FEE2E2;
+  color: #E74C3C;
+}
+
 @keyframes pulse-dot {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.5; transform: scale(0.8); }
@@ -316,6 +346,11 @@
     justify-content: center;
   }
 
+  .notification-delete {
+    top: 32px;
+    right: 12px;
+  }
+
   .notification-item {
     padding: 14px 16px;
     gap: 14px;
@@ -361,6 +396,11 @@
   .notification-item {
     padding: 12px 14px;
     gap: 12px;
+  }
+
+  .notification-delete {
+    top: 28px;
+    right: 10px;
   }
 
   .notification-item .unread-dot {
