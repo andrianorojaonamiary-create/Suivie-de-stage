@@ -1,0 +1,147 @@
+/* ============================================================
+   ÉTUDIANT - CLASSES COMMUNES
+   ============================================================ */
+
+/* ===== HEADER PAGE ===== */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.page-header h1 {
+  font-size: 24px;
+  color: #162449;
+  margin: 0;
+  font-weight: 700;
+}
+
+.page-header .text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+/* ===== BOUTONS ===== */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #6BA9E6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  background: #162449;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(74, 144, 217, 0.3);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #FAFBFF;
+  color: #162449;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+
+.btn-secondary:hover {
+  background: #E1ECFE;
+}
+
+.btn-back {
+  background: none;
+  border: none;
+  color: #6c7a8a;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+}
+
+.btn-back:hover {
+  color: #162449;
+}
+
+/* ===== BADGES ===== */
+.badge-en-cours {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-en-attente {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-termine {
+  background: #DBEAFE;
+  color: #1E40AF;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-valide {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.badge-refuse {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* ============================================================
+   RESPONSIVE COMMUN
+   ============================================================ */
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    justify-content: center;
+  }
+}

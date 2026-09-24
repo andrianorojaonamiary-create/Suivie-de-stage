@@ -1,0 +1,419 @@
+/* ============================================================
+   ADMIN - ENTREPRISES
+   ============================================================ */
+
+.admin-entreprises-page {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== HEADER ===== */
+.admin-entreprises-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.admin-entreprises-header h1 {
+  font-size: 24px;
+  color: #162449;
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.admin-entreprises-header h1 svg {
+  color: #6BA9E6;
+}
+.admin-entreprises-subtitle {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+.admin-entreprises-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #6BA9E6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-entreprises-btn-primary:hover {
+  background: #162449;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(107, 169, 230, 0.3);
+}
+
+/* ===== STATISTIQUES ===== */
+.admin-entreprises-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.admin-entreprises-stat-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: all 0.3s ease;
+}
+.admin-entreprises-stat-card:hover {
+  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
+  transform: translateY(-2px);
+}
+.admin-entreprises-stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.admin-entreprises-stat-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.admin-entreprises-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.2;
+}
+.admin-entreprises-stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+/* ===== FILTRES ===== */
+.admin-entreprises-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  flex-wrap: wrap;
+}
+.admin-entreprises-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 180px;
+}
+.admin-entreprises-filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.admin-entreprises-filter-group label svg {
+  color: #6BA9E6;
+}
+.admin-entreprises-search-group {
+  position: relative;
+  flex: 1.5;
+  min-width: 260px;
+  max-width: 420px;
+}
+.admin-entreprises-search-input {
+  flex: 1;
+  padding: 10px 16px;
+  padding-left: 40px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+  min-width: 200px;
+}
+.admin-entreprises-search-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+.admin-entreprises-search-input::placeholder {
+  color: #A0B8D0;
+}
+.admin-entreprises-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6c7a8a;
+  font-size: 16px;
+}
+.admin-entreprises-filter-select {
+  flex: 1;
+  padding: 8px 14px;
+  padding-right: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 180px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  font-family: inherit;
+}
+.admin-entreprises-filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
+}
+
+/* ===== TABLEAU ===== */
+.admin-entreprises-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+}
+.admin-entreprises-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.admin-entreprises-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #F5F8FC;
+  background: #FAFCFE;
+}
+.admin-entreprises-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #162449;
+  border-bottom: 1px solid #F5F8FC;
+  vertical-align: middle;
+}
+.admin-entreprises-table tbody tr:hover {
+  background: #F8FAFC;
+}
+.admin-entreprises-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: #6c7a8a;
+}
+.admin-entreprises-nom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.admin-entreprises-icon {
+  color: #6BA9E6;
+  font-size: 16px;
+}
+.admin-entreprises-nom-text {
+  font-weight: 500;
+  color: #162449;
+}
+.admin-entreprises-domaine-badge {
+  background: #E1ECFE;
+  color: #162449;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+.admin-entreprises-ville-icon,
+.admin-entreprises-phone-icon,
+.admin-entreprises-email-icon {
+  color: #6c7a8a;
+  font-size: 12px;
+  margin-right: 4px;
+}
+.admin-entreprises-stagiaires-badge {
+  background: #F5F8FC;
+  border: 1px solid #E1ECFE;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.admin-entreprises-actions {
+  display: flex;
+  gap: 4px;
+}
+.admin-entreprises-btn-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #A0B8D0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-entreprises-btn-view:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+/* ===== PAGINATION ===== */
+.admin-entreprises-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px;
+  border-top: 1px solid #F5F8FC;
+  background: #FAFCFE;
+}
+.admin-entreprises-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #162449;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+.admin-entreprises-pagination-btn:hover:not(:disabled) {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+.admin-entreprises-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.admin-entreprises-pagination-info {
+  font-size: 14px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .admin-entreprises-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .admin-entreprises-btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+  .admin-entreprises-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .admin-entreprises-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-width: unset;
+  }
+  .admin-entreprises-search-group {
+    min-width: unset;
+  }
+  .admin-entreprises-search-input {
+    min-width: unset;
+  }
+  .admin-entreprises-table thead th,
+  .admin-entreprises-table tbody td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .admin-entreprises-stats {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 480px) {
+  .admin-entreprises-header h1 {
+    font-size: 20px;
+  }
+  .admin-entreprises-subtitle {
+    font-size: 13px;
+  }
+  .admin-entreprises-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .admin-entreprises-stat-card {
+    padding: 12px 14px;
+  }
+  .admin-entreprises-stat-value {
+    font-size: 18px;
+  }
+  .admin-entreprises-stat-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+  .admin-entreprises-table thead th,
+  .admin-entreprises-table tbody td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+  .admin-entreprises-btn-view {
+    padding: 5px 10px;
+    font-size: 11px;
+  }
+  .admin-entreprises-pagination {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .admin-entreprises-pagination-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 12px;
+  }
+  .admin-entreprises-pagination-info {
+    font-size: 12px;
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "suivi_de_stage_frontend",
+    "suivi_de_stage_backend"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=frontend",
+    "dev:backend": "npm run start:dev --workspace=suivi_de_stage_backend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build": "npm run build --workspace=frontend && npm run build --workspace=suivi_de_stage_backend",
+    "lint": "npm run lint --workspace=frontend && npm run lint --workspace=suivi_de_stage_backend"
+  },
+  "devDependencies": {
+    "@types/multer": "^2.2.0",
+    "concurrently": "^9.1.2"
+  }
+}

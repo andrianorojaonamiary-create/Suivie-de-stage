@@ -1,0 +1,338 @@
+/* ============================================================
+   VIEW MODAL - DÉTAIL DU STAGE
+   ============================================================ */
+
+/* ===== OVERLAY ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+  animation: fadeIn 0.2s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== CONTENU ===== */
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  max-width: 580px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ===== HEADER ===== */
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 24px;
+  border-bottom: 1px solid #FAFBFF;
+}
+
+.modal-header h2 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 18px;
+  font-weight: 700;
+  color: #162449;
+  margin: 0;
+}
+
+.modal-icon-view {
+  color: #6BA9E6;
+  font-size: 24px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #A0B8D0;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close:hover {
+  color: #162449;
+  background: #FAFBFF;
+}
+
+/* ===== BODY ===== */
+.modal-body {
+  padding: 24px;
+  background: #F8FAFC;
+}
+
+/* ===== ROWS ===== */
+.view-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 8px 0;
+  border-bottom: 1px solid #FAFBFF;
+}
+
+.view-row:last-of-type {
+  border-bottom: none;
+}
+
+.view-label {
+  min-width: 130px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #6c7a8a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.view-label svg {
+  color: #6BA9E6;
+  font-size: 14px;
+}
+
+.view-value {
+  font-size: 14px;
+  color: #162449;
+  word-break: break-word;
+}
+
+.view-value strong {
+  font-weight: 700;
+}
+
+/* ===== DESCRIPTION ===== */
+.view-description {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-description .view-label {
+  min-width: unset;
+}
+
+.view-description-text {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.6;
+  padding: 8px 12px;
+  background: white;
+  border-radius: 8px;
+  width: 100%;
+  border: 1px solid #E8EEF4;
+}
+
+/* ===== COMMENTAIRE ===== */
+.view-comment {
+  flex-direction: column;
+  gap: 4px;
+}
+
+.view-comment .view-label {
+  min-width: unset;
+}
+
+.view-comment-text {
+  font-size: 14px;
+  color: #475569;
+  font-style: italic;
+  padding: 8px 12px;
+  background: #FFF8E7;
+  border-radius: 8px;
+  border-left: 3px solid #F39C12;
+  width: 100%;
+}
+
+/* ===== STATUT ===== */
+.view-status .view-value {
+  display: flex;
+  align-items: center;
+}
+
+/* ===== BADGE VIEW ===== */
+.badge-view {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.badge-view.badge-valide {
+  background: #E8F5E9;
+  color: #27AE60;
+}
+
+.badge-view.badge-refuse {
+  background: #FDE8E8;
+  color: #E74C3C;
+}
+
+.badge-view.badge-en-attente {
+  background: #FFF3E0;
+  color: #F39C12;
+}
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar-view {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: 100px;
+  height: 6px;
+  background: #FAFBFF;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-right: 8px;
+  border: 1px solid #EEF2F7;
+}
+
+.progress-fill-view {
+  height: 100%;
+  background: linear-gradient(90deg, #6BA9E6, #162449);
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+
+.progress-text-view {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6BA9E6;
+}
+
+/* ===== FOOTER ===== */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px 24px;
+  border-top: 1px solid #FAFBFF;
+}
+
+.btn-modal-cancel {
+  padding: 10px 24px;
+  background: #FAFBFF;
+  border: 1px solid #E1ECFE;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c7a8a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-modal-cancel:hover {
+  background: #E1ECFE;
+  color: #162449;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+  .modal-content {
+    max-width: 95%;
+    margin: 16px;
+  }
+
+  .view-row {
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .view-label {
+    min-width: unset;
+  }
+
+  .view-description-text {
+    font-size: 13px;
+  }
+
+  .view-comment-text {
+    font-size: 13px;
+  }
+
+  .progress-bar-view {
+    width: 80px;
+  }
+
+  .modal-footer {
+    flex-direction: column;
+  }
+
+  .btn-modal-cancel {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-header h2 {
+    font-size: 16px;
+  }
+
+  .modal-body {
+    padding: 16px;
+  }
+
+  .view-label {
+    font-size: 12px;
+  }
+
+  .view-value {
+    font-size: 13px;
+  }
+
+  .view-description-text {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .view-comment-text {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .badge-view {
+    font-size: 11px;
+    padding: 2px 10px;
+  }
+
+  .progress-text-view {
+    font-size: 12px;
+  }
+
+  .progress-bar-view {
+    width: 60px;
+    height: 5px;
+  }
+
+  .modal-icon-view {
+    font-size: 20px;
+  }
+}

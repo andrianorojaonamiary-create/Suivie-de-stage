@@ -1,0 +1,5 @@
+export enum FollowUpType {
+  OBSERVATION = 'OBSERVATION',
+  ENTRETIEN = 'ENTRETIEN',
+  RAPPORT = 'RAPPORT',
+}

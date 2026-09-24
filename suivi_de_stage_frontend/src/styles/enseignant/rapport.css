@@ -1,0 +1,591 @@
+/* ============================================================
+   ENSEIGNANT - RAPPORTS
+   ============================================================ */
+
+.rapports-page {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== PAGE HEADER ===== */
+.rapports-page .page-header {
+  margin-bottom: 24px;
+}
+
+.rapports-page .page-header h1 {
+  font-size: 24px;
+  color: #162449;
+  margin: 8px 0 4px 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rapports-page .page-header .text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ===== BOUTON RETOUR ===== */
+.btn-back-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #FAFBFF;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  color: #162449;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-back-header:hover {
+  background: #E1ECFE;
+  border-color: #6BA9E6;
+}
+
+/* ===== STATISTIQUES ===== */
+.rapports-page .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.rapports-page .stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #E8EEF4;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.rapports-page .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
+}
+
+.rapports-page .stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.rapports-page .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
+.rapports-page .stat-icon.done { background: #E8F5E9; color: #27AE60; }
+.rapports-page .stat-icon.active { background: #E1ECFE; color: #162449; }
+.rapports-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
+
+.rapports-page .stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.rapports-page .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.2;
+}
+
+.rapports-page .stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+/* ===== TABLEAU ===== */
+.rapports-page .table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E8EEF4;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+/* ===== TOOLBAR ===== */
+.rapports-page .table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid #F0F4F8;
+  flex-wrap: wrap;
+  gap: 12px;
+  background: #F8FAFC;
+}
+
+.rapports-page .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rapports-page .filter-wrapper {
+  display: flex;
+  align-items: center;
+  height: 38px;
+}
+
+.rapports-page .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid #E8EEF4;
+  border-radius: 8px;
+  padding: 0 12px;
+  height: 38px;
+  transition: border-color 0.2s;
+}
+
+.rapports-page .filter-group:hover {
+  border-color: #6BA9E6;
+}
+
+.rapports-page .filter-group .select-personnalise {
+  min-width: 220px;
+}
+
+.rapports-page .filter-icon {
+  color: #A0B8D0;
+  font-size: 13px;
+}
+
+.rapports-page .filter-group select {
+  border: none;
+  padding: 0 4px 0 0;
+  font-size: 13px;
+  color: #162449;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  min-width: 140px;
+  height: 36px;
+}
+
+.rapports-page .search-wrapper {
+  display: flex;
+  align-items: center;
+  height: 38px;
+}
+
+.rapports-page .search-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 38px;
+}
+
+.rapports-page .search-icon {
+  position: absolute;
+  left: 12px;
+  color: #A0B8D0;
+  font-size: 14px;
+}
+
+.rapports-page .search-input {
+  padding: 0 12px 0 36px;
+  border: 1px solid #E8EEF4;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  width: 300px;
+  height: 38px;
+  transition: border-color 0.2s;
+}
+
+.rapports-page .search-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+}
+
+.rapports-page .search-clear {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #A0B8D0;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.rapports-page .search-clear:hover {
+  color: #E74C3C;
+  background: #FDE8E8;
+}
+
+/* ===== TABLEAU ===== */
+.rapports-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.rapports-table thead {
+  background: #F8FAFC;
+}
+
+.rapports-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #4A6285;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rapports-table thead th.actions-header {
+  text-align: center;
+  min-width: 160px;
+}
+
+.rapports-table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid #F0F4F8;
+  vertical-align: middle;
+}
+
+.rapports-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.rapports-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===== CELLULES ===== */
+.rapports-page .student-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rapports-page .student-name {
+  font-weight: 600;
+  color: #162449;
+  font-size: 14px;
+}
+
+.rapports-page .rapport-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rapports-page .rapport-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.rapports-page .rapport-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rapports-page .rapport-title {
+  font-weight: 500;
+  color: #162449;
+  font-size: 13px;
+}
+
+.rapports-page .rapport-meta {
+  font-size: 11px;
+  color: #6c7a8a;
+}
+
+.rapports-page .stage-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rapports-page .stage-title {
+  font-weight: 500;
+  color: #162449;
+  font-size: 13px;
+}
+
+.rapports-page .stage-company {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+/* ===== BADGES ===== */
+.rapports-page .badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rapports-page .badge-valide { background: #E8F5E9; color: #27AE60; }
+.rapports-page .badge-en-cours { background: #E1ECFE; color: #162449; }
+.rapports-page .badge-en-attente { background: #FFF3E0; color: #F39C12; }
+.rapports-page .badge-refuse { background: #FDE8E8; color: #E74C3C; }
+
+/* ===== ACTIONS ===== */
+.rapports-page .action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.rapports-page .action-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #A0B8D0;
+}
+
+.rapports-page .action-btn:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+
+
+/* ===== PAGINATION ===== */
+.rapports-page .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 14px 20px;
+  border-top: 1px solid #F0F4F8;
+  flex-wrap: wrap;
+  background: #F8FAFC;
+}
+
+.rapports-page .page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #E8EEF4;
+  border-radius: 6px;
+  background: white;
+  color: #162449;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rapports-page .page-btn:hover:not(:disabled):not(.active) {
+  border-color: #6BA9E6;
+  background: #F8FAFC;
+}
+
+.rapports-page .page-btn.active {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+.rapports-page .page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.rapports-page .page-info {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin-left: 10px;
+}
+
+/* ===== EMPTY STATE ===== */
+.rapports-page .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.rapports-page .empty-icon {
+  font-size: 48px;
+  color: #E1ECFE;
+  margin-bottom: 12px;
+}
+
+.rapports-page .empty-state h3 {
+  font-size: 18px;
+  color: #162449;
+  margin: 0 0 8px 0;
+}
+
+.rapports-page .empty-state p {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 0;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+  .rapports-page .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rapports-page .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .rapports-page .toolbar-filters {
+    flex-wrap: wrap;
+  }
+
+  .rapports-page .filter-wrapper {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .rapports-page .filter-group {
+    width: 100%;
+  }
+
+  .rapports-page .filter-group select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .rapports-page .search-wrapper {
+    width: 100%;
+  }
+
+  .rapports-page .search-group {
+    width: 100%;
+  }
+
+  .rapports-page .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .rapports-page .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .rapports-table {
+    font-size: 13px;
+  }
+
+  .rapports-table thead th,
+  .rapports-table td {
+    padding: 8px 10px;
+  }
+
+  .rapports-page .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .rapports-page .rapport-cell {
+    flex-wrap: wrap;
+  }
+
+  .rapports-page .pagination {
+    justify-content: center;
+  }
+
+  .rapports-page .page-info {
+    width: 100%;
+    text-align: center;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .rapports-page .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .rapports-page .stat-card {
+    padding: 12px 14px;
+  }
+
+  .rapports-page .stat-value {
+    font-size: 20px;
+  }
+
+  .rapports-page .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  .rapports-table thead th,
+  .rapports-table td {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .rapports-page .student-name {
+    font-size: 13px;
+  }
+
+  .rapports-page .rapport-title {
+    font-size: 12px;
+  }
+
+  .rapports-page .stage-title {
+    font-size: 12px;
+  }
+
+  .rapports-page .action-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .rapports-page .filter-group select {
+    font-size: 12px;
+  }
+
+  .rapports-page .search-input {
+    font-size: 13px;
+    padding: 0 10px 0 32px;
+    height: 34px;
+  }
+
+  .rapports-page .search-icon {
+    font-size: 12px;
+    left: 10px;
+  }
+}

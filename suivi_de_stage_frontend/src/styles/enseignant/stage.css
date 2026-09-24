@@ -1,0 +1,544 @@
+/* ============================================================
+   ENSEIGNANT - STAGES À VALIDER (STYLE UNIFORMISÉ)
+   ============================================================ */
+
+.enseignant-stages {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ===== EN-TÊTE ===== */
+.enseignant-stages .page-header {
+  margin-bottom: 24px;
+}
+
+.enseignant-stages .page-header h1 {
+  font-size: 24px;
+  color: #162449;
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.enseignant-stages .page-header .text-muted {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+/* ===== STATISTIQUES ===== */
+.enseignant-stages .stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.enseignant-stages .stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #E8EEF4;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.enseignant-stages .stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
+}
+
+.enseignant-stages .stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.enseignant-stages .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
+.enseignant-stages .stat-icon.validated { background: #E8F5E9; color: #27AE60; }
+.enseignant-stages .stat-icon.rejected { background: #FDE8E8; color: #E74C3C; }
+.enseignant-stages .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
+
+.enseignant-stages .stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.enseignant-stages .stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.2;
+}
+
+.enseignant-stages .stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+/* ===== TABLEAU ===== */
+.enseignant-stages .table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E8EEF4;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  overflow: hidden;
+}
+
+/* ===== TOOLBAR - ALIGNEMENT CORRIGÉ ===== */
+.enseignant-stages .table-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid #F0F4F8;
+  background: #F8FAFC;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.enseignant-stages .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.enseignant-stages .filter-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid #E8EEF4;
+  border-radius: 8px;
+  padding: 4px 12px;
+  height: 36px;
+}
+
+.enseignant-stages .filter-group:hover {
+  border-color: #6BA9E6;
+}
+
+.enseignant-stages .filter-group .select-personnalise {
+  min-width: 220px;
+}
+
+.enseignant-stages .filter-icon {
+  color: #A0B8D0;
+  font-size: 13px;
+}
+
+.enseignant-stages .filter-group select {
+  border: none;
+  padding: 4px 4px;
+  font-size: 13px;
+  color: #162449;
+  background: transparent;
+  cursor: pointer;
+  outline: none;
+  min-width: 120px;
+  height: 28px;
+}
+
+.enseignant-stages .filter-group select:focus {
+  outline: none;
+}
+
+.enseignant-stages .search-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 36px;
+}
+
+.enseignant-stages .search-icon {
+  position: absolute;
+  left: 12px;
+  color: #A0B8D0;
+  font-size: 14px;
+}
+
+.enseignant-stages .search-input {
+  height: 36px;
+  padding: 0 32px 0 36px;
+  border: 1px solid #E8EEF4;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  width: 300px;
+  transition: border-color 0.2s;
+}
+
+.enseignant-stages .search-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.08);
+}
+
+.enseignant-stages .search-input::placeholder {
+  color: #A0B8D0;
+}
+
+.enseignant-stages .search-clear {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  color: #A0B8D0;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.enseignant-stages .search-clear:hover {
+  color: #E74C3C;
+  background: #FDE8E8;
+}
+/* ===== TABLEAU ===== */
+.enseignant-stages .stages-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.enseignant-stages .stages-table thead {
+  background: #F8FAFC;
+}
+
+.enseignant-stages .stages-table thead th {
+  padding: 12px 16px;
+  text-align: left;
+
+  font-weight: 600;
+  color: #4A6285;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.enseignant-stages .stages-table thead th.actions-header {
+  text-align: center;
+  min-width: 130px;
+}
+
+.enseignant-stages .stages-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #F0F4F8;
+  vertical-align: middle;
+}
+
+.enseignant-stages .stages-table tbody tr {
+  transition: background 0.15s;
+}
+
+.enseignant-stages .stages-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.enseignant-stages .stages-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ===== CELLULES ===== */
+.enseignant-stages .stage-student {
+  display: flex;
+  flex-direction: column;
+}
+
+.enseignant-stages .student-name {
+  font-weight: 600;
+  color: #162449;
+  font-size: 14px;
+}
+
+.enseignant-stages .stage-title-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.enseignant-stages .stage-title {
+  font-weight: 500;
+  color: #162449;
+  font-size: 13px;
+}
+
+.enseignant-stages .stage-company-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.enseignant-stages .company-name {
+  font-size: 13px;
+  color: #162449;
+}
+
+.enseignant-stages .date-text {
+  font-size: 12px;
+  color: #162449;
+  white-space: nowrap;
+}
+
+/* ===== STATUS BADGES ===== */
+.enseignant-stages .status-badge {
+  display: inline-block;
+  padding: 3px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.enseignant-stages .status-en-cours { background: #E1ECFE; color: #162449; }
+.enseignant-stages .status-en-attente { background: #FFF3E0; color: #F39C12; }
+.enseignant-stages .status-termine { background: #E8F5E9; color: #27AE60; }
+.enseignant-stages .status-valide { background: #E8F5E9; color: #27AE60; }
+.enseignant-stages .status-refuse { background: #FDE8E8; color: #E74C3C; }
+
+/* ===== ACTIONS - TOOLTIP UNIQUE ===== */
+.enseignant-stages .action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.enseignant-stages .action-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: white;
+  color: #A0B8D0;
+}
+
+.enseignant-stages .action-btn:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+
+
+
+
+/* ===== PAGINATION ===== */
+.enseignant-stages .pagination {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 14px 20px;
+  border-top: 1px solid #F0F4F8;
+  flex-wrap: wrap;
+  background: #F8FAFC;
+}
+
+.enseignant-stages .page-btn {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border: 1px solid #E8EEF4;
+  border-radius: 6px;
+  background: white;
+  color: #162449;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.enseignant-stages .page-btn:hover:not(:disabled):not(.active) {
+  border-color: #6BA9E6;
+  background: #F8FAFC;
+}
+
+.enseignant-stages .page-btn.active {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+.enseignant-stages .page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.enseignant-stages .page-info {
+  font-size: 13px;
+  color: #6c7a8a;
+  margin-left: 10px;
+}
+
+/* ===== EMPTY STATE ===== */
+.enseignant-stages .empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.enseignant-stages .empty-icon {
+  font-size: 48px;
+  color: #E1ECFE;
+  margin-bottom: 12px;
+}
+
+.enseignant-stages .empty-state h3 {
+  font-size: 18px;
+  color: #162449;
+  margin: 0;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 1024px) {
+  .enseignant-stages .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .enseignant-stages .table-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .enseignant-stages .toolbar-filters {
+    flex-wrap: wrap;
+  }
+
+  .enseignant-stages .filter-group {
+    flex: 1;
+    min-width: 140px;
+  }
+
+  .enseignant-stages .filter-group select {
+    width: 100%;
+    min-width: unset;
+  }
+
+  .enseignant-stages .search-group {
+    width: 100%;
+  }
+
+  .enseignant-stages .search-input {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .enseignant-stages .stats-cards {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .enseignant-stages .stages-table {
+    font-size: 13px;
+  }
+
+  .enseignant-stages .stages-table thead th,
+  .enseignant-stages .stages-table td {
+    padding: 10px 12px;
+  }
+
+  .enseignant-stages .action-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 12px;
+  }
+
+  .enseignant-stages .action-btn[title]::after {
+    display: none;
+  }
+
+  .enseignant-stages .pagination {
+    justify-content: center;
+  }
+
+  .enseignant-stages .page-info {
+    width: 100%;
+    text-align: center;
+    margin-left: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .enseignant-stages .stats-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .enseignant-stages .stat-card {
+    padding: 12px 14px;
+  }
+
+  .enseignant-stages .stat-value {
+    font-size: 20px;
+  }
+
+  .enseignant-stages .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  .enseignant-stages .stages-table thead th,
+  .enseignant-stages .stages-table td {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+
+  .enseignant-stages .student-name {
+    font-size: 13px;
+  }
+
+  .enseignant-stages .stage-title {
+    font-size: 12px;
+  }
+
+  .enseignant-stages .action-btn {
+    width: 26px;
+    height: 26px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .enseignant-stages .filter-group {
+    min-width: 100%;
+  }
+
+  .enseignant-stages .filter-group select {
+    min-width: unset;
+  }
+
+  .enseignant-stages .search-input {
+    font-size: 13px;
+    padding: 0 28px 0 32px;
+    height: 32px;
+  }
+
+  .enseignant-stages .search-icon {
+    font-size: 12px;
+    left: 10px;
+  }
+}
+
+

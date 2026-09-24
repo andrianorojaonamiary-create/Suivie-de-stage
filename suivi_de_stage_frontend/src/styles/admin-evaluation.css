@@ -1,0 +1,944 @@
+/* ============================================================
+   ADMIN - ÉVALUATIONS (VERSION COMPLÈTE AMÉLIORÉE)
+   ============================================================ */
+
+.admin-eval-page {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.admin-eval-page .admin-eval-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-eval-page .admin-eval-header h1 {
+  font-size: 24px;
+  color: #162449;
+  margin: 0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-eval-page .admin-eval-header h1 svg {
+  color: #6BA9E6;
+}
+
+.admin-eval-page .admin-eval-subtitle {
+  color: #6c7a8a;
+  font-size: 14px;
+  margin: 4px 0 0 0;
+}
+
+.admin-eval-page .admin-eval-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.admin-eval-page .admin-eval-btn-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid #E1ECFE;
+  background: white;
+  color: #162449;
+}
+
+.admin-eval-page .admin-eval-btn-export:hover {
+  border-color: #6BA9E6;
+  background: #F5F8FC;
+}
+
+.admin-eval-page .admin-eval-btn-export:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   STATISTIQUES - CARTES AMÉLIORÉES
+   ============================================================ */
+
+
+.admin-eval-page .admin-eval-stats {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-eval-page .admin-eval-stat-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+  transition: all 0.3s ease;
+}
+
+.admin-eval-page .admin-eval-stat-card:hover {
+  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
+  transform: translateY(-2px);
+}
+
+.admin-eval-page .admin-eval-stat-icon-wrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.admin-eval-page .admin-eval-stat-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-eval-page .admin-eval-stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.2;
+  display: block;
+}
+
+.admin-eval-page .admin-eval-stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+  font-weight: 500;
+  display: block;
+}
+
+
+/* ============================================================
+   DIAGRAMMES
+   ============================================================ */
+
+.admin-eval-page .admin-eval-charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.admin-eval-page .admin-eval-chart-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+  transition: all 0.3s ease;
+}
+
+.admin-eval-page .admin-eval-chart-card:hover {
+  box-shadow: 0 4px 16px rgba(22, 36, 73, 0.08);
+}
+
+.admin-eval-page .admin-eval-chart-card h3 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #162449;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-eval-page .admin-eval-chart-card h3 svg {
+  color: #162449;
+}
+
+/* ============================================================
+   FILTRES + RECHERCHE
+   ============================================================ */
+
+.admin-eval-page .admin-eval-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  flex-wrap: wrap;
+}
+
+.admin-eval-page .admin-eval-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.admin-eval-page .admin-eval-filter-group label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.admin-eval-page .admin-eval-filter-group label svg {
+  color: #6BA9E6;
+}
+
+.admin-eval-page .admin-eval-search-group {
+  position: relative;
+  flex: 1.5;
+  min-width: 260px;
+  max-width: 420px;
+}
+
+.admin-eval-page .admin-eval-search-input {
+  flex: 1;
+  padding: 10px 16px;
+  padding-left: 40px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+  min-width: 200px;
+}
+
+.admin-eval-page .admin-eval-search-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+
+.admin-eval-page .admin-eval-search-input::placeholder {
+  color: #A0B8D0;
+}
+
+.admin-eval-page .admin-eval-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6c7a8a;
+  font-size: 16px;
+}
+
+.admin-eval-page .admin-eval-filter-select {
+  flex: 1;
+  padding: 8px 14px;
+  padding-right: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 180px;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  font-family: inherit;
+}
+
+.admin-eval-page .admin-eval-filter-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
+}
+
+.admin-eval-page .admin-eval-filter-select:hover {
+  border-color: #6BA9E6;
+}
+
+/* ============================================================
+   TABLEAU
+   ============================================================ */
+
+.admin-eval-page .admin-eval-table-container {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
+}
+
+.admin-eval-page .admin-eval-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-eval-page .admin-eval-table thead th {
+  text-align: left;
+  padding: 12px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #F5F8FC;
+  background: #FAFCFE;
+}
+
+.admin-eval-page .admin-eval-table tbody td {
+  padding: 12px 16px;
+  font-size: 13px;
+  color: #162449;
+  border-bottom: 1px solid #F5F8FC;
+  vertical-align: middle;
+}
+
+.admin-eval-page .admin-eval-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.admin-eval-page .admin-eval-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-eval-page .admin-eval-empty {
+  text-align: center;
+  padding: 40px !important;
+  color: #6c7a8a;
+}
+
+/* ============================================================
+   BADGES
+   ============================================================ */
+
+.admin-eval-page .admin-eval-badge-valide {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.admin-eval-page .admin-eval-badge-attente {
+  background: #FEF3C7;
+  color: #92400E;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.admin-eval-page .admin-eval-badge-revision {
+  background: #DBEAFE;
+  color: #1E40AF;
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.admin-eval-page .admin-eval-type-badge {
+  background: #F5F8FC;
+  color: #162449;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* ============================================================
+   NOTES
+   ============================================================ */
+
+.admin-eval-page .admin-eval-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.admin-eval-page .admin-eval-stars {
+  color: #FBBF24;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+.admin-eval-page .admin-eval-note-empty {
+  color: #6c7a8a;
+}
+
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+
+.admin-eval-page .admin-eval-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 16px 20px;
+  border-top: 1px solid #F5F8FC;
+  background: #FAFCFE;
+}
+
+.admin-eval-page .admin-eval-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #162449;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+}
+
+.admin-eval-page .admin-eval-pagination-btn:hover:not(:disabled) {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+.admin-eval-page .admin-eval-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-eval-page .admin-eval-pagination-info {
+  font-size: 14px;
+  color: #6c7a8a;
+  font-weight: 500;
+}
+
+/* ============================================================
+   BOUTONS
+   ============================================================ */
+
+.admin-eval-page .admin-eval-btn-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: white;
+  color: #A0B8D0;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-eval-page .admin-eval-btn-view:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+
+.admin-eval-page .admin-eval-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  animation: adminEvalFadeIn 0.25s ease;
+}
+
+@keyframes adminEvalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.admin-eval-page .admin-eval-modal {
+  background: white;
+  border-radius: 16px;
+  padding: 32px 36px;
+  max-width: 750px;
+  width: 100%;
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+  animation: adminEvalSlideUp 0.3s ease;
+}
+
+@keyframes adminEvalSlideUp {
+  from { transform: translateY(30px) scale(0.97); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+.admin-eval-page .admin-eval-modal::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-eval-page .admin-eval-modal::-webkit-scrollbar-track {
+  background: #F5F8FC;
+  border-radius: 4px;
+}
+
+.admin-eval-page .admin-eval-modal::-webkit-scrollbar-thumb {
+  background: #E1ECFE;
+  border-radius: 4px;
+}
+
+.admin-eval-page .admin-eval-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid #F5F8FC;
+}
+
+.admin-eval-page .admin-eval-modal-header h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #162449;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-eval-page .admin-eval-modal-header h3 svg {
+  color: #6BA9E6;
+}
+
+.admin-eval-page .admin-eval-modal-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  color: #6c7a8a;
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.admin-eval-page .admin-eval-modal-close:hover {
+  background: #FEE2E2;
+  color: #E74C3C;
+}
+
+/* Info section */
+.admin-eval-page .admin-eval-modal-info {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 28px;
+  padding: 16px 20px;
+  background: #F8FAFC;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  border: 1px solid #E1ECFE;
+}
+
+.admin-eval-page .admin-eval-modal-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.admin-eval-page .admin-eval-modal-info-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.admin-eval-page .admin-eval-modal-info-value {
+  font-size: 15px;
+  font-weight: 600;
+  color: #162449;
+}
+
+.admin-eval-page .admin-eval-modal-info-sub {
+  font-size: 13px;
+  color: #6c7a8a;
+  font-weight: 400;
+}
+
+.admin-eval-page .admin-eval-modal-info-note {
+  grid-column: span 2;
+}
+
+.admin-eval-page .admin-eval-modal-note-big {
+  font-size: 22px;
+  font-weight: 700;
+  color: #6BA9E6;
+}
+
+.admin-eval-page .admin-eval-modal-stars-big {
+  color: #FBBF24;
+  font-size: 20px;
+  letter-spacing: 2px;
+  margin-left: 10px;
+}
+
+/* Critères */
+.admin-eval-page .admin-eval-modal-criteres {
+  margin-bottom: 20px;
+}
+
+.admin-eval-page .admin-eval-modal-criteres h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #162449;
+  margin: 0 0 10px 0;
+}
+
+.admin-eval-page .admin-eval-modal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-eval-page .admin-eval-modal-table thead th {
+  text-align: left;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 2px solid #E1ECFE;
+  background: #FAFCFE;
+}
+
+.admin-eval-page .admin-eval-modal-table tbody td {
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #162449;
+  border-bottom: 1px solid #F5F8FC;
+}
+
+.admin-eval-page .admin-eval-modal-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.admin-eval-page .admin-eval-modal-note {
+  font-weight: 600;
+  color: #6BA9E6;
+  margin-right: 10px;
+}
+
+.admin-eval-page .admin-eval-modal-stars {
+  color: #FBBF24;
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+
+/* Commentaire */
+.admin-eval-page .admin-eval-modal-commentaire {
+  margin-bottom: 4px;
+}
+
+.admin-eval-page .admin-eval-modal-commentaire h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #162449;
+  margin: 0 0 8px 0;
+}
+
+.admin-eval-page .admin-eval-modal-commentaire-box {
+  background: #F8FAFC;
+  padding: 14px 18px;
+  border-radius: 10px;
+  border: 1px solid #E1ECFE;
+}
+
+.admin-eval-page .admin-eval-modal-commentaire-box p {
+  font-size: 14px;
+  color: #475569;
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Footer modal */
+.admin-eval-page .admin-eval-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid #F5F8FC;
+}
+
+.admin-eval-page .admin-eval-modal-btn-secondary {
+  padding: 10px 28px;
+  background: #F5F8FC;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6c7a8a;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-eval-page .admin-eval-modal-btn-secondary:hover {
+  background: #E1ECFE;
+  color: #162449;
+}
+
+.admin-eval-page .admin-eval-modal-btn-primary {
+  padding: 10px 28px;
+  background: #6BA9E6;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-eval-page .admin-eval-modal-btn-primary:hover {
+  background: #162449;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(107, 169, 230, 0.3);
+}
+
+/* ============================================================
+   IMPRESSION
+   ============================================================ */
+
+@media print {
+  .admin-eval-page .admin-eval-actions,
+  .admin-eval-page .admin-eval-filters,
+  .admin-eval-page .admin-eval-modal-overlay {
+    display: none !important;
+  }
+
+  .admin-eval-page .admin-eval-modal {
+    box-shadow: none !important;
+    border: 1px solid #E1ECFE !important;
+    max-height: none !important;
+  }
+
+  .admin-eval-page .admin-eval-modal-close {
+    display: none !important;
+  }
+
+  .admin-eval-page .admin-eval-modal-footer {
+    display: none !important;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 1200px) {
+  .admin-eval-page .admin-eval-stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 992px) {
+  .admin-eval-page .admin-eval-charts {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-eval-page .admin-eval-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-eval-page .admin-eval-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-eval-page .admin-eval-actions {
+    width: 100%;
+  }
+
+  .admin-eval-page .admin-eval-btn-export {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .admin-eval-page .admin-eval-filters {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .admin-eval-page .admin-eval-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-width: unset;
+  }
+
+  .admin-eval-page .admin-eval-search-group {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .admin-eval-page .admin-eval-search-input {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .admin-eval-page .admin-eval-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .admin-eval-page .admin-eval-stat-card {
+    padding: 14px 12px;
+  }
+
+  .admin-eval-page .admin-eval-stat-value {
+    font-size: 22px;
+  }
+
+  .admin-eval-page .admin-eval-stat-icon-wrapper {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .admin-eval-page .admin-eval-table thead th,
+  .admin-eval-page .admin-eval-table tbody td {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .admin-eval-page .admin-eval-pagination {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .admin-eval-page .admin-eval-modal {
+    padding: 20px;
+    margin: 16px;
+    max-height: 95vh;
+  }
+
+  .admin-eval-page .admin-eval-modal-info {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .admin-eval-page .admin-eval-modal-info-note {
+    grid-column: span 1;
+  }
+
+  .admin-eval-page .admin-eval-modal-footer {
+    flex-direction: column;
+  }
+
+  .admin-eval-page .admin-eval-modal-btn-secondary,
+  .admin-eval-page .admin-eval-modal-btn-primary {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-eval-page .admin-eval-header h1 {
+    font-size: 20px;
+  }
+
+  .admin-eval-page .admin-eval-subtitle {
+    font-size: 13px;
+  }
+
+  .admin-eval-page .admin-eval-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-eval-page .admin-eval-filter-select {
+    font-size: 13px;
+    padding: 6px 12px;
+    padding-right: 32px;
+  }
+
+  .admin-eval-page .admin-eval-search-input {
+    font-size: 13px;
+    padding: 6px 12px;
+  }
+
+  .admin-eval-page .admin-eval-table thead th,
+  .admin-eval-page .admin-eval-table tbody td {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+
+  .admin-eval-page .admin-eval-modal {
+    padding: 16px;
+    margin: 10px;
+  }
+
+  .admin-eval-page .admin-eval-modal-header h3 {
+    font-size: 17px;
+  }
+
+  .admin-eval-page .admin-eval-modal-info-value {
+    font-size: 14px;
+  }
+
+  .admin-eval-page .admin-eval-modal-note-big {
+    font-size: 18px;
+  }
+
+  .admin-eval-page .admin-eval-modal-stars-big {
+    font-size: 16px;
+  }
+
+  .admin-eval-page .admin-eval-modal-table thead th,
+  .admin-eval-page .admin-eval-modal-table tbody td {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+}
