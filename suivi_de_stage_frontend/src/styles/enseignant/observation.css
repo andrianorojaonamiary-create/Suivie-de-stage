@@ -392,6 +392,16 @@ textarea.form-control {
   font-family: inherit;
 }
 
+.observations-page .form-control-static {
+  display: block;
+  padding: 10px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: transparent;
+  color: #162449;
+  font-size: 14px;
+}
+
 /* ===== PAGINATION ===== */
 .observations-page .pagination {
   display: flex;
@@ -525,6 +535,13 @@ textarea.form-control {
   border-radius: 8px;
   width: 100%;
   border: 1px solid #E8EEF4;
+}
+
+.observations-page .view-description-text {
+  background: transparent;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  padding: 10px 14px;
 }
 
 /* ============================================================

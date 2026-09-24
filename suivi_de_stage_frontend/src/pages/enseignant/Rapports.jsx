@@ -508,7 +508,7 @@ function EnseignantRapports() {
       {/* ===== MODAL VALIDATION ===== */}
       {showValidateModal && selectedRapport && (
         <div className="modal-overlay" onClick={() => closeModal('validate')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaCheckCircle className="modal-icon-validate" /> Valider le rapport</h2>
               <button className="modal-close" onClick={() => closeModal('validate')}><FaTimes /></button>
@@ -545,7 +545,7 @@ function EnseignantRapports() {
       {/* ===== MODAL REFUS ===== */}
       {showRejectModal && selectedRapport && (
         <div className="modal-overlay" onClick={() => closeModal('reject')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaTimesCircle className="modal-icon-reject" /> Refuser le rapport</h2>
               <button className="modal-close" onClick={() => closeModal('reject')}><FaTimes /></button>

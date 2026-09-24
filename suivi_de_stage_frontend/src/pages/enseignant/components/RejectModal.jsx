@@ -13,7 +13,7 @@ function RejectModal({ stage, isOpen, onClose, onConfirm, loading, commentaire, 
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2><FaTimesCircle className="modal-icon-reject" /> Refuser le stage</h2>
           <button className="modal-close" onClick={onClose}><FaTimes /></button>

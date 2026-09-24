@@ -44,6 +44,49 @@
   color: white;
 }
 
+/* Modales formulaire enseignant & encadreur : même ligne de header que les
+   modales Détail (header collé, footer sans ligne du haut, survol bleu). */
+.modal-form-role .modal-header {
+  margin-left: -32px;
+  margin-right: -32px;
+  border-bottom: 2px solid #D1D9E6;
+}
+.modal-form-role .modal-footer {
+  border-top: none;
+  padding-top: 24px;
+}
+.modal-form-role .btn-modal-cancel:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+.modal-form-role .modal-body {
+  background: transparent;
+}
+.modal-form-role .stage-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 0;
+}
+.modal-form-role .summary-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E1ECFE;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #162449;
+}
+.modal-form-role .summary-item svg {
+  color: #6BA9E6;
+  font-size: 16px;
+  min-width: 18px;
+}
+
 /* ---- Informations en cartes (comme admin) ---- */
 .modal-detail-role .modal-body {
   display: grid;

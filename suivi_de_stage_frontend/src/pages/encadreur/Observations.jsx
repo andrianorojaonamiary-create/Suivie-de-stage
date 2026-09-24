@@ -34,13 +34,7 @@ function EncadreurObservations() {
   const [observations, setObservations] = useState([]);
   const [stages, setStages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-  const [formData, setFormData] = useState({ etudiantId: '', contenu: '' });
-
-  const getPreferredStage = (studentIdTarget) => {
-    return stages.find((s) => String(s.student?.id) === String(studentIdTarget) && s.statut === 'EN_COURS') ||
-      stages.find((s) => String(s.student?.id) === String(studentIdTarget) && s.statut === 'TERMINE') ||
-      stages.find((s) => String(s.student?.id) === String(studentIdTarget)) || null;
-  };
+  const [formData, setFormData] = useState({ stageId: '', contenu: '' });
 
   useEffect(() => {
     const fetchObservations = async () => {
@@ -109,6 +103,14 @@ function EncadreurObservations() {
     ...etudiantOptions,
   ];
 
+  const stageOptions = stages
+    .filter((s) => s.student?.id)
+    .map((s) => {
+      const studentName = `${s.student.user?.prenom ?? ''} ${s.student.user?.nom ?? ''}`.trim() || 'Étudiant';
+      return { value: String(s.id), label: `${studentName} — ${s.intitule}` };
+    })
+    .filter((o, index, arr) => arr.findIndex((x) => x.value === o.value) === index);
+
   const filteredData = filteredObs.filter(o => {
     if (selectedEtudiant !== 'tous' && String(o.etudiantId) !== String(selectedEtudiant)) return false;
     if (searchTerm.trim() !== '') {
@@ -158,13 +160,13 @@ function EncadreurObservations() {
   };
 
   const handleAdd = async () => {
-    if (!formData.etudiantId || !formData.contenu) {
+    if (!formData.stageId || !formData.contenu) {
       toast.warning('Veuillez remplir tous les champs');
       return;
     }
-    const stage = getPreferredStage(formData.etudiantId);
+    const stage = stages.find((s) => String(s.id) === String(formData.stageId));
     if (!stage) {
-      toast.error("Aucun stage trouvé pour cet étudiant");
+      toast.error('Aucun stage trouvé');
       return;
     }
     setSubmitting(true);
@@ -190,7 +192,7 @@ function EncadreurObservations() {
       setObservations([newObservation, ...observations]);
       toast.success('Observation ajoutée avec succès !');
       setShowAddModal(false);
-      setFormData({ etudiantId: '', contenu: '' });
+      setFormData({ stageId: '', contenu: '' });
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || "Erreur lors de l'ajout";
       toast.error(Array.isArray(message) ? message.join(', ') : message);
@@ -201,7 +203,7 @@ function EncadreurObservations() {
 
   const handleEdit = (obs) => {
     setSelectedObs(obs);
-    setFormData({ etudiantId: String(obs.etudiantId), contenu: obs.contenu });
+    setFormData({ stageId: '', contenu: obs.contenu });
     setShowEditModal(true);
   };
 
@@ -219,7 +221,7 @@ function EncadreurObservations() {
       toast.success('Observation modifiée avec succès !');
       setShowEditModal(false);
       setSelectedObs(null);
-      setFormData({ etudiantId: '', contenu: '' });
+      setFormData({ stageId: '', contenu: '' });
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || 'Erreur lors de la modification';
       toast.error(Array.isArray(message) ? message.join(', ') : message);
@@ -431,20 +433,20 @@ function EncadreurObservations() {
       {/* ===== MODAL AJOUT ===== */}
       {showAddModal && (
         <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaComment className="modal-icon-view" /> Ajouter une observation</h2>
               <button className="modal-close" onClick={() => setShowAddModal(false)}><FaTimes /></button>
             </div>
             <div className="modal-body">
               <div className="form-group">
-                <label><FaUserGraduate /> Étudiant *</label>
+                <label><FaBuilding /> Stage *</label>
                 <SelectPersonnalise
                   className="form-control"
-                  value={formData.etudiantId}
-                  onChange={(v) => setFormData({ ...formData, etudiantId: v })}
-                  placeholder="Sélectionner un étudiant"
-                  options={etudiantOptions}
+                  value={formData.stageId}
+                  onChange={(v) => setFormData({ ...formData, stageId: v })}
+                  placeholder="Sélectionner un stage"
+                  options={stageOptions}
                 />
               </div>
               <div className="form-group">
@@ -471,7 +473,7 @@ function EncadreurObservations() {
       {/* ===== MODAL ÉDITION ===== */}
       {showEditModal && selectedObs && (
         <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaEdit className="modal-icon-view" /> Modifier l'observation</h2>
               <button className="modal-close" onClick={() => setShowEditModal(false)}><FaTimes /></button>
