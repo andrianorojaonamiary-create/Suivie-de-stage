@@ -316,24 +316,33 @@ function SuiviStage() {
       <div className="suivi-grid-2">
         {/* ÉTAPES */}
         <div className="suivi-card steps-card">
-          <h3><FaCheckCircle /> Étapes de suivi du stage</h3>
-          <div className="steps-list">
-            {milestones.length === 0 && (
-              <p className="empty-section-message">Aucune étape de suivi n'est disponible pour ce stage pour le moment.</p>
-            )}
-            {milestones.map((step, index) => (
-              <div key={index} className={`step-item ${step.done ? 'done' : ''}`}>
-                <div className="step-number">{index + 1}</div>
-                <div className="step-content">
-                  <span className="step-label">{step.label}</span>
-                  <span className="step-date">{step.date}</span>
-                </div>
-                <div className={`step-status ${step.done ? 'done' : ''}`}>
-                  {step.done ? <FaCheck /> : <FaCircle />}
-                </div>
-              </div>
-            ))}
-          </div>
+          <h3>
+            <FaCheckCircle /> Étapes de suivi du stage
+            <span className="card-badge">
+              {milestones.filter(s => s.done).length}/{milestones.length} réalisées
+            </span>
+          </h3>
+          {milestones.length === 0 ? (
+            <p className="empty-section-message">Aucune étape de suivi n'est disponible pour ce stage pour le moment.</p>
+          ) : (
+            <div className="steps-list">
+              {milestones.map((step, index) => {
+                const isActive = step.done === false && (index === 0 || milestones[index - 1]?.done === true);
+                return (
+                  <div key={index} className={`step-item ${step.done ? 'done' : ''} ${isActive ? 'active' : ''}`}>
+                    <div className="step-number">{index + 1}</div>
+                    <div className="step-content">
+                      <span className="step-label">{step.label}</span>
+                      <span className="step-date">{step.date}</span>
+                    </div>
+                    <div className={`step-status ${step.done ? 'done' : ''}`}>
+                      {step.done ? <FaCheck /> : <FaCircle />}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* DOCUMENTS */}

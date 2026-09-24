@@ -505,7 +505,7 @@ function EncadreurObservations() {
       {/* ===== MODAL VISUALISATION ===== */}
       {showViewModal && selectedObs && (
         <div className="modal-overlay" onClick={() => setShowViewModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-detail-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaInfoCircle className="modal-icon-view" /> Détails de l'observation</h2>
               <button className="modal-close" onClick={() => setShowViewModal(false)}><FaTimes /></button>

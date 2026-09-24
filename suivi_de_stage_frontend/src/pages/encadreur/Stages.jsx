@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
   FaClipboardList,
@@ -21,10 +20,10 @@ import {
 } from "../../utils/internshipMapping";
 import ValidateModal from "../enseignant/components/ValidateModal";
 import RejectModal from "../enseignant/components/RejectModal";
+import StageDetailModal from "./components/StageDetailModal";
 import SelectPersonnalise from "../../components/Common/SelectPersonnalise";
 
 function EncadreurStages() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("tous");
@@ -34,6 +33,7 @@ function EncadreurStages() {
   // ===== MODALS =====
   const [modalValidateOpen, setModalValidateOpen] = useState(false);
   const [modalRejectOpen, setModalRejectOpen] = useState(false);
+  const [modalViewStage, setModalViewStage] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
   const [commentaire, setCommentaire] = useState("");
 
@@ -130,7 +130,7 @@ function EncadreurStages() {
 
   // ===== ACTIONS =====
   const openView = (stage) => {
-    navigate(`/encadreur/stage/${stage.id}`);
+    setModalViewStage(stage);
   };
 
   const openValidateModal = (stage) => {
@@ -434,6 +434,11 @@ function EncadreurStages() {
         loading={loading}
         commentaire={commentaire}
         setCommentaire={setCommentaire}
+      />
+
+      <StageDetailModal
+        stage={modalViewStage}
+        onClose={() => setModalViewStage(null)}
       />
     </div>
   );

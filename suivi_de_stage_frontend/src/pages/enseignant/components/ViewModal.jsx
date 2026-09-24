@@ -55,7 +55,7 @@ function ViewModal({ stage, isOpen, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-detail-role" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2>
             <FaInfoCircle className="modal-icon-view" /> Détails du stage
@@ -66,6 +66,14 @@ function ViewModal({ stage, isOpen, onClose }) {
         </div>
 
         <div className="modal-body">
+          {/* ===== STATUT ===== */}
+          <div className="view-row view-status">
+            <span className="view-label">Statut</span>
+            <span className="view-value">
+              {getStatusBadge(stage.statutApi)}
+            </span>
+          </div>
+
           {/* ===== ÉTUDIANT ===== */}
           <div className="view-row">
             <span className="view-label">
@@ -169,14 +177,6 @@ function ViewModal({ stage, isOpen, onClose }) {
               </span>
             </div>
           )}
-
-          {/* ===== STATUT ===== */}
-          <div className="view-row view-status">
-            <span className="view-label">Statut</span>
-            <span className="view-value">
-              {getStatusBadge(stage.statutApi)}
-            </span>
-          </div>
         </div>
 
         <div className="modal-footer">

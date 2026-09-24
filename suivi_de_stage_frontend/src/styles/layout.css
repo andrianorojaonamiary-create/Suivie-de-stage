@@ -79,6 +79,12 @@
   left: var(--sidebar-collapsed-width);
 }
 
+.sidebar-emit.collapsed .sidebar-link {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
 /* ============================================================
    LOGO - EMIT Stage Manager
    ============================================================ */

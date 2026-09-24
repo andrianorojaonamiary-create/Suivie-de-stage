@@ -10,6 +10,7 @@ import {
   FaTimes,
   FaInfoCircle,
   FaEdit,
+  FaArrowLeft,
 } from "react-icons/fa";
 import { sanitizePhone } from "../../utils/phone";
 import { toast } from "react-toastify";
@@ -136,8 +137,9 @@ function EncadreurEntreprise() {
             <p className="text-muted">Chargement des informations...</p>
           </div>
         </div>
-        <div className="form-card">
-          <div className="entreprise-empty">Chargement...</div>
+        <div className="form-card entreprise-loading">
+          <div className="spinner"></div>
+          <p>Chargement des informations...</p>
         </div>
       </div>
     );
@@ -145,9 +147,17 @@ function EncadreurEntreprise() {
 
   return (
     <div className="encadreur-entreprise-page">
-      {/* ===== HEADER SANS BOUTON RETOUR ===== */}
+      {/* ===== HEADER ===== */}
       <div className="page-header">
         <div>
+          {isEditing && (
+            <button
+              className="btn-back-header"
+              onClick={() => setIsEditing(false)}
+            >
+              <FaArrowLeft /> Retour
+            </button>
+          )}
           <h1>Mon entreprise</h1>
           <p className="text-muted">
             {entrepriseIntrouvable
@@ -175,8 +185,15 @@ function EncadreurEntreprise() {
           <ul className="societes-encadrees-list">
             {societesEncadrees.map((ent, idx) => (
               <li key={ent.id || idx} className="societe-encadree-item">
-                <strong>{ent.nom}</strong>
-                {ent.adresse && <span> · {ent.adresse}</span>}
+                <span className="societe-encadree-icon">
+                  <FaBuilding />
+                </span>
+                <strong className="societe-encadree-name">{ent.nom}</strong>
+                {ent.adresse && (
+                  <span className="societe-encadree-adresse">
+                    {ent.adresse}
+                  </span>
+                )}
               </li>
             ))}
           </ul>
@@ -186,64 +203,74 @@ function EncadreurEntreprise() {
       <div className="form-card">
         {!entrepriseIntrouvable && !isEditing ? (
           <div className="entreprise-display">
-            <div className="display-row">
-              <span className="display-label">
-                <FaBuilding /> Nom
-              </span>
-              <span className="display-value">
-                <strong>{formData.nom}</strong>
-              </span>
+            <div className="entreprise-hero">
+              <div className="entreprise-hero-info">
+                <h2 className="entreprise-hero-name">{formData.nom}</h2>
+              </div>
             </div>
-            <div className="display-row">
-              <span className="display-label">
-                <FaInfoCircle /> Domaine
-              </span>
-              <span className="display-value">{formData.domaine}</span>
-            </div>
-            <div className="display-row">
-              <span className="display-label">
-                <FaMapMarkerAlt /> Adresse
-              </span>
-              <span className="display-value">{formData.adresse}</span>
-            </div>
-            <div className="display-row">
-              <span className="display-label">
-                <FaMapMarkerAlt /> Ville
-              </span>
-              <span className="display-value">{formData.ville}</span>
-            </div>
-            <div className="display-row">
-              <span className="display-label">
-                <FaPhone /> Téléphone
-              </span>
-              <span className="display-value">{formData.telephone}</span>
-            </div>
-            <div className="display-row">
-              <span className="display-label">
-                <FaEnvelope /> Email
-              </span>
-              <span className="display-value">{formData.email}</span>
-            </div>
-            <div className="display-row">
-              <span className="display-label">
-                <FaGlobe /> Site web
-              </span>
-              <span className="display-value">{formData.site}</span>
-            </div>
-            <div className="display-row display-description">
-              <span className="display-label">
-                <FaInfoCircle /> Description
-              </span>
-              <span className="display-value">{formData.description}</span>
+
+            <div className="entreprise-grid">
+              <div className="entreprise-field">
+                <span className="entreprise-field-label">
+                  <FaInfoCircle /> Domaine
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.domaine || "—"}
+                </span>
+              </div>
+              <div className="entreprise-field">
+                <span className="entreprise-field-label">
+                  <FaMapMarkerAlt /> Adresse
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.adresse || "—"}
+                </span>
+              </div>
+              <div className="entreprise-field">
+                <span className="entreprise-field-label">
+                  <FaMapMarkerAlt /> Ville
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.ville || "—"}
+                </span>
+              </div>
+              <div className="entreprise-field">
+                <span className="entreprise-field-label">
+                  <FaPhone /> Téléphone
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.telephone || "—"}
+                </span>
+              </div>
+              <div className="entreprise-field">
+                <span className="entreprise-field-label">
+                  <FaEnvelope /> Email
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.email || "—"}
+                </span>
+              </div>
+              <div className="entreprise-field">
+                <span className="entreprise-field-label">
+                  <FaGlobe /> Site web
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.site || "—"}
+                </span>
+              </div>
+              <div className="entreprise-field entreprise-field-full">
+                <span className="entreprise-field-label">
+                  <FaInfoCircle /> Description
+                </span>
+                <span className="entreprise-field-value">
+                  {formData.description || "—"}
+                </span>
+              </div>
             </div>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-section">
-              <h3 className="form-section-title">
-                <FaBuilding /> Informations générales
-              </h3>
-
               <div className="form-row">
                 <div className="form-group full-width">
                   <label>
@@ -304,12 +331,6 @@ function EncadreurEntreprise() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="form-section">
-              <h3 className="form-section-title">
-                <FaPhone /> Contact
-              </h3>
 
               <div className="form-row">
                 <div className="form-group">
@@ -355,15 +376,12 @@ function EncadreurEntreprise() {
                   />
                 </div>
               </div>
-            </div>
-
-            <div className="form-section">
-              <h3 className="form-section-title">
-                <FaInfoCircle /> Description
-              </h3>
 
               <div className="form-row">
                 <div className="form-group full-width">
+                  <label>
+                    <FaInfoCircle /> Description
+                  </label>
                   <textarea
                     name="description"
                     rows="4"

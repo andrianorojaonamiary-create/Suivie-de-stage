@@ -18,3 +18,87 @@
 @import './admin-etudiant.css';
 @import './admin-stage.css';
 @import './select.css';
+
+/* Modales Détail enseignant & encadreur : même rendu que côté admin
+   (classe dédiée pour ne pas écraser les règles admin `.modal-detail`).
+   Le `.modal-content` de ces rôles n'a pas de padding horizontal,
+   donc la ligne pleine largeur touche directement les bords. */
+.modal-content.modal-detail-role {
+  max-width: 650px;
+}
+.modal-detail-role .modal-body {
+  background: transparent;
+}
+.modal-detail-role .modal-header {
+  margin-left: -32px;
+  margin-right: -32px;
+  border-bottom: 2px solid #D1D9E6;
+}
+.modal-detail-role .modal-footer {
+  border-top: none;
+  padding-top: 24px;
+}
+.modal-detail-role .btn-modal-cancel:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
+}
+
+/* ---- Informations en cartes (comme admin) ---- */
+.modal-detail-role .modal-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 24px;
+}
+.modal-detail-role .view-row,
+.modal-detail-role .eval-detail-row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+}
+.modal-detail-role .view-label,
+.modal-detail-role .eval-detail-label {
+  min-width: unset;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal-detail-role .view-value,
+.modal-detail-role .eval-detail-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: #162449;
+}
+.modal-detail-role .view-description,
+.modal-detail-role .view-comment,
+.modal-detail-role .eval-detail-comment {
+  grid-column: 1 / -1;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.modal-detail-role .view-status,
+.modal-detail-role .eval-detail-status {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-detail-role .view-comment-text,
+.modal-detail-role .eval-detail-comment .eval-detail-value {
+  background: #fff;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  color: #162449;
+  font-style: normal;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 10px 14px;
+  width: 100%;
+}

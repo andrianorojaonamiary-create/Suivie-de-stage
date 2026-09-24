@@ -41,7 +41,6 @@ const EncadreurEvaluations = lazy(() => import('./pages/encadreur/Evaluations'))
 const EncadreurObservations = lazy(() => import('./pages/encadreur/Observations'));
 const EncadreurRapports = lazy(() => import('./pages/encadreur/Rapports'));
 const EncadreurStudentDetail = lazy(() => import('./pages/encadreur/StudentDetail'));
-const EncadreurStageDetail = lazy(() => import('./pages/encadreur/StageDetail'));
 const EncadreurEntreprise = lazy(() => import('./pages/encadreur/Entreprise'));
 
 // Pages communes
@@ -199,7 +198,6 @@ function App() {
               <Route path="/encadreur/etudiants" element={<EncadreurEtudiants />} />
               <Route path="/encadreur/etudiant/:studentId" element={<EncadreurStudentDetail />} />
               <Route path="/encadreur/stages" element={<EncadreurStages />} />
-              <Route path="/encadreur/stage/:id" element={<EncadreurStageDetail />} />
               <Route path="/encadreur/evaluations" element={<EncadreurEvaluations />} />
               <Route path="/encadreur/evaluations/:studentId" element={<EncadreurEvaluations />} />
               <Route path="/encadreur/observations" element={<EncadreurObservations />} />

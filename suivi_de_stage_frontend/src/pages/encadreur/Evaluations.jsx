@@ -31,12 +31,20 @@ function EvalDetailModal({ evaluation, onClose }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-eval-detail" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-eval-detail modal-detail-role" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2><FaInfoCircle className="modal-icon-view" /> Détails de l'évaluation</h2>
           <button className="modal-close" onClick={onClose}><FaTimes /></button>
         </div>
         <div className="modal-body">
+          <div className="eval-detail-row eval-detail-status">
+            <span className="eval-detail-label">Statut</span>
+            <span className="eval-detail-value">
+              <span className={`badge ${getStatusClass(evaluation.statut)}`}>
+                {evaluation.statut}
+              </span>
+            </span>
+          </div>
           <div className="eval-detail-row">
             <span className="eval-detail-label"><FaUserGraduate /> Étudiant</span>
             <span className="eval-detail-value"><strong>{evaluation.etudiant}</strong></span>
@@ -76,14 +84,6 @@ function EvalDetailModal({ evaluation, onClose }) {
               <span className="eval-detail-value">{evaluation.commentaire}</span>
             </div>
           )}
-          <div className="eval-detail-row">
-            <span className="eval-detail-label">Statut</span>
-            <span className="eval-detail-value">
-              <span className={`badge ${getStatusClass(evaluation.statut)}`}>
-                {evaluation.statut}
-              </span>
-            </span>
-          </div>
         </div>
         <div className="modal-footer">
           <button className="btn-modal-cancel" onClick={onClose}>Fermer</button>
