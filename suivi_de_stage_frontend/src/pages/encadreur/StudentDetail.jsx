@@ -163,8 +163,8 @@ function EncadreurStudentDetail() {
   };
 
   const evaluations = [
-    { id: 1, type: 'Maître de stage', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux' },
-    { id: 2, type: 'Entreprise', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null }
+    { id: 1, type: 'Encadreur', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux' },
+    { id: 2, type: 'Enseignant', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null }
   ];
 
   const tabs = [

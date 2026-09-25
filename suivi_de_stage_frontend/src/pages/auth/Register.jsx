@@ -189,8 +189,7 @@ function Register() {
     try {
       const userData = { ...formData, role: selectedRole };
       await register(userData);
-      setSuccess('Inscription réussie ! Redirection...');
-      setTimeout(() => navigate('/login'), 2000);
+      navigate('/login');
     } catch (err) {
       setError(getApiErrorMessage(err, "Erreur lors de l'inscription"));
     } finally {

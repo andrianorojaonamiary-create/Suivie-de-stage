@@ -39,23 +39,42 @@ function AdminStages() {
     try {
       setLoading(true);
       const res = await internshipsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const list = Array.isArray(res) ? res : res?.items || res?.data || [];
 
-      const mapped = list.map(item => ({
-        id: item.id,
-        titre: item.titre || 'Stage sans titre',
-        etudiant: item.etudiant ? `${item.etudiant.prenom} ${item.etudiant.nom}` : (item.etudiantName || 'Étudiant'),
-        entreprise: item.entreprise ? item.entreprise.nom : (item.companyName || 'Entreprise'),
-        encadreur: item.encadreur ? `${item.encadreur.prenom} ${item.encadreur.nom}` : (item.supervisorName || 'Encadreur'),
-        domaine: item.domaine || item.entreprise?.secteur || 'Développement Web',
-        dateDebut: item.dateDebut ? new Date(item.dateDebut).toLocaleDateString('fr-FR') : '03/08/2026',
-        dateFin: item.dateFin ? new Date(item.dateFin).toLocaleDateString('fr-FR') : '03/10/2026',
-        statut: item.statut === 'en_cours' ? 'En cours' : item.statut === 'a_venir' ? 'À venir' : 'Terminé',
-        progression: item.progression ?? (item.statut === 'termine' ? 100 : item.statut === 'en_cours' ? 45 : 0)
-      }));
+      const mapped = list.map(item => {
+        const studentUser = item.student?.user || item.student || item.etudiant;
+        const studentName = studentUser?.prenom && studentUser?.nom
+          ? `${studentUser.prenom} ${studentUser.nom}`
+          : item.etudiantName || 'Étudiant';
+
+        const companyName = item.company?.nom || item.entreprise?.nom || item.companyName || 'Entreprise';
+
+        const supervisorUser = item.supervisor?.user || item.supervisor || item.encadreur;
+        const supervisorName = supervisorUser?.prenom && supervisorUser?.nom
+          ? `${supervisorUser.prenom} ${supervisorUser.nom}`
+          : item.supervisorName || 'Encadreur';
+
+        let statutLabel = 'En cours';
+        if (item.statut === 'A_VENIR' || item.statut === 'a_venir') statutLabel = 'À venir';
+        else if (item.statut === 'TERMINE' || item.statut === 'termine') statutLabel = 'Terminé';
+        else if (item.statut === 'EN_COURS' || item.statut === 'en_cours') statutLabel = 'En cours';
+
+        return {
+          id: item.id,
+          titre: item.intitule || item.titre || 'Stage',
+          etudiant: studentName,
+          entreprise: companyName,
+          encadreur: supervisorName,
+          domaine: item.domaine || 'Informatique',
+          dateDebut: item.dateDebut ? new Date(item.dateDebut).toLocaleDateString('fr-FR') : '—',
+          dateFin: item.dateFin ? new Date(item.dateFin).toLocaleDateString('fr-FR') : '—',
+          statut: statutLabel,
+          progression: item.progression ?? (statutLabel === 'Terminé' ? 100 : statutLabel === 'En cours' ? 50 : 0)
+        };
+      });
       setStages(mapped);
     } catch (err) {
-      console.error('Erreur récurrente stages:', err);
+      console.error('Erreur chargement stages:', err);
     } finally {
       setLoading(false);
     }

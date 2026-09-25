@@ -11,81 +11,106 @@ import {
 
 import { useState, useEffect } from 'react';
 import statisticsApi from '../../api/statisticsApi';
+import internshipsApi from '../../api/internshipsApi';
+import usersApi from '../../api/usersApi';
 
 function AdminDashboard() {
   const [loading, setLoading] = useState(true);
   const [dashboardData, setDashboardData] = useState(null);
+  const [cityData, setCityData] = useState([]);
+  const [realInternships, setRealInternships] = useState([]);
+  const [recentUsers, setRecentUsers] = useState([]);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await statisticsApi.getDashboard();
-        setDashboardData(data);
+        const [dashRes, geoRes, internRes, usersRes] = await Promise.allSettled([
+          statisticsApi.getDashboard(),
+          statisticsApi.getGeography(),
+          internshipsApi.getAll({ limit: 10 }),
+          usersApi.getAll({ limit: 5 })
+        ]);
+
+        if (dashRes.status === 'fulfilled') {
+          setDashboardData(dashRes.value);
+        }
+
+        if (geoRes.status === 'fulfilled' && geoRes.value?.byCity) {
+          const mappedCity = geoRes.value.byCity.map(c => ({
+            city: c.city || 'Non renseigné',
+            count: Number(c.count || 0)
+          }));
+          setCityData(mappedCity);
+        }
+
+        if (internRes.status === 'fulfilled') {
+          const raw = internRes.value;
+          const list = Array.isArray(raw) ? raw : raw?.items || raw?.data || [];
+          setRealInternships(list);
+        }
+
+        if (usersRes.status === 'fulfilled') {
+          const rawU = usersRes.value;
+          const listU = Array.isArray(rawU) ? rawU : rawU?.data || rawU?.items || [];
+          setRecentUsers(listU);
+        }
       } catch (err) {
-        console.error('Erreur chargement statistiques admin:', err);
+        console.error('Erreur chargement dashboard admin:', err);
       } finally {
         setLoading(false);
       }
     };
-    fetchStats();
+    fetchData();
   }, []);
 
-  const totalEtudiants = dashboardData?.totalEtudiants ?? 312;
-  const totalEnAttente = dashboardData?.totalEnAttente ?? 24;
-  const totalEnCours = dashboardData?.totalEnCours ?? 187;
-  const totalTermines = dashboardData?.totalTermines ?? 89;
-  const totalEntreprises = dashboardData?.totalEntreprises ?? 63;
+  const totalEtudiants = dashboardData?.counts?.students ?? dashboardData?.totalEtudiants ?? 0;
+  const totalEnAttente = dashboardData?.internships?.upcoming ?? dashboardData?.totalEnAttente ?? 0;
+  const totalEnCours = dashboardData?.internships?.ongoing ?? dashboardData?.totalEnCours ?? 0;
+  const totalTermines = dashboardData?.internships?.completed ?? dashboardData?.totalTermines ?? 0;
+  const totalEntreprises = dashboardData?.counts?.companies ?? dashboardData?.totalEntreprises ?? 0;
 
   const kpis = [
-    { label: 'Étudiants total', value: totalEtudiants, change: '+18 cette année', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
-    { label: 'Stages en attente', value: totalEnAttente, change: '+4 nouveaux', up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
-    { label: 'Stages en cours', value: totalEnCours, change: '+12 ce mois', up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
-    { label: 'Stages terminés', value: totalTermines, change: '+23 ce trimestre', up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#E1ECFE', trendColor: '#1F2937' },
-    { label: 'Entreprises', value: totalEntreprises, change: '+5 nouvelles', up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
+    { label: 'Étudiants total', value: totalEtudiants, change: 'Inscrits en BDD', up: true, icon: <FaUsers />, color: '#6BA9E6', bg: '#E1ECFE', trendColor: '#6BA9E6' },
+    { label: 'Stages à venir', value: totalEnAttente, change: 'Statut À venir', up: false, icon: <FaClock />, color: '#F59E0B', bg: '#FAF1C6', trendColor: '#F59E0B' },
+    { label: 'Stages en cours', value: totalEnCours, change: 'Actifs en entreprise', up: true, icon: <FaPlayCircle />, color: '#2AA253', bg: '#E0F7E9', trendColor: '#2AA253', featured: true },
+    { label: 'Stages terminés', value: totalTermines, change: 'Clôturés', up: true, icon: <FaCheckCircle />, color: '#1F2937', bg: '#E1ECFE', trendColor: '#1F2937' },
+    { label: 'Entreprises', value: totalEntreprises, change: 'Partenaires', up: true, icon: <FaBuilding />, color: '#192543', bg: '#E1E7FE', trendColor: '#192543' },
   ];
 
   const monthlyData = dashboardData?.monthlyData || [
-    { month: 'Jan', stages: 28, valides: 20, termines: 8 },
-    { month: 'Fév', stages: 35, valides: 28, termines: 12 },
-    { month: 'Mar', stages: 42, valides: 35, termines: 18 },
-    { month: 'Avr', stages: 38, valides: 30, termines: 22 },
-    { month: 'Mai', stages: 55, valides: 45, termines: 28 },
-    { month: 'Juin', stages: 62, valides: 54, termines: 35 },
-    { month: 'Juil', stages: 48, valides: 40, termines: 42 },
-    { month: 'Août', stages: 31, valides: 25, termines: 38 },
+    { month: 'Jan', stages: totalEnCours > 0 ? totalEnCours : 0, valides: totalTermines > 0 ? totalTermines : 0, termines: totalTermines },
+    { month: 'Actuel', stages: totalEnCours + totalEnAttente, valides: totalTermines, termines: totalTermines },
   ];
 
-  const statusData = dashboardData?.statusData || [
+  const statusData = [
     { name: 'En cours', value: totalEnCours, color: '#3B82F6' },
-    { name: 'En attente', value: totalEnAttente, color: '#F59E0B' },
+    { name: 'À venir', value: totalEnAttente, color: '#F59E0B' },
     { name: 'Terminés', value: totalTermines, color: '#1F2937' },
-    { name: 'Annulés', value: 12, color: '#EF4444' },
   ];
 
-  const cityData = dashboardData?.cityData || [
-    { city: 'Fianarantsoa', count: 87 },
-    { city: 'Antananarivo', count: 64 },
-    { city: 'Toamasina', count: 42 },
-    { city: 'Antsirabe', count: 31 },
-    { city: 'Mahajanga', count: 28 },
-    { city: 'Toliara', count: 19 },
+  const displayCityData = cityData.length > 0 ? cityData : [
+    { city: 'Non renseigné', count: totalEnCours + totalTermines }
   ];
 
-  const attentionStages = [
-    { student: 'Miora Rakoto', company: 'TechMada SARL', tutor: 'Prof. Andrianivo', start: '15 Mar 2024', end: '15 Sep 2024', status: 'En cours', issue: 'Rapport en retard' },
-    { student: 'Hery Rakotondrabe', company: 'Airtel Madagascar', tutor: 'Dr. Ranaivo', start: '01 Avr 2024', end: '01 Oct 2024', status: 'En attente', issue: 'Validation manquante' },
-    { student: 'Fanja Andriantsoa', company: 'BNI Madagascar', tutor: 'Prof. Razafindrakoto', start: '01 Mai 2024', end: '31 Aoû 2024', status: 'En cours', issue: 'Évaluation à planifier' },
-    { student: 'Tojo Ramanantsoa', company: 'JIRAMA', tutor: 'Dr. Rasoa', start: '15 Fév 2024', end: '15 Aoû 2024', status: 'En cours', issue: 'Fin de stage proche' },
-  ];
+  const attentionStages = realInternships.map(stage => ({
+    id: stage.id,
+    student: stage.student?.user ? `${stage.student.user.prenom} ${stage.student.user.nom}` : 'Étudiant',
+    company: stage.company?.nom || stage.companyName || 'Entreprise',
+    tutor: stage.supervisor?.user ? `${stage.supervisor.user.prenom} ${stage.supervisor.user.nom}` : 'Encadreur',
+    start: stage.dateDebut ? new Date(stage.dateDebut).toLocaleDateString('fr-FR') : '—',
+    end: stage.dateFin ? new Date(stage.dateFin).toLocaleDateString('fr-FR') : '—',
+    status: stage.statut === 'EN_COURS' ? 'En cours' : stage.statut === 'A_VENIR' ? 'En attente' : 'Terminé',
+    issue: stage.intitule || 'Suivi de stage'
+  }));
 
-  const recentActivities = [
-    { text: 'Miora Rakoto a déposé son rapport intermédiaire', time: 'Il y a 12 min', icon: <FaFileAlt />, color: '#162449', bg: '#E1ECFE' },
-    { text: 'Nouveau stage validé — TechMada SARL', time: 'Il y a 45 min', icon: <FaCheckCircle />, color: '#6BA9E6', bg: '#E1ECFE' },
-    { text: 'Hery Rakotondrabe a rejoint la plateforme', time: 'Il y a 2 h', icon: <FaUserPlus />, color: '#192543', bg: '#E1ECFE' },
-    { text: 'Rapport de Fanja en révision', time: 'Il y a 3 h', icon: <FaClock />, color: '#162449', bg: '#E1ECFE' },
-    { text: 'Nouvelle entreprise ajoutée — JIRAMA', time: 'Hier à 14:30', icon: <FaBuilding />, color: '#192543', bg: '#E1ECFE' },
-  ];
+  const recentActivities = recentUsers.map(user => ({
+    text: `${user.prenom} ${user.nom} (${user.role?.replace('ROLE_', '') || 'Utilisateur'}) a rejoint la plateforme`,
+    time: user.dateCreation ? new Date(user.dateCreation).toLocaleDateString('fr-FR') : 'Récemment',
+    icon: <FaUserPlus />,
+    color: '#162449',
+    bg: '#E1ECFE'
+  }));
 
   const getStatusBadge = (status) => {
     const classes = {
@@ -190,7 +215,7 @@ function AdminDashboard() {
       <div className="card-emit chart-card">
         <h3 className="card-title">Stages par ville</h3>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={cityData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+          <BarChart data={displayCityData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E1ECFE" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 11, fill: '#192543' }} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="city" tick={{ fontSize: 12, fill: '#162449', fontWeight: 600 }} width={100} axisLine={false} tickLine={false} />
