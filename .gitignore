@@ -31,3 +31,8 @@ coverage
 *.sw?
 .FullName
 .aider*
+
+# Documentation de la base de données (non versionnée)
+docs/
+README_entites_attributs.md
+suivi_de_stage_frontend/sandbox.mcd
