@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -230,29 +230,11 @@ function AdminEtudiants() {
   return (
     <div className="admin-etudiants-page">
       {/* ===== HEADER ===== */}
-      <div className="admin-etudiants-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className="admin-etudiants-header">
         <div>
           <h1>Gestion des étudiants</h1>
           <p className="admin-etudiants-subtitle">Gérez les étudiants et leurs informations</p>
         </div>
-        <button 
-          className="admin-etudiants-btn-primary" 
-          onClick={openCreateModal}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            backgroundColor: '#6BA9E6',
-            color: '#fff',
-            border: 'none',
-            borderRadius: '8px',
-            padding: '10px 18px',
-            fontWeight: 600,
-            cursor: 'pointer'
-          }}
-        >
-          <FaPlus /> Ajouter un étudiant
-        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
