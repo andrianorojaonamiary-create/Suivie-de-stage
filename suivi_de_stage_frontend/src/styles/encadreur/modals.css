@@ -695,6 +695,270 @@
 }
 
 /* ============================================================
+   CRITÈRES SUPPLÉMENTAIRES & ACTIONS (ÉDITION, SUPPRESSION, ICÔNE PAR DÉFAUT)
+   ============================================================ */
+
+/* Message lorsqu'aucun critère n'existe */
+.eval-empty-criteria {
+  padding: 16px;
+  text-align: center;
+  color: #7F8C8D;
+  font-size: 13px;
+  font-style: italic;
+  background: #F8FAFC;
+  border-radius: 8px;
+  border: 1px dashed #CBD5E1;
+  margin-bottom: 10px;
+}
+
+/* Texte du nom de critère */
+.eval-critere-name-text {
+  font-size: 13px;
+  font-weight: 500;
+  color: #162449;
+}
+
+/* Partie droite du critère (note + boutons d'action) */
+.eval-critere-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Groupe de boutons d'action (modifier / supprimer) */
+.eval-critere-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Boutons d'action individuels (icones) */
+.eval-critere-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid #E1ECFE;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* Bouton Modifier (bleu) */
+.eval-critere-action-btn.btn-edit {
+  color: #4A90D9;
+  border-color: #D0E3FF;
+}
+
+.eval-critere-action-btn.btn-edit:hover {
+  background: #4A90D9;
+  color: white;
+  border-color: #4A90D9;
+  box-shadow: 0 2px 8px rgba(74, 144, 217, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Bouton Supprimer (rouge) */
+.eval-critere-action-btn.btn-delete {
+  color: #E74C3C;
+  border-color: #FDE8E8;
+}
+
+.eval-critere-action-btn.btn-delete:hover {
+  background: #E74C3C;
+  color: white;
+  border-color: #E74C3C;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.25);
+  transform: translateY(-1px);
+}
+
+/* Bouton Valider l'édition (vert) */
+.eval-critere-action-btn.btn-save {
+  background: #27AE60;
+  color: white;
+  border-color: #27AE60;
+}
+
+.eval-critere-action-btn.btn-save:hover {
+  background: #219653;
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.25);
+}
+
+/* Bouton Annuler l'édition (gris) */
+.eval-critere-action-btn.btn-cancel {
+  background: #F1F5F9;
+  color: #64748B;
+  border-color: #CBD5E1;
+}
+
+.eval-critere-action-btn.btn-cancel:hover {
+  background: #E2E8F0;
+  color: #1E293B;
+}
+
+/* Container de l'édition inline du nom de critère */
+.eval-critere-edit-container {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+}
+
+/* Champ texte d'édition */
+.eval-critere-edit-input {
+  padding: 5px 10px;
+  border: 1.5px solid #6BA9E6;
+  border-radius: 6px;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  color: #162449;
+  background: white;
+  flex: 1;
+  min-width: 130px;
+  transition: all 0.2s;
+}
+
+.eval-critere-edit-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.15);
+}
+
+.eval-critere-edit-input.error {
+  border-color: #E74C3C;
+}
+
+.edit-error {
+  margin-top: 2px;
+}
+
+/* Bouton principal "+ Ajouter un critère" */
+.eval-add-critere-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 9px 18px;
+  border: 1.5px dashed #6BA9E6;
+  border-radius: 10px;
+  background: transparent;
+  color: #6BA9E6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  justify-content: center;
+  margin: 10px 0 4px;
+}
+
+.eval-add-critere-btn:hover {
+  background: #E1ECFE;
+  border-color: #4A90D9;
+  color: #162449;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(107, 169, 230, 0.15);
+}
+
+.eval-add-critere-btn svg {
+  font-size: 12px;
+}
+
+/* Formulaire d'ajout inline */
+.eval-add-critere-form {
+  margin: 10px 0 4px;
+  padding: 12px 14px;
+  background: #F0F7FF;
+  border: 1.5px solid #6BA9E6;
+  border-radius: 10px;
+  animation: slideFadeIn 0.2s ease;
+}
+
+.eval-add-critere-input-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.eval-add-critere-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 12px;
+  border: 1.5px solid #C8DCF5;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #162449;
+  background: white;
+  transition: border-color 0.2s;
+  font-family: inherit;
+}
+
+.eval-add-critere-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+}
+
+.eval-add-critere-input.error {
+  border-color: #E74C3C;
+}
+
+.eval-add-critere-input::placeholder {
+  color: #A0B8D0;
+  font-style: italic;
+}
+
+/* Bouton "Confirmer" */
+.eval-add-critere-confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #27AE60;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.eval-add-critere-confirm:hover {
+  background: #219653;
+  box-shadow: 0 3px 10px rgba(39, 174, 96, 0.3);
+}
+
+/* Bouton "Annuler" (×) */
+.eval-add-critere-cancel {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #A0B8D0;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.eval-add-critere-cancel:hover {
+  border-color: #E74C3C;
+  color: #E74C3C;
+  background: #FDE8E8;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 768px) {

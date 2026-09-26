@@ -13,7 +13,8 @@ function EtudiantForm({
   filiereOptions,
   promotionOptions,
   niveauOptions,
-  statutOptions
+  statutOptions,
+  isCreate = false
 }) {
   return (
     <div className="modal-overlay" onClick={onCancel}>
@@ -27,48 +28,59 @@ function EtudiantForm({
         <div className="modal-body">
           <div className="form-grid">
             <div className="form-group">
-              <label>Matricule</label>
+              <label>Matricule *</label>
               <input 
                 type="text" 
-                value={formData.matricule} 
+                value={formData.matricule || ''} 
                 onChange={(e) => setFormData({...formData, matricule: e.target.value})} 
-                placeholder="ETUXXX"
+                placeholder="ETU001"
               />
             </div>
             <div className="form-group">
-              <label>Nom</label>
+              <label>Nom *</label>
               <input 
                 type="text" 
-                value={formData.nom} 
+                value={formData.nom || ''} 
                 onChange={(e) => setFormData({...formData, nom: e.target.value})} 
                 placeholder="Rakoto"
               />
             </div>
             <div className="form-group">
-              <label>Prénom</label>
+              <label>Prénom *</label>
               <input 
                 type="text" 
-                value={formData.prenom} 
+                value={formData.prenom || ''} 
                 onChange={(e) => setFormData({...formData, prenom: e.target.value})} 
                 placeholder="Miora"
               />
             </div>
             <div className="form-group">
-              <label>Email</label>
+              <label>Email *</label>
               <input 
                 type="email" 
-                value={formData.email} 
+                value={formData.email || ''} 
                 onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                placeholder="exemple@email.mg"
+                placeholder="miora.rakoto@email.mg"
               />
             </div>
+            {isCreate && (
+              <div className="form-group">
+                <label>Mot de passe *</label>
+                <input 
+                  type="password" 
+                  value={formData.motDePasse || ''} 
+                  onChange={(e) => setFormData({...formData, motDePasse: e.target.value})} 
+                  placeholder="Minimum 8 caractères"
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>Téléphone</label>
               <input 
                 type="tel" 
-                value={formData.telephone} 
+                value={formData.telephone || ''} 
                 onChange={(e) => setFormData({...formData, telephone: sanitizePhone(e.target.value)})} 
-                placeholder="+261 34 XX XXX XX"
+                placeholder="+261 34 12 345 67"
                 maxLength={14}
                 inputMode="tel"
               />
@@ -84,9 +96,9 @@ function EtudiantForm({
               />
             </div>
             <div className="form-group">
-              <label>Promotion</label>
+              <label>Promotion *</label>
               <SelectPersonnalise
-                value={formData.promotion}
+                value={formData.promotion || ''}
                 onChange={(v) => setFormData({...formData, promotion: v})}
                 placeholder="Sélectionner"
                 className="form-control"
@@ -94,9 +106,9 @@ function EtudiantForm({
               />
             </div>
             <div className="form-group">
-              <label>Niveau</label>
+              <label>Niveau *</label>
               <SelectPersonnalise
-                value={formData.niveau}
+                value={formData.niveau || ''}
                 onChange={(v) => setFormData({...formData, niveau: v})}
                 placeholder="Sélectionner"
                 className="form-control"

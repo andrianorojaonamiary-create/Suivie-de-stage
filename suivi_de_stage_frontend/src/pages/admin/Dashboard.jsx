@@ -223,7 +223,7 @@ function AdminDashboard() {
       <div className="card-emit chart-card">
         <h3 className="card-title">Stages par ville</h3>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={cityData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
+          <BarChart data={displayCityData} layout="vertical" margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#E1ECFE" horizontal={false} />
             <XAxis type="number" tick={{ fontSize: 11, fill: '#192543' }} axisLine={false} tickLine={false} />
             <YAxis type="category" dataKey="city" tick={{ fontSize: 12, fill: '#162449', fontWeight: 600 }} width={100} axisLine={false} tickLine={false} />

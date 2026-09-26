@@ -94,42 +94,115 @@ function EvalDetailModal({ evaluation, onClose }) {
 }
 
 // ============================================================
-// FORMULAIRE D'ÉVALUATION AVEC CRITÈRES
+// FORMULAIRE D'ÉVALUATION AVEC CRITÈRES DYNAMIQUES
 // ============================================================
 function EvaluationForm({ evaluation, onClose, onSave }) {
-  const [formData, setFormData] = useState({
-    competenceTech: 0,
-    qualiteTravail: 0,
-    autonomie: 0,
-    respectDelais: 0,
-    espritEquipe: 0,
-    communication: 0,
-    assiduite: 0,
-    appreciation: ''
-  });
+  // Liste de tous les critères (modifiables et supprimables)
+  const [criteriaList, setCriteriaList] = useState([
+    { id: 'competenceTech', label: 'Compétences techniques', note: 0, icon: <FaCode /> },
+    { id: 'qualiteTravail', label: 'Qualité du travail', note: 0, icon: <FaClipboardCheck /> },
+    { id: 'autonomie', label: 'Autonomie', note: 0, icon: <FaRocket /> },
+    { id: 'respectDelais', label: 'Respect des délais', note: 0, icon: <FaClock /> },
+    { id: 'espritEquipe', label: "Esprit d'équipe", note: 0, icon: <FaUsers /> },
+    { id: 'communication', label: 'Communication', note: 0, icon: <FaComment /> },
+    { id: 'assiduite', label: 'Assiduité et ponctualité', note: 0, icon: <FaCalendarAlt /> }
+  ]);
 
+  const [appreciation, setAppreciation] = useState('');
   const [errors, setErrors] = useState({});
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    
-    if (name === 'appreciation') {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      if (errors[name]) {
-        setErrors(prev => ({ ...prev, [name]: '' }));
-      }
+  // État pour l'ajout d'un nouveau critère
+  const [showAddCriteria, setShowAddCriteria] = useState(false);
+  const [newCriteriaLabel, setNewCriteriaLabel] = useState('');
+  const [newCriteriaError, setNewCriteriaError] = useState('');
+
+  // État pour l'édition inline d'un critère existant
+  const [editingId, setEditingId] = useState(null);
+  const [editingLabel, setEditingLabel] = useState('');
+  const [editingError, setEditingError] = useState('');
+
+  // Gestion du changement de note
+  const handleNoteChange = (id, value) => {
+    const numValue = value === '' ? 0 : Number(value);
+    const clamped = Math.min(20, Math.max(0, numValue));
+    setCriteriaList(prev =>
+      prev.map(c => c.id === id ? { ...c, note: clamped } : c)
+    );
+    if (errors[id]) {
+      setErrors(prev => ({ ...prev, [id]: '' }));
+    }
+  };
+
+  // Ajout d'un critère avec l'ICÔNE PAR DÉFAUT (<FaStar />)
+  const addCriteria = () => {
+    const label = newCriteriaLabel.trim();
+    if (!label) {
+      setNewCriteriaError('Le nom du critère est obligatoire');
       return;
     }
-
-    const numValue = value === '' ? 0 : Number(value);
-    
-    if (numValue < 0 || numValue > 20) {
-      setErrors(prev => ({ ...prev, [name]: 'Note entre 0 et 20' }));
-    } else {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    const alreadyExists = criteriaList.some(
+      c => c.label.toLowerCase() === label.toLowerCase()
+    );
+    if (alreadyExists) {
+      setNewCriteriaError('Ce critère existe déjà');
+      return;
     }
-    
-    setFormData(prev => ({ ...prev, [name]: numValue }));
+    setCriteriaList(prev => [
+      ...prev,
+      { id: Date.now().toString(), label, note: 0, icon: <FaStar /> }
+    ]);
+    setNewCriteriaLabel('');
+    setNewCriteriaError('');
+    setShowAddCriteria(false);
+  };
+
+  // Lancer l'édition d'un critère
+  const startEditCriteria = (critere) => {
+    setEditingId(critere.id);
+    setEditingLabel(critere.label);
+    setEditingError('');
+  };
+
+  // Sauvegarder l'édition d'un critère
+  const saveEditCriteria = (id) => {
+    const label = editingLabel.trim();
+    if (!label) {
+      setEditingError('Le nom ne peut pas être vide');
+      return;
+    }
+    const alreadyExists = criteriaList.some(
+      c => c.id !== id && c.label.toLowerCase() === label.toLowerCase()
+    );
+    if (alreadyExists) {
+      setEditingError('Ce nom de critère existe déjà');
+      return;
+    }
+    setCriteriaList(prev =>
+      prev.map(c => c.id === id ? { ...c, label } : c)
+    );
+    setEditingId(null);
+    setEditingLabel('');
+    setEditingError('');
+  };
+
+  // Annuler l'édition
+  const cancelEditCriteria = () => {
+    setEditingId(null);
+    setEditingLabel('');
+    setEditingError('');
+  };
+
+  // Supprimer un critère (quel qu'il soit)
+  const removeCriteria = (id) => {
+    setCriteriaList(prev => prev.filter(c => c.id !== id));
+    setErrors(prev => {
+      const e = { ...prev };
+      delete e[id];
+      return e;
+    });
+    if (editingId === id) {
+      cancelEditCriteria();
+    }
   };
 
   const getStars = (note) => {
@@ -138,23 +211,22 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
     return '★'.repeat(Math.min(stars, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(stars, 5)));
   };
 
+  // Calcul dynamique de la moyenne
   const calculateAverage = () => {
-    const keys = ['competenceTech', 'qualiteTravail', 'autonomie', 'respectDelais', 'espritEquipe', 'communication', 'assiduite'];
-    const total = keys.reduce((sum, key) => sum + (formData[key] || 0), 0);
-    return (total / keys.length).toFixed(1);
+    if (criteriaList.length === 0) return '0.0';
+    const total = criteriaList.reduce((sum, c) => sum + (c.note || 0), 0);
+    return (total / criteriaList.length).toFixed(1);
   };
 
   const validate = () => {
     const newErrors = {};
-    const keys = ['competenceTech', 'qualiteTravail', 'autonomie', 'respectDelais', 'espritEquipe', 'communication', 'assiduite'];
-    
-    keys.forEach(key => {
-      if (formData[key] < 0 || formData[key] > 20) {
-        newErrors[key] = 'Note entre 0 et 20';
+    criteriaList.forEach(c => {
+      if (c.note < 0 || c.note > 20) {
+        newErrors[c.id] = 'Note entre 0 et 20';
       }
     });
 
-    if (!formData.appreciation || formData.appreciation.trim() === '') {
+    if (!appreciation || appreciation.trim() === '') {
       newErrors.appreciation = 'Appréciation obligatoire';
     }
 
@@ -165,19 +237,14 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
   const handleSubmit = () => {
     if (validate()) {
       const average = calculateAverage();
-      onSave({ ...formData, moyenne: average, evaluationId: evaluation.id });
+      onSave({
+        criteriaList,
+        appreciation,
+        moyenne: average,
+        evaluationId: evaluation.id
+      });
     }
   };
-
-  const criteria = [
-    { key: 'competenceTech', label: 'Compétences techniques', icon: <FaCode /> },
-    { key: 'qualiteTravail', label: 'Qualité du travail', icon: <FaClipboardCheck /> },
-    { key: 'autonomie', label: 'Autonomie', icon: <FaRocket /> },
-    { key: 'respectDelais', label: 'Respect des délais', icon: <FaClock /> },
-    { key: 'espritEquipe', label: "Esprit d'équipe", icon: <FaUsers /> },
-    { key: 'communication', label: 'Communication', icon: <FaComment /> },
-    { key: 'assiduite', label: 'Assiduité et ponctualité', icon: <FaCalendarAlt /> }
-  ];
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -212,32 +279,134 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
           <div className="eval-criteres-container">
             <h3 className="eval-section-title"><FaChartLine /> Critères d'évaluation</h3>
             
-            {criteria.map((critere) => (
-              <div key={critere.key} className="eval-critere-row">
-                <div className="eval-critere-label">
-                  <span className="eval-critere-icon">{critere.icon}</span>
-                  <span>{critere.label}</span>
-                  <span className="eval-critere-stars">{getStars(formData[critere.key])}</span>
-                </div>
-                <div className="eval-critere-input">
-                  <input
-                    type="number"
-                    name={critere.key}
-                    value={formData[critere.key] || ''}
-                    onChange={handleChange}
-                    min="0"
-                    max="20"
-                    step="1"
-                    className={`eval-input-number ${errors[critere.key] ? 'error' : ''}`}
-                    placeholder="0"
-                  />
-                  <span className="eval-input-suffix">/ 20</span>
-                </div>
-                {errors[critere.key] && (
-                  <span className="eval-error">{errors[critere.key]}</span>
-                )}
+            {criteriaList.length === 0 ? (
+              <div className="eval-empty-criteria">
+                Aucun critère d'évaluation. Cliquez ci-dessous pour en ajouter un.
               </div>
-            ))}
+            ) : (
+              criteriaList.map((critere) => (
+                <div key={critere.id} className="eval-critere-row">
+                  <div className="eval-critere-label">
+                    <span className="eval-critere-icon">{critere.icon || <FaStar />}</span>
+                    
+                    {editingId === critere.id ? (
+                      <div className="eval-critere-edit-container">
+                        <input
+                          type="text"
+                          className={`eval-critere-edit-input ${editingError ? 'error' : ''}`}
+                          value={editingLabel}
+                          onChange={(e) => { setEditingLabel(e.target.value); setEditingError(''); }}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') saveEditCriteria(critere.id);
+                            if (e.key === 'Escape') cancelEditCriteria();
+                          }}
+                          autoFocus
+                          maxLength={60}
+                        />
+                        <button
+                          type="button"
+                          className="eval-critere-action-btn btn-save"
+                          onClick={() => saveEditCriteria(critere.id)}
+                          title="Valider la modification"
+                        >
+                          <FaCheck />
+                        </button>
+                        <button
+                          type="button"
+                          className="eval-critere-action-btn btn-cancel"
+                          onClick={cancelEditCriteria}
+                          title="Annuler"
+                        >
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ) : (
+                      <>
+                        <span className="eval-critere-name-text">{critere.label}</span>
+                        <span className="eval-critere-stars">{getStars(critere.note)}</span>
+                      </>
+                    )}
+                  </div>
+
+                  <div className="eval-critere-right">
+                    <div className="eval-critere-input">
+                      <input
+                        type="number"
+                        value={critere.note || ''}
+                        onChange={(e) => handleNoteChange(critere.id, e.target.value)}
+                        min="0"
+                        max="20"
+                        step="1"
+                        className={`eval-input-number ${errors[critere.id] ? 'error' : ''}`}
+                        placeholder="0"
+                      />
+                      <span className="eval-input-suffix">/ 20</span>
+                    </div>
+
+                    <div className="eval-critere-actions">
+                      {editingId !== critere.id && (
+                        <button
+                          type="button"
+                          className="eval-critere-action-btn btn-edit"
+                          onClick={() => startEditCriteria(critere)}
+                          title="Modifier ce critère"
+                        >
+                          <FaEdit />
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        className="eval-critere-action-btn btn-delete"
+                        onClick={() => removeCriteria(critere.id)}
+                        title="Supprimer ce critère"
+                      >
+                        <FaTrash />
+                      </button>
+                    </div>
+                  </div>
+
+                  {editingId === critere.id && editingError && (
+                    <span className="eval-error edit-error">{editingError}</span>
+                  )}
+                  {errors[critere.id] && (
+                    <span className="eval-error">{errors[critere.id]}</span>
+                  )}
+                </div>
+              ))
+            )}
+
+            {/* ===== BOUTON AJOUTER CRITÈRE ===== */}
+            {showAddCriteria ? (
+              <div className="eval-add-critere-form">
+                <div className="eval-add-critere-input-row">
+                  <input
+                    type="text"
+                    className={`eval-add-critere-input ${newCriteriaError ? 'error' : ''}`}
+                    placeholder="Nom du critère (ex: Initiative, Créativité...)"
+                    value={newCriteriaLabel}
+                    onChange={(e) => { setNewCriteriaLabel(e.target.value); setNewCriteriaError(''); }}
+                    onKeyDown={(e) => e.key === 'Enter' && addCriteria()}
+                    autoFocus
+                    maxLength={60}
+                  />
+                  <button type="button" className="eval-add-critere-confirm" onClick={addCriteria} title="Confirmer">
+                    <FaPlus /> Ajouter
+                  </button>
+                  <button type="button" className="eval-add-critere-cancel" onClick={() => { setShowAddCriteria(false); setNewCriteriaLabel(''); setNewCriteriaError(''); }} title="Annuler">
+                    <FaTimes />
+                  </button>
+                </div>
+                {newCriteriaError && <span className="eval-error">{newCriteriaError}</span>}
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="eval-add-critere-btn"
+                onClick={() => setShowAddCriteria(true)}
+              >
+                <FaPlus /> Ajouter un critère
+              </button>
+            )}
 
             {/* ===== MOYENNE ===== */}
             <div className="eval-moyenne-row">
@@ -252,8 +421,11 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
             <h3 className="eval-section-title"><FaComment /> Appréciation générale</h3>
             <textarea
               name="appreciation"
-              value={formData.appreciation}
-              onChange={handleChange}
+              value={appreciation}
+              onChange={(e) => {
+                setAppreciation(e.target.value);
+                if (errors.appreciation) setErrors(prev => ({ ...prev, appreciation: '' }));
+              }}
               className={`eval-textarea ${errors.appreciation ? 'error' : ''}`}
               placeholder="Rédigez votre appréciation générale sur l'étudiant..."
               rows="4"
@@ -261,7 +433,7 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
             />
             <div className="eval-textarea-footer">
               <span className="eval-char-count">
-                {formData.appreciation.length} / 500 caractères
+                {appreciation.length} / 500 caractères
               </span>
               {errors.appreciation && (
                 <span className="eval-error">{errors.appreciation}</span>
