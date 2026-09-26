@@ -173,6 +173,41 @@
   color: #162449;
 }
 
+.admin-eval-page .admin-eval-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #E1ECFE;
+}
+
+.admin-eval-page .admin-eval-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-eval-page .admin-eval-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.admin-eval-page .admin-eval-legend-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #162449;
+}
+
+.admin-eval-page .admin-eval-legend-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: #192543;
+  margin-left: auto;
+}
+
 /* ============================================================
    FILTRES + RECHERCHE
    ============================================================ */
@@ -450,13 +485,14 @@
 .admin-eval-page .admin-eval-btn-view {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: #E1ECFE;
-  color: #6BA9E6;
-  border: none;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 7px 14px;
+  background: white;
+  color: #A0B8D0;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -464,6 +500,7 @@
 
 .admin-eval-page .admin-eval-btn-view:hover {
   background: #6BA9E6;
+  border-color: #6BA9E6;
   color: white;
 }
 

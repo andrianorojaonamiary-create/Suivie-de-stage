@@ -2,8 +2,18 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
-  FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
+  FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes,
+  FaTimesCircle, FaComment, FaCalendarAlt
 } from 'react-icons/fa';
+import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
+import { toast } from 'react-toastify';
+import {
+  mapReportType,
+  mapReportStatus,
+  formatReportSize,
+  formatReportDate,
+} from '../../utils/reportMapping';
+import { mapInternship } from '../../utils/internshipMapping';
 
 function EncadreurStudentDetail() {
   const { studentId } = useParams();
@@ -11,161 +21,201 @@ function EncadreurStudentDetail() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
-  const [rapports, setRapports] = useState([
-    { id: 1, titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' }
-  ]);
+  const [rapports, setRapports] = useState([]);
+  const [stage, setStage] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
+  const [errorMessage, setErrorMessage] = useState(null);
+  const [rejectRapport, setRejectRapport] = useState(null);
+  const [rejectCommentaire, setRejectCommentaire] = useState('');
 
   useEffect(() => {
-    setTimeout(() => {
-      const students = {
-        1: {
-          id: 1,
-          nom: 'Rakoto Miora',
-          prenom: 'Miora',
-          matricule: 'ETU-2024-0421',
-          email: 'miora.rakoto@emit.mg',
-          telephone: '+261 34 12 345 01',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 1,
-            titre: "Développement d'une plateforme web de gestion RH",
-            entreprise: 'TechMada SARL',
-            statut: 'En cours',
-            dateDebut: '2024-03-01',
-            dateFin: '2024-09-15',
-            progression: 65,
-            description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js."
-          },
-          evaluation: 'Validé',
-          rapports: 2,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        2: {
-          id: 2,
-          nom: 'Ramanantsoa Tojo',
-          prenom: 'Tojo',
-          matricule: 'ETU-2024-0423',
-          email: 'tojo.ramanantsoa@emit.mg',
-          telephone: '+261 34 12 345 03',
-          filiere: 'Sécurité Info.',
-          niveau: 'Master 1',
-          ville: 'Antananarivo',
-          stage: {
-            id: 2,
-            titre: "Migration et sécurisation du système d'information",
-            entreprise: 'BNI Madagascar',
-            statut: 'En attente',
-            dateDebut: '2024-05-01',
-            dateFin: '2024-11-01',
-            progression: 15,
-            description: "Migration du système d'information vers une architecture sécurisée."
-          },
-          evaluation: 'À faire',
-          rapports: 0,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        3: {
-          id: 3,
-          nom: 'Razafindramary Fy',
-          prenom: 'Fy',
-          matricule: 'ETU-2024-0427',
-          email: 'fy.razafindramary@emit.mg',
-          telephone: '+261 34 12 345 07',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 3,
-            titre: "Application de gestion des rendez-vous",
-            entreprise: 'Santé Plus',
-            statut: 'En cours',
-            dateDebut: '2024-08-01',
-            dateFin: '2025-01-15',
-            progression: 5,
-            description: "Application mobile de gestion des rendez-vous médicaux avec React Native."
-          },
-          evaluation: 'À faire',
-          rapports: 0,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        4: {
-          id: 4,
-          nom: 'Rajaonarivelo Ando',
-          prenom: 'Ando',
-          matricule: 'ETU-2024-0426',
-          email: 'ando.rajaonarivelo@emit.mg',
-          telephone: '+261 34 12 345 06',
-          filiere: 'Réseaux',
-          niveau: 'Licence 1',
-          ville: 'Antananarivo',
-          stage: {
-            id: 4,
-            titre: "Système de gestion de stock",
-            entreprise: 'DistriTech',
-            statut: 'Refusé',
-            dateDebut: '2024-07-01',
-            dateFin: '2024-12-31',
-            progression: 20,
-            description: "Développement d'un système de gestion de stock pour entreprise de distribution."
-          },
-          evaluation: 'À corriger',
-          rapports: 1,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Dr. Ranaivo'
+    const fetchStudent = async () => {
+      try {
+        setLoading(true);
+        const data = await studentsApi.getById(studentId);
+        setStudent({
+          id: data.id,
+          nom: `${data.user?.prenom || ''} ${data.user?.nom || ''}`.trim() || 'Étudiant',
+          matricule: data.matricule || '—',
+          filiere: data.formation || 'Non renseigné',
+          niveau: data.niveau || 'Non renseigné',
+          email: data.user?.email || '—',
+          telephone: data.telephone || '—',
+          adresse: data.adresse || 'Non renseignée',
+          statut: data.statutAcademique || 'ACTIF',
+        });
+      } catch (err) {
+        console.error('Erreur chargement étudiant:', err);
+        if (err?.response?.status === 404) {
+          setErrorMessage(null);
+        } else {
+          const raw = err?.response?.data?.message || err?.message || '';
+          setErrorMessage(
+            Array.isArray(raw) ? raw.join(', ') : (raw || "Erreur lors du chargement de l'étudiant."),
+          );
         }
-      };
-
-      setStudent(students[studentId] || null);
-      setLoading(false);
-    }, 500);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (studentId) fetchStudent();
   }, [studentId]);
+
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchStageAndEval = async () => {
+      try {
+        const res = await internshipsApi.getAll({ limit: 100 });
+        const items = res?.data || (Array.isArray(res) ? res : []);
+        const owned = items.filter((s) => String(s.student?.id) === String(studentId));
+        if (owned.length === 0) return;
+        const raw =
+          owned.find((s) => s.statut === 'EN_COURS') ||
+          owned.find((s) => s.statut === 'TERMINE') ||
+          owned.find((s) => s.statut === 'A_VENIR') ||
+          owned[0];
+        setStage(mapInternship(raw));
+
+        try {
+          const ev = await evaluationsApi.getByInternship(raw.id);
+          const evalsList = Array.isArray(ev) ? ev : ev?.data || [];
+          setEvaluations(
+            evalsList.map((e) => ({
+              id: e.id,
+              type: e.typeEvaluateur || 'Encadreur',
+              note: e.note,
+              date: e.dateEvaluation
+                ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR')
+                : '—',
+              statut: 'Évalué',
+              commentaire: e.commentaire || '',
+            })),
+          );
+        } catch (err) {
+          console.error('Erreur chargement évaluations étudiant:', err);
+          setEvaluations([]);
+        }
+      } catch (err) {
+        console.error('Erreur chargement stage étudiant:', err);
+      }
+    };
+    fetchStageAndEval();
+  }, [studentId]);
+
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchRapports = async () => {
+      try {
+        const res = await reportsApi.getAll({ limit: 100 });
+        const items = Array.isArray(res) ? res : res?.items || [];
+        const filtered = items
+          .filter((r) => String(r.stage?.etudiantId) === String(studentId))
+          .map((r) => ({
+            id: r.id,
+            titre: mapReportType(r.type),
+            fileName: r.originalName || r.fileName,
+            size: formatReportSize(r.size),
+            date: formatReportDate(r.dateCreation),
+            statut: mapReportStatus(r.statut),
+            commentaire: r.commentaire || '',
+            raison: r.commentaire || '',
+          }));
+        setRapports(filtered);
+      } catch (err) {
+        console.error('Erreur chargement rapports étudiant:', err);
+      }
+    };
+    fetchRapports();
+  }, [studentId]);
+
+  const handleValiderRapport = async (id) => {
+    try {
+      await reportsApi.updateStatus(id, { statut: 'APPROUVE' });
+      setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
+      toast.success('Rapport validé avec succès !');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la validation';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
+  };
+
+  const openRejectRapport = (rapport) => {
+    setRejectRapport(rapport);
+    setRejectCommentaire('');
+  };
+
+  const closeRejectRapport = () => {
+    setRejectRapport(null);
+    setRejectCommentaire('');
+  };
+
+  const confirmRejectRapport = async () => {
+    if (!rejectRapport) return;
+    const commentaire = rejectCommentaire.trim();
+    if (!commentaire) {
+      toast.warning('Un commentaire est obligatoire pour refuser le rapport');
+      return;
+    }
+    try {
+      await reportsApi.updateStatus(rejectRapport.id, { statut: 'REJETE', commentaire });
+      setRapports(prev => prev.map(r =>
+        r.id === rejectRapport.id ? { ...r, statut: 'Refusé', commentaire, raison: commentaire } : r
+      ));
+      toast.success('Rapport refusé');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors du refus';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
+    closeRejectRapport();
+  };
+
+  const handleViewFile = async (rapport) => {
+    if (!rapport?.id) return;
+    const ext = (rapport.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleDownloadFile(rapport);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
+      return;
+    }
+    const win = window.open('', '_blank');
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+    } catch (err) {
+      console.error('Erreur:', err);
+      if (win) win.close();
+      toast.error("Erreur lors de l'ouverture du fichier");
+    }
+  };
+
+  const handleDownloadFile = async (rapport) => {
+    if (!rapport?.id) return;
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = rapport.fileName || rapport.titre || 'rapport';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erreur:', err);
+      toast.error('Erreur lors du téléchargement');
+    }
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR');
   };
-
-  const getStatusBadge = (statut) => {
-    const badges = {
-      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
-      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
-      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
-      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
-    };
-    const badge = badges[statut] || badges['En attente'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
-
-  const getEvalBadge = (evalStatus) => {
-    const badges = {
-      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
-      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
-      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
-    };
-    const badge = badges[evalStatus] || badges['À faire'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
-
-  const handleValiderRapport = (id) => {
-    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
-  };
-
-  const handleRefuserRapport = (id) => {
-    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'À corriger' } : r));
-  };
-
-  const evaluations = [
-    { id: 1, type: 'Encadreur', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux' },
-    { id: 2, type: 'Enseignant', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null }
-  ];
 
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
@@ -186,8 +236,8 @@ function EncadreurStudentDetail() {
     return (
       <div className="student-detail-notfound">
         <FaInfoCircle className="notfound-icon" />
-        <h2>Étudiant non trouvé</h2>
-        <p>L'étudiant que vous recherchez n'existe pas.</p>
+        <h2>{errorMessage ? "Accès impossible" : 'Étudiant non trouvé'}</h2>
+        <p>{errorMessage || "L'étudiant que vous recherchez n'existe pas."}</p>
         <button className="btn-back-detail" onClick={() => navigate('/encadreur/etudiants')}>
           <FaArrowLeft /> Retour
         </button>
@@ -241,44 +291,31 @@ function EncadreurStudentDetail() {
               <span className="info-field-box">{student.telephone || 'Non renseigné'}</span>
             </div>
             <div className="info-field">
-              <span className="info-field-label">Ville</span>
-              <span className="info-field-box">{student.ville || 'Non renseignée'}</span>
+              <span className="info-field-label">Adresse</span>
+              <span className="info-field-box">{student.adresse || 'Non renseignée'}</span>
             </div>
             <div className="info-field">
-              <span className="info-field-label">Tuteur pédagogique</span>
-              <span className="info-field-box">{student.tuteur || 'Non renseigné'}</span>
-            </div>
-            <div className="info-field-divider" />
-            <div className="info-field info-field-full">
-              <span className="info-field-label">Stage</span>
-              <span className="info-field-box"><strong>{student.stage.titre}</strong></span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Entreprise</span>
-              <span className="info-field-box">{student.stage.entreprise}</span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Période</span>
-              <span className="info-field-box">{formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}</span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Progression</span>
-              <span className="info-field-box">
-                <div className="inline-progress">
-                  <div className="inline-progress-bar">
-                    <div className="inline-progress-fill" style={{ width: `${student.stage.progression}%` }} />
-                  </div>
-                  <span>{student.stage.progression}%</span>
-                </div>
-              </span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Statut</span>
-              <span className="info-field-box">{getStatusBadge(student.stage.statut)}</span>
+              <span className="info-field-label">Statut académique</span>
+              <span className="info-field-box">{student.statut}</span>
             </div>
             <div className="info-field info-field-full">
-              <span className="info-field-label">Description</span>
-              <span className="info-field-box info-field-desc">{student.stage.description || 'Non renseignée'}</span>
+              <span className="info-field-label">Informations de stage</span>
+              {stage ? (
+                <span className="info-field-box info-field-desc">
+                  {stage.intitule}
+                  {(stage.entreprise || stage.lieu) && (
+                    <span className="info-field-sub">
+                      {[stage.entreprise, stage.lieu].filter(Boolean).join(' · ')}
+                      {stage.encadreur && ` · Encadreur : ${stage.encadreur}`}
+                    </span>
+                  )}
+                  <span className="info-field-sub">
+                    Période : {formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)} · Statut : {stage.statut} · Progression : {stage.progression}%
+                  </span>
+                </span>
+              ) : (
+                <span className="info-field-box info-field-desc">Aucun stage enregistré</span>
+              )}
             </div>
           </div>
         )}
@@ -313,7 +350,7 @@ function EncadreurStudentDetail() {
                       </td>
                       <td className="eval-table-date" data-label="Date">{evalItem.date}</td>
                       <td data-label="Statut">
-                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
+                        <span className={`badge ${evalItem.statut === 'Évalué' ? 'badge-valide' : 'badge-en-attente'}`}>
                           {evalItem.statut}
                         </span>
                       </td>
@@ -364,12 +401,12 @@ function EncadreurStudentDetail() {
                     <div className="report-col-actions">
                       {rapport.fileName && (
                         <>
-                          <button className="btn-action-icon" title="Voir"><FaEye /></button>
-                          <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
+                          <button className="btn-action-icon" title="Voir" onClick={() => handleViewFile(rapport)}><FaEye /></button>
+                          <button className="btn-action-icon" title="Télécharger" onClick={() => handleDownloadFile(rapport)}><FaDownload /></button>
                           {rapport.statut !== 'Validé' && (
                             <>
                               <button className="btn-action-icon" title="Valider" onClick={() => handleValiderRapport(rapport.id)}><FaCheck /></button>
-                              <button className="btn-action-icon" title="Refuser" onClick={() => handleRefuserRapport(rapport.id)}><FaTimes /></button>
+                              <button className="btn-action-icon" title="Refuser" onClick={() => openRejectRapport(rapport)}><FaTimes /></button>
                             </>
                           )}
                         </>
@@ -382,6 +419,42 @@ function EncadreurStudentDetail() {
           </div>
         )}
       </div>
+
+      {rejectRapport && (
+        <div className="modal-overlay" onClick={closeRejectRapport}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2><FaTimesCircle className="modal-icon-reject" /> Refuser le rapport</h2>
+              <button className="modal-close" onClick={closeRejectRapport}><FaTimes /></button>
+            </div>
+            <div className="modal-body">
+              <p className="modal-question">
+                Voulez-vous <strong className="text-danger">refuser</strong> le rapport <strong>{rejectRapport.titre}</strong> de <strong>{student.nom}</strong> ?
+              </p>
+              <div className="stage-summary">
+                <div className="summary-item"><FaFileAlt /> {rejectRapport.titre}</div>
+                <div className="summary-item"><FaCalendarAlt /> {rejectRapport.date}</div>
+              </div>
+              <div className="comment-section">
+                <label><FaComment /> Commentaire (obligatoire)</label>
+                <textarea
+                  className={`comment-textarea ${!rejectCommentaire.trim() ? 'error' : ''}`}
+                  placeholder="Justifiez votre refus..."
+                  value={rejectCommentaire}
+                  onChange={(e) => setRejectCommentaire(e.target.value)}
+                />
+                {!rejectCommentaire.trim() && <span className="error-message">Un commentaire est obligatoire pour refuser</span>}
+              </div>
+            </div>
+            <div className="modal-footer">
+              <button className="btn-modal-cancel" onClick={closeRejectRapport}>Annuler</button>
+              <button className="btn-modal-confirm btn-reject" onClick={confirmRejectRapport} disabled={!rejectCommentaire.trim()}>
+                <FaTimesCircle /> Refuser
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

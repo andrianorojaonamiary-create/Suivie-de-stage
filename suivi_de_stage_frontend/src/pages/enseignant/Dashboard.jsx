@@ -7,7 +7,8 @@ import {
 } from 'react-icons/fa';
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import map from '../../assets/map.jpg';
-import { statisticsApi, studentsApi, internshipsApi, notificationsApi } from '../../api';
+import { internshipsApi, notificationsApi, reportsApi, evaluationsApi } from '../../api';
+import mapApi from '../../api/mapApi';
 
 // ============================================================
 // CUSTOM TOOLTIP
@@ -74,85 +75,134 @@ function EnseignantDashboard() {
   const { user } = useAuth();
 
   const [stats, setStats] = useState({
-    etudiants: 18,
-    etudiantsChange: '+2 ce mois',
-    stagesEnCours: 18,
-    stagesActifs: '100%',
-    evaluationsEnAttente: 7,
-    rapportsRecus: 11,
-    rapportsTotal: 18
+    etudiants: 0,
+    stagesEnCours: 0,
+    evaluationsEnAttente: 0,
+    rapportsRecus: 0,
+    rapportsAttendus: 0,
+    totalStages: 0
   });
 
-  const [stageStatusData, setStageStatusData] = useState([
-    { name: 'En cours', value: 14, color: '#162449' },
-    { name: 'Visite à venir', value: 2, color: '#F39C12' },
-    { name: 'Rapport en attente', value: 1, color: '#E74C3C' },
-    { name: 'Terminés', value: 1, color: '#27AE60' },
-  ]);
+  const [stageStatusData, setStageStatusData] = useState([]);
+  const [filiereData, setFiliereData] = useState([]);
+  const [mapStats, setMapStats] = useState({ localises: 0, lieux: 0 });
 
-  const [recentActivities, setRecentActivities] = useState([
-    { 
-      id: 1, icon: <FaFileAlt />, text: 'Rapport de Jean R. validé', 
-      detail: 'Développement d\'une application web', time: 'Il y a 2h',
-      color: '#6BA9E6', bg: '#E1ECFE'
-    },
-    { 
-      id: 2, icon: <FaBell />, text: 'Nouvel étudiant assigné', 
-      detail: 'Andrianirina T. vous a été assigné', time: 'Il y a 5h',
-      color: '#27AE60', bg: '#D1FAE5'
-    }
-  ]);
+  const [recentActivities, setRecentActivities] = useState([]);
 
   useEffect(() => {
     const fetchDashboard = async () => {
-      try {
-        const [dashRes, studentsRes, internshipsRes] = await Promise.allSettled([
-          statisticsApi.getDashboard(),
-          studentsApi.getAll(),
-          internshipsApi.getAll()
+      const [
+        stagesRes,
+        reportsRes,
+        mapRes,
+        notifsRes,
+      ] = await Promise.allSettled([
+        internshipsApi.getAll({ limit: 100 }),
+        reportsApi.getAll({ limit: 100 }),
+        mapApi.getInternships(),
+        notificationsApi.getAll(),
+      ]);
+
+      // ===== STAGES (scopés au tuteur) =====
+      if (stagesRes.status === 'fulfilled') {
+        const list = stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []);
+        const enCours = list.filter((s) => s.statut === 'EN_COURS').length;
+        const termine = list.filter((s) => s.statut === 'TERMINE').length;
+        const aVenir = list.filter((s) => s.statut === 'EN_ATTENTE' || s.statut === 'A_VENIR').length;
+        const etudiants = new Set(list.map((s) => s.student?.id).filter(Boolean)).size;
+
+        const evalByStageRes = await Promise.allSettled(
+          list.map((s) => evaluationsApi.getByInternship(s.id)),
+        );
+        const evalByStage = new Map(
+          list.map((s, i) => [
+            s.id,
+            evalByStageRes[i].status === 'fulfilled'
+              ? (Array.isArray(evalByStageRes[i].value) ? evalByStageRes[i].value : evalByStageRes[i].value?.data) || []
+              : [],
+          ]),
+        );
+        const evaluationsEnAttente = list.filter(
+          (s) => (s.statut === 'EN_COURS' || s.statut === 'TERMINE') &&
+            (evalByStage.get(s.id) || []).length === 0,
+        ).length;
+
+        setStats((prev) => ({
+          ...prev,
+          etudiants: etudiants || prev.etudiants,
+          stagesEnCours: enCours,
+          evaluationsEnAttente,
+          totalStages: list.length,
+        }));
+        setStageStatusData([
+          { name: 'En cours', value: enCours, color: '#162449' },
+          { name: 'Terminés', value: termine, color: '#27AE60' },
+          { name: 'À venir', value: aVenir, color: '#F39C12' },
         ]);
+      }
 
-        if (dashRes.status === 'fulfilled' && dashRes.value) {
-          const d = dashRes.value;
-          setStats(prev => ({
-            ...prev,
-            etudiants: d.totalStudents ?? prev.etudiants,
-            stagesEnCours: d.activeInternships ?? prev.stagesEnCours,
-            evaluationsEnAttente: d.pendingEvaluations ?? prev.evaluationsEnAttente,
-            rapportsRecus: d.submittedReports ?? prev.rapportsRecus,
-            rapportsTotal: d.totalStudents ?? prev.rapportsTotal
-          }));
+      // ===== RAPPORTS REÇUS (scopés au tuteur) =====
+      if (reportsRes.status === 'fulfilled') {
+        const rapports = reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []);
+        const stagesForReports = stagesRes.status === 'fulfilled'
+          ? stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : [])
+          : [];
+        const rapportsByStage = new Map();
+        rapports.forEach((r) => {
+          const sid = r.stage?.id;
+          if (!sid) return;
+          if (!rapportsByStage.has(sid)) rapportsByStage.set(sid, new Set());
+          if (r.type) rapportsByStage.get(sid).add(r.type);
+        });
+        const rapportsAttendus = stagesForReports
+          .filter((s) => s.statut === 'EN_COURS' || s.statut === 'TERMINE')
+          .reduce((acc, s) => acc + Math.max(0, 3 - (rapportsByStage.get(s.id)?.size || 0)), 0);
+        setStats((prev) => ({ ...prev, rapportsRecus: rapports.length, rapportsAttendus }));
+      }
 
-          if (d.internshipsByStatus) {
-            const statusMap = d.internshipsByStatus;
-            setStageStatusData([
-              { name: 'En cours', value: statusMap.en_cours || 0, color: '#162449' },
-              { name: 'Terminés', value: statusMap.termine || 0, color: '#27AE60' },
-              { name: 'À venir', value: statusMap.a_venir || 0, color: '#F39C12' }
-            ]);
-          }
-        }
+      // ===== RÉPARTITION PAR FILIÈRE (étudiants du tuteur) =====
+      if (stagesRes.status === 'fulfilled') {
+        const stages = stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []);
+        const byFormation = new Map();
+        stages.forEach((s) => {
+          const formation = s.student?.formation || 'Non renseigné';
+          byFormation.set(formation, (byFormation.get(formation) || 0) + 1);
+        });
+        const colors = ['#162449', '#6BA9E6', '#27AE60', '#F39C12', '#E53E3E', '#7C3AED', '#6c7a8a'];
+        setFiliereData(
+          [...byFormation.entries()].map(([name, value], index) => ({
+            name,
+            value,
+            color: colors[index % colors.length],
+          })),
+        );
+      }
 
-        if (studentsRes.status === 'fulfilled') {
-          const list = Array.isArray(studentsRes.value) ? studentsRes.value : studentsRes.value?.items || [];
-          setStats(prev => ({ ...prev, etudiants: list.length || prev.etudiants }));
-        }
+      // ===== LOCALISATION (carte des stages) =====
+      if (mapRes.status === 'fulfilled') {
+        const points = Array.isArray(mapRes.value) ? mapRes.value : mapRes.value?.data || mapRes.value?.items || [];
+        const lieux = new Set(points.map((p) => p.ville).filter(Boolean)).size;
+        setMapStats({ localises: points.length, lieux });
+      }
 
-        const notifsRes = await notificationsApi.getAll();
-        const notifs = Array.isArray(notifsRes) ? notifsRes : notifsRes?.items || [];
-        if (notifs.length > 0) {
-          setRecentActivities(notifs.slice(0, 4).map((n, idx) => ({
-            id: n.id || idx,
-            icon: <FaBell />,
-            text: n.title || n.message || 'Notification',
-            detail: n.content || n.message || '',
-            time: n.createdAt ? new Date(n.createdAt).toLocaleDateString('fr-FR') : '',
-            color: '#6BA9E6',
-            bg: '#E1ECFE'
-          })));
-        }
-      } catch (err) {
-        console.error('Erreur dashboard enseignant:', err);
+      // ===== ACTIVITÉS RÉCENTES =====
+      const notifsValue = notifsRes.status === 'fulfilled' ? notifsRes.value : null;
+      const notifs = Array.isArray(notifsValue) ? notifsValue : notifsValue?.data || notifsValue?.items || [];
+      if (notifs.length > 0) {
+        setRecentActivities(
+          notifs.slice(0, 4).map((n, idx) => {
+            const date = n.date_creation ?? n.dateCreation ?? n.createdAt;
+            return {
+              id: n.id || idx,
+              icon: <FaBell />,
+              text: n.titre || n.title || 'Notification',
+              detail: n.message || n.content || '',
+              time: date ? new Date(date).toLocaleDateString('fr-FR') : '',
+              color: '#6BA9E6',
+              bg: '#E1ECFE',
+            };
+          }),
+        );
       }
     };
 
@@ -160,26 +210,20 @@ function EnseignantDashboard() {
   }, []);
 
   const localisation = {
-    localises: 12,
+    localises: mapStats.localises,
     total: stats.stagesEnCours,
-    lieux: 8
+    lieux: mapStats.lieux
   };
-
-  const filiereData = [
-    { name: 'DA2I', value: 8, color: '#162449' },
-    { name: 'ICM', value: 5, color: '#6BA9E6' },
-    { name: 'AES', value: 3, color: '#F39C12' },
-    { name: 'CIGSI', value: 2, color: '#27AE60' },
-  ];
 
   const totalStages = stageStatusData.reduce((acc, item) => acc + item.value, 0);
 
-  const stagesActifsPct = stats.rapportsTotal > 0
-    ? Math.min(100, Math.round((stats.stagesEnCours / stats.rapportsTotal) * 100)) : 0;
-  const evaluationsPct = stats.stagesEnCours > 0
-    ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.stagesEnCours) * 100)) : 0;
-  const rapportsPct = stats.rapportsTotal > 0
-    ? Math.min(100, Math.round((stats.rapportsRecus / stats.rapportsTotal) * 100)) : 0;
+  const stagesActifsPct = stats.totalStages > 0
+    ? Math.min(100, Math.round((stats.stagesEnCours / stats.totalStages) * 100)) : 0;
+  const evaluationsPct = stats.totalStages > 0
+    ? Math.min(100, Math.round((stats.evaluationsEnAttente / stats.totalStages) * 100)) : 0;
+  const rapportsAttendus = stats.rapportsAttendus;
+  const rapportsPct = rapportsAttendus > 0
+    ? Math.min(100, Math.round((stats.rapportsRecus / rapportsAttendus) * 100)) : 0;
 
   return (
     <div className="enseignant-dashboard">
@@ -204,7 +248,7 @@ function EnseignantDashboard() {
             </div>
           </div>
           <div className="kpi-change" style={{ color: '#6BA9E6' }}>
-            {stats.etudiantsChange}
+            Cette période
           </div>
         </div>
 
@@ -219,7 +263,7 @@ function EnseignantDashboard() {
             </div>
           </div>
           <div className="kpi-change" style={{ color: '#27AE60' }}>
-            {stagesActifsPct}% <span className="kpi-vs">des étudiants</span>
+            {stagesActifsPct}% <span className="kpi-vs">des stages</span>
           </div>
         </div>
 
@@ -234,7 +278,7 @@ function EnseignantDashboard() {
             </div>
           </div>
           <div className="kpi-change" style={{ color: '#F39C12' }}>
-            {evaluationsPct}% <span className="kpi-vs">des stages en cours</span>
+            {evaluationsPct}% <span className="kpi-vs">des stages encadrés</span>
           </div>
         </div>
 
@@ -320,7 +364,7 @@ function EnseignantDashboard() {
                   tick={{ fontSize: 11, fill: '#6c7a8a' }}
                   axisLine={{ stroke: '#E8EEF4' }}
                   tickLine={false}
-                  domain={[0, 16]}
+                  domain={[0, 'auto']}
                 />
                 <Tooltip 
                   contentStyle={{ 

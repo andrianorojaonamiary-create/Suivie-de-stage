@@ -28,10 +28,7 @@ describe('EvaluationsService', () => {
 
   beforeEach(() => jest.clearAllMocks());
 
-  it.each([
-    [EvaluatorType.ENCADREUR, Role.ENCADREUR, 'supervisor-id'],
-    [EvaluatorType.ENTREPRISE, Role.ENTREPRISE, 'company-id'],
-  ])(
+  it.each([[EvaluatorType.ENCADREUR, Role.ENCADREUR, 'supervisor-id']])(
     'allows the assigned %s to create an evaluation',
     async (type, role, id) => {
       internshipsRepository.findOne.mockResolvedValue(stage);

@@ -13,6 +13,11 @@ export const companiesApi = {
   getMe: () => unwrap(apiClient.get('/companies/me')),
 
   /**
+   * Sociétés des stages encadrés par l'encadreur connecté
+   */
+  getSupervised: () => unwrap(apiClient.get('/companies/encadreur')),
+
+  /**
    * Détail d'une entreprise par son ID
    * @param {string} id
    */

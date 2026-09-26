@@ -11,6 +11,7 @@ import notificationsApi from './notificationsApi';
 import mapApi from './mapApi';
 import statisticsApi from './statisticsApi';
 import professionalSituationsApi from './professionalSituationsApi';
+import reportsApi from './reportsApi';
 
 export {
   apiClient,
@@ -28,7 +29,8 @@ export {
   notificationsApi,
   mapApi,
   statisticsApi,
-  professionalSituationsApi
+  professionalSituationsApi,
+  reportsApi
 };
 
 export const api = {
@@ -43,7 +45,8 @@ export const api = {
   notifications: notificationsApi,
   map: mapApi,
   statistics: statisticsApi,
-  professionalSituations: professionalSituationsApi
+  professionalSituations: professionalSituationsApi,
+  reports: reportsApi
 };
 
 export default api;

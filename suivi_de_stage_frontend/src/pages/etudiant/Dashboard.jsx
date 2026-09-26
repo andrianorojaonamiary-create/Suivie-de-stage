@@ -5,82 +5,86 @@ import {
   FaArrowRight, FaClock, 
   FaChartLine,
   FaFilePdf, FaFileWord, FaFile, FaBell,
-  FaMapPin, FaEye, FaExclamationTriangle,
-  FaCheck
+  FaEye, FaPlus
 } from 'react-icons/fa';
 import mapImage from '../../assets/map.jpg';
-import { internshipsApi, notificationsApi } from '../../api';
+import { internshipsApi, notificationsApi, evaluationsApi } from '../../api';
+import { mapInternship, getStatutBadge } from '../../utils/internshipMapping';
+import {
+  mapReportStatus,
+  mapReportType,
+  formatReportDate,
+} from '../../utils/reportMapping';
 
 function EtudiantDashboard() {
-  const [progress, setProgress] = useState(45);
-  const [loading, setLoading] = useState(true);
+  const [progress, setProgress] = useState(0);
+  const [, setLoading] = useState(true);
+  const [daysRemaining, setDaysRemaining] = useState(0);
 
   // ===== INFORMATIONS DU STAGE =====
   const [stageInfo, setStageInfo] = useState({
-    id: 1,
-    titre: "Développement Web",
-    entreprise: 'ABC Informatique',
-    ville: 'Antananarivo',
-    adresse: 'Lot III A 15 bis, Andrainjato',
-    dateDebut: '03 Août 2026',
-    dateFin: '03 Octobre 2026',
-    statut: 'En cours',
-    duree: '2 mois',
-    joursEcoules: 20
+    id: null,
+    titre: '',
+    entreprise: '',
+    ville: '',
+    adresse: '',
+    dateDebut: '',
+    dateFin: '',
+    statut: '',
+    duree: '',
+    joursEcoules: 0
   });
 
   // ===== RAPPORTS =====
-  const [reports, setReports] = useState([
-    { name: "Rapport de prise en main", fileName: "rapport_prise_en_main.pdf", date: "20 Mar 2024", status: "Validé" },
-    { name: "Rapport intermédiaire", fileName: null, date: "—", status: "À déposer" },
-    { name: "Rapport final", fileName: null, date: "—", status: "À venir" },
-  ]);
+  const [reports, setReports] = useState([]);
 
   // ===== NOTIFICATIONS =====
-  const [recentNotifications, setRecentNotifications] = useState([
-    { text: "Rappel : Déposer la convention", detail: "Il vous reste 5 jours", date: "22/08/2026", icon: <FaBell />, color: '#F59E0B', bg: '#FEF3C7' },
-    { text: "Nouvelle activité demandée", detail: "Ajouter le rapport d'avancement", date: "21/08/2026", icon: <FaExclamationTriangle />, color: '#EF4444', bg: '#FEE2E2' },
-    { text: "Document validé", detail: "Votre plan de travail a été validé", date: "20/08/2026", icon: <FaCheck />, color: '#22C55E', bg: '#D1FAE5' },
-  ]);
+  const [recentNotifications, setRecentNotifications] = useState([]);
 
   // ===== ÉTAPES =====
-  const [steps, setSteps] = useState([
-    { label: "Convention Validée", done: true },
-    { label: "Stage validé", done: true },
-    { label: "Stage commencé", done: true },
-    { label: "Stage en cours", done: true },
-    { label: "Rapport à déposer", done: false },
-    { label: "Évaluation", done: false },
-    { label: "Stage terminé", done: false },
-  ]);
+  const [steps, setSteps] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         const stagesRes = await internshipsApi.getAll();
-        const stagesList = Array.isArray(stagesRes) ? stagesRes : stagesRes?.items || [];
+        const stagesList = stagesRes?.data || (Array.isArray(stagesRes) ? stagesRes : []);
+        if (stagesList.length === 0) {
+          console.warn('Aucun stage retourné par l API pour cet utilisateur');
+          setLoading(false);
+          return;
+        }
+        const current = mapInternship(stagesList[0]);
         if (stagesList.length > 0) {
-          const current = stagesList[0];
           setStageInfo({
             id: current.id,
-            titre: current.title || 'Mon Stage',
-            entreprise: current.company?.name || current.companyName || 'Entreprise',
-            ville: current.city || current.company?.city || 'Antananarivo',
-            adresse: current.address || current.company?.address || '',
-            dateDebut: current.startDate ? new Date(current.startDate).toLocaleDateString('fr-FR') : 'Date début',
-            dateFin: current.endDate ? new Date(current.endDate).toLocaleDateString('fr-FR') : 'Date fin',
-            statut: current.status === 'en_cours' ? 'En cours' : current.status === 'termine' ? 'Terminé' : 'À venir',
-            duree: current.duration || '3 mois',
-            joursEcoules: current.elapsedDays || 30
+            titre: current.titre,
+            entreprise: current.entreprise,
+            ville: current.ville,
+            adresse: current.adresse,
+            dateDebut: current.dateDebut
+              ? new Date(current.dateDebut).toLocaleDateString('fr-FR')
+              : 'Date début',
+            dateFin: current.dateFin
+              ? new Date(current.dateFin).toLocaleDateString('fr-FR')
+              : 'Date fin',
+            statut: current.statut,
+            duree: current.duree || '3 mois',
+            joursEcoules: current.joursEcoules || 0
           });
-          if (current.progressPercentage) {
-            setProgress(current.progressPercentage);
+
+          const dateFin = current.dateFin ? new Date(current.dateFin) : null;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (dateFin) {
+            const diffMs = dateFin.getTime() - today.getTime();
+            setDaysRemaining(Math.max(0, Math.ceil(diffMs / (1000 * 60 * 60 * 24))));
           }
         }
 
         const notifsRes = await notificationsApi.getAll();
-        const notifsList = Array.isArray(notifsRes) ? notifsRes : notifsRes?.items || [];
+        const notifsList = Array.isArray(notifsRes) ? notifsRes : notifsRes?.data || notifsRes?.items || [];
         if (notifsList.length > 0) {
           setRecentNotifications(notifsList.slice(0, 3).map(n => ({
             text: n.title || n.message,
@@ -90,6 +94,52 @@ function EtudiantDashboard() {
             color: '#F59E0B',
             bg: '#FEF3C7'
           })));
+        }
+
+        if (stagesList.length > 0) {
+          const currentReports = stagesList[0].reports || [];
+          setReports(currentReports.map((r, i) => ({
+            id: r.id || i,
+            name: mapReportType(r.type),
+            status: mapReportStatus(r.statut),
+            date: formatReportDate(r.dateCreation),
+            fileName: r.originalName || r.fileName || '',
+          })));
+
+          let hasEvaluation = false;
+          try {
+            const evals = await evaluationsApi.getByInternship(current.id);
+            hasEvaluation = (Array.isArray(evals) ? evals : evals?.data || []).length > 0;
+          } catch {
+            hasEvaluation = false;
+          }
+
+          const stepsData = [
+            { label: 'Validation du thème', done: true },
+            {
+              label: 'Début du stage',
+              done: current.statut === 'En cours' || current.statut === 'Terminé',
+            },
+            {
+              label: 'Mi-parcours',
+              done: (current.statut === 'En cours' || current.statut === 'Terminé')
+                && current.dateDebut && current.dateFin
+                && new Date().getTime() >= (new Date(current.dateDebut).getTime() + new Date(current.dateFin).getTime()) / 2,
+            },
+            {
+              label: 'Évaluation',
+              done: hasEvaluation,
+            },
+            {
+              label: 'Fin du stage',
+              done: (current.statut === 'En cours' || current.statut === 'Terminé')
+                && current.dateFin
+                && new Date().getTime() >= new Date(current.dateFin).getTime(),
+            },
+          ];
+          setSteps(stepsData);
+          const doneCount = stepsData.filter((s) => s.done).length;
+          setProgress(Math.round((doneCount / stepsData.length) * 100));
         }
       } catch (err) {
         console.error('Erreur dashboard etudiant:', err);
@@ -138,7 +188,7 @@ function EtudiantDashboard() {
             <FaClock />
           </div>
           <div className="stat-content">
-            <span className="stat-value">42</span>
+            <span className="stat-value">{daysRemaining}</span>
             <span className="stat-label">Jours restants</span>
           </div>
         </div>
@@ -147,7 +197,7 @@ function EtudiantDashboard() {
             <FaFileAlt />
           </div>
           <div className="stat-content">
-            <span className="stat-value">1 / 3</span>
+            <span className="stat-value">{reports.length} / 3</span>
             <span className="stat-label">Rapports déposés</span>
           </div>
         </div>
@@ -156,8 +206,8 @@ function EtudiantDashboard() {
             <FaChartLine />
           </div>
           <div className="stat-content">
-            <span className="stat-value">75%</span>
-            <span className="stat-label">Objectif atteint</span>
+            <span className="stat-value">{progress}%</span>
+            <span className="stat-label">Progression du stage</span>
           </div>
         </div>
         <div className="stat-card">
@@ -177,40 +227,52 @@ function EtudiantDashboard() {
         <div className="dashboard-stage">
           <div className="stage-header">
             <h3>Mon stage actuel</h3>
-            <span className="badge-en-cours">En cours</span>
+            {stageInfo.statut && <span className={getStatutBadge(stageInfo.statut)}>{stageInfo.statut}</span>}
           </div>
           <div className="stage-content">
-            <div className="stage-layout">
-              {/* L'icône FaBuilding a été supprimée */}
-              <div className="stage-info">
-                <h2>{stageInfo.titre}</h2>
-                <p className="stage-company">{stageInfo.entreprise}</p>
-                <div className="stage-dates">
-                  <span><FaCalendarAlt /> {stageInfo.dateDebut}</span>
-                  <span>→</span>
-                  <span><FaCalendarAlt /> {stageInfo.dateFin}</span>
+            {stageInfo.id ? (
+              <>
+                <div className="stage-layout">
+                  <div className="stage-info">
+                    <h2>{stageInfo.titre}</h2>
+                    <p className="stage-company">{stageInfo.entreprise}</p>
+                    <div className="stage-dates">
+                      <span><FaCalendarAlt /> {stageInfo.dateDebut}</span>
+                      <span>→</span>
+                      <span><FaCalendarAlt /> {stageInfo.dateFin}</span>
+                    </div>
+                    <div className="stage-info-row">
+                      <span>Durée : {stageInfo.duree}</span>
+                      <span>|</span>
+                      <span>{stageInfo.joursEcoules} jours écoulés</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="stage-info-row">
-                  <span>Durée : {stageInfo.duree}</span>
-                  <span>|</span>
-                  <span>{stageInfo.joursEcoules} jours écoulés</span>
+                <div className="stage-progress">
+                  <div className="progress-header">
+                    <span className="progress-label">Progression du stage</span>
+                    <span className="progress-value">{progress}%</span>
+                  </div>
+                  <div className="progress-track">
+                    <div className="progress-fill" style={{ width: `${progress}%` }} />
+                  </div>
                 </div>
+                <div className="stage-actions">
+                  <Link to={`/etudiant/stage/${stageInfo.id}`} className="btn-voir-stage">
+                    <FaEye /> Voir mon stage
+                  </Link>
+                </div>
+              </>
+            ) : (
+              <div className="stage-empty">
+                <div className="empty-icon"><FaFileAlt /></div>
+                <p>Aucun stage en cours</p>
+                <span className="empty-sub">Ajoutez votre stage pour démarrer le suivi.</span>
+                <Link to="/etudiant/ajouter-stage" className="btn-voir-stage">
+                  <FaPlus /> Ajouter un stage
+                </Link>
               </div>
-            </div>
-            <div className="stage-progress">
-              <div className="progress-header">
-                <span className="progress-label">Progression du stage</span>
-                <span className="progress-value">{progress}%</span>
-              </div>
-              <div className="progress-track">
-                <div className="progress-fill" style={{ width: `${progress}%` }} />
-              </div>
-            </div>
-            <div className="stage-actions">
-              <Link to="/etudiant/stage/1" className="btn-voir-stage">
-                <FaEye /> Voir mon stage
-              </Link>
-            </div>
+            )}
           </div>
         </div>
 
@@ -223,7 +285,11 @@ function EtudiantDashboard() {
                 src={mapImage}
                 alt="Carte de localisation du stage"
               />
-              <FaMapPin className="map-pin" />
+              <img
+                src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png"
+                alt="Localisation"
+                className="map-pin"
+              />
               <div className="map-pin-tooltip">
                 {stageInfo.entreprise} - {stageInfo.ville}
               </div>

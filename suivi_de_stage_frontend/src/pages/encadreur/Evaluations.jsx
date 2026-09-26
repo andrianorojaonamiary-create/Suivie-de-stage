@@ -1,15 +1,17 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
+import {
   FaStar, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
-  FaCheckCircle, FaClock, FaEye, 
+  FaCheckCircle, FaClock, FaEye,
   FaTimes, FaArrowLeft, FaInfoCircle,
   FaUserTie, FaCalendarAlt, FaComment, FaSave,
   FaCode, FaClipboardCheck, FaRocket, FaUsers,
-  FaChartLine, FaBuilding, FaUserGraduate,
-  FaPlus, FaTrash, FaEdit, FaCheck
+  FaChartLine, FaBuilding, FaUserGraduate
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
+import { internshipsApi, evaluationsApi } from '../../api';
+import { useAuth } from '../../hooks/useAuth';
 
 // ============================================================
 // MODAL DÉTAILS ÉVALUATION
@@ -24,17 +26,25 @@ function EvalDetailModal({ evaluation, onClose }) {
   };
 
   const getStatusClass = (statut) => {
-    return statut === 'Validé' ? 'badge-valide' : 'badge-en-attente';
+    return statut === 'Évalué' ? 'badge-valide' : 'badge-en-attente';
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-eval-detail" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-eval-detail modal-detail-role" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2><FaInfoCircle className="modal-icon-view" /> Détails de l'évaluation</h2>
           <button className="modal-close" onClick={onClose}><FaTimes /></button>
         </div>
         <div className="modal-body">
+          <div className="eval-detail-row eval-detail-status">
+            <span className="eval-detail-label">Statut</span>
+            <span className="eval-detail-value">
+              <span className={`badge ${getStatusClass(evaluation.statut)}`}>
+                {evaluation.statut}
+              </span>
+            </span>
+          </div>
           <div className="eval-detail-row">
             <span className="eval-detail-label"><FaUserGraduate /> Étudiant</span>
             <span className="eval-detail-value"><strong>{evaluation.etudiant}</strong></span>
@@ -74,14 +84,6 @@ function EvalDetailModal({ evaluation, onClose }) {
               <span className="eval-detail-value">{evaluation.commentaire}</span>
             </div>
           )}
-          <div className="eval-detail-row">
-            <span className="eval-detail-label">Statut</span>
-            <span className="eval-detail-value">
-              <span className={`badge ${getStatusClass(evaluation.statut)}`}>
-                {evaluation.statut}
-              </span>
-            </span>
-          </div>
         </div>
         <div className="modal-footer">
           <button className="btn-modal-cancel" onClick={onClose}>Fermer</button>
@@ -456,32 +458,97 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
 // ============================================================
 // PAGE PRINCIPALE
 // ============================================================
+async function loadAllEvaluations() {
+  const internshipsRes = await internshipsApi.getAll({ limit: 100 });
+  const internships = internshipsRes?.data || (Array.isArray(internshipsRes) ? internshipsRes : []);
+
+  const evalPromises = internships.map((s) =>
+    evaluationsApi.getByInternship(s.id).catch(() => ({ data: [] }))
+  );
+  const evalResults = await Promise.all(evalPromises);
+
+  const rows = [];
+  internships.forEach((s, i) => {
+    const evals = evalResults[i]?.data || [];
+    if (evals.length === 0) {
+      rows.push({
+        id: `pending-${s.id}`,
+        stageId: s.id,
+        etudiantId: s.student?.id,
+        etudiant: s.student?.user
+          ? `${s.student.user.prenom ?? ''} ${s.student.user.nom ?? ''}`.trim()
+          : 'Étudiant',
+        stage: s.intitule,
+        entreprise: s.company?.nom || '',
+        type: 'ENCADREUR',
+        statut: 'À faire',
+        date: '',
+        note: null,
+        filiere: s.student?.formation || '',
+        pending: true,
+      });
+      return;
+    }
+    evals.forEach((e) => {
+      rows.push({
+        ...e,
+        stageId: s.id,
+        etudiantId: s.student?.id,
+        etudiant: s.student?.user
+          ? `${s.student.user.prenom ?? ''} ${s.student.user.nom ?? ''}`.trim()
+          : 'Étudiant',
+        stage: s.intitule,
+        entreprise: s.company?.nom || '',
+        type: e.typeEvaluateur,
+        statut: 'Évalué',
+        date: e.dateEvaluation ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR') : '',
+        note: e.note,
+        filiere: s.student?.formation || '',
+        pending: false,
+      });
+    });
+  });
+
+  return { rows, internships };
+}
+
 function EncadreurEvaluations() {
+  const { user } = useAuth();
   const { studentId } = useParams();
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('tous');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const [loading, setLoading] = useState(true);
 
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEvalForm, setShowEvalForm] = useState(false);
   const [selectedEvaluation, setSelectedEvaluation] = useState(null);
+  const [allEvaluations, setAllEvaluations] = useState([]);
 
-  const allEvaluations = [
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Encadreur', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail' },
-    { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', type: 'Enseignant', date: '20 Mai 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 3, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', type: 'Encadreur', date: '10 Jun 2024', statut: 'À faire', note: null, commentaire: null },
-    { id: 4, etudiant: 'Razafindramary Fy', etudiantId: 3, stage: 'Gestion rendez-vous', entreprise: 'Santé Plus', type: 'Encadreur', date: '15 Aoû 2024', statut: 'À faire', note: null, commentaire: null }
-  ];
+  useEffect(() => {
+    const fetchEvaluations = async () => {
+      try {
+        setLoading(true);
+        const { rows } = await loadAllEvaluations();
+        setAllEvaluations(rows);
+      } catch (err) {
+        console.error(' chargement évaluations:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchEvaluations();
+  }, []);
 
-  const evaluations = studentId 
-    ? allEvaluations.filter(e => e.etudiantId === parseInt(studentId))
+  const evaluations = studentId
+    ? allEvaluations.filter(e => String(e.etudiantId) === String(studentId))
     : allEvaluations;
 
   const getStudentName = () => {
     if (studentId) {
-      const student = allEvaluations.find(e => e.etudiantId === parseInt(studentId));
+      const student = allEvaluations.find(e => String(e.etudiantId) === String(studentId));
       return student ? student.etudiant : '';
     }
     return '';
@@ -491,8 +558,10 @@ function EncadreurEvaluations() {
 
   const stats = {
     total: evaluations.length,
-    valides: evaluations.filter(e => e.statut === 'Validé').length,
-    enAttente: evaluations.filter(e => e.statut === 'À faire' || e.statut === 'En attente').length
+    valides: evaluations.filter(e => e.statut === 'Évalué').length,
+    enAttente: new Set(
+      evaluations.filter(e => e.pending).map(e => String(e.etudiantId))
+    ).size
   };
 
   const filteredEvals = evaluations.filter(e => {
@@ -522,13 +591,7 @@ function EncadreurEvaluations() {
   };
 
   const getStatusClass = (statut) => {
-    return statut === 'Validé' ? 'badge-valide' : 'badge-en-attente';
-  };
-
-  const getStars = (note) => {
-    if (!note) return null;
-    const stars = Math.round(note / 4);
-    return '★'.repeat(Math.min(stars, 5)) + '☆'.repeat(Math.max(0, 5 - Math.min(stars, 5)));
+    return statut === 'Évalué' ? 'badge-valide' : 'badge-en-attente';
   };
 
   const openDetailModal = (evaluation) => {
@@ -541,10 +604,47 @@ function EncadreurEvaluations() {
     setShowEvalForm(true);
   };
 
-  const handleSaveEvaluation = (data) => {
-    alert(`Évaluation enregistrée avec succès !\nNote moyenne : ${data.moyenne}/20`);
-    setShowEvalForm(false);
-    setSelectedEvaluation(null);
+  const handleSaveEvaluation = async (data) => {
+    try {
+      if (!selectedEvaluation?.stageId) {
+        toast.error('Stage introuvable pour cette évaluation');
+        return;
+      }
+      const criteriaLabels = [
+        ['Compétences techniques', data.competenceTech],
+        ['Qualité du travail', data.qualiteTravail],
+        ['Autonomie', data.autonomie],
+        ['Respect des délais', data.respectDelais],
+        ["Esprit d'équipe", data.espritEquipe],
+        ['Communication', data.communication],
+        ['Assiduité et ponctualité', data.assiduite],
+      ];
+      const observation = criteriaLabels
+        .map(([label, val]) => `${label} : ${val}/20`)
+        .join(' | ');
+      const payload = {
+        stageId: selectedEvaluation.stageId,
+        evaluateurId: user?.id,
+        typeEvaluateur: 'ENCADREUR',
+        note: Number(data.moyenne),
+        observation,
+      };
+      if (data.appreciation?.trim()) {
+        payload.commentaire = data.appreciation.trim();
+      }
+      await evaluationsApi.create(payload);
+      toast.success(<>
+        <div>Évaluation enregistrée avec succès !</div>
+        <div>Note moyenne : {data.moyenne}/20</div>
+      </>);
+      setShowEvalForm(false);
+      setSelectedEvaluation(null);
+      const { rows } = await loadAllEvaluations();
+      setAllEvaluations(rows);
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || "Erreur lors de l'enregistrement";
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
   };
 
   return (
@@ -575,7 +675,7 @@ function EncadreurEvaluations() {
           <div className="stat-icon done"><FaCheckCircle /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Validées</span>
+            <span className="stat-label">Évaluées</span>
           </div>
         </div>
         <div className="stat-card">
@@ -598,9 +698,8 @@ function EncadreurEvaluations() {
                   onChange={setSelectedStatus}
                   options={[
                     { value: 'tous', label: 'Tous les statuts' },
-                    { value: 'Validé', label: 'Validé' },
-                    { value: 'À faire', label: 'À faire' },
-                    { value: 'En attente', label: 'En attente' }
+                    { value: 'Évalué', label: 'Évalué' },
+                    { value: 'À faire', label: 'À faire' }
                   ]}
                 />
               </div>
@@ -626,7 +725,12 @@ function EncadreurEvaluations() {
           </div>
         </div>
 
-        {filteredEvals.length === 0 ? (
+        {loading ? (
+          <div className="empty-state">
+            <FaStar className="empty-icon" />
+            <h3>Chargement...</h3>
+          </div>
+        ) : filteredEvals.length === 0 ? (
           <div className="empty-state">
             <FaStar className="empty-icon" />
             <h3>Aucune évaluation</h3>

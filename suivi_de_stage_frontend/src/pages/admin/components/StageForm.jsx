@@ -1,6 +1,7 @@
 // src/pages/admin/components/StageForm.jsx
 import { FaTimes } from 'react-icons/fa';
 import SelectPersonnalise from '../../../components/Common/SelectPersonnalise';
+import DateField from '../../../components/Common/DateField';
 
 function StageForm({ 
   formData, 
@@ -78,16 +79,14 @@ function StageForm({
             </div>
             <div className="form-group">
               <label>Date de début</label>
-              <input 
-                type="date" 
+              <DateField 
                 value={formData.dateDebut} 
                 onChange={(e) => setFormData({...formData, dateDebut: e.target.value})} 
               />
             </div>
             <div className="form-group">
               <label>Date de fin</label>
-              <input 
-                type="date" 
+              <DateField 
                 value={formData.dateFin} 
                 onChange={(e) => setFormData({...formData, dateFin: e.target.value})} 
               />

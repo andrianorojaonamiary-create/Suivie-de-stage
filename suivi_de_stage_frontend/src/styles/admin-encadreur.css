@@ -285,13 +285,9 @@
 
 /* ===== BADGES ===== */
 .admin-encadreurs-fonction-badge {
-  background: #E1ECFE;
   color: #162449;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
-  display: inline-block;
 }
 .admin-encadreurs-etudiants-badge {
   background: #F5F8FC;
@@ -328,27 +324,25 @@
   display: flex;
   gap: 4px;
 }
-.admin-encadreurs-btn-icon {
-  width: 30px;
-  height: 30px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: #6c7a8a;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
+.admin-encadreurs-btn-view {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #A0B8D0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
 }
-.admin-encadreurs-btn-icon:hover {
-  background: #E1ECFE;
-  color: #6BA9E6;
-}
-.admin-encadreurs-btn-icon.danger:hover {
-  background: #FEE2E2;
-  color: #EF4444;
+.admin-encadreurs-btn-view:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
 }
 
 /* ===== PAGINATION ===== */
@@ -480,14 +474,14 @@
 }
 
 .modal-body {
-  margin-bottom: 24px;
+  margin-bottom: 0;
 }
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
-  padding-top: 16px;
-  border-top: 2px solid #F5F8FC;
+  padding-top: 12px;
+  border-top: 2px solid #D1D9E6;
 }
 
 /* ===== FORMULAIRE ===== */
@@ -584,6 +578,7 @@
 .detail-item .badge-pedagogique {
   font-size: 11px;
   padding: 2px 12px;
+  width: fit-content;
 }
 
 /* ===== MODAL DELETE ===== */
@@ -751,10 +746,9 @@
   .admin-encadreurs-phone {
     font-size: 10px;
   }
-  .admin-encadreurs-btn-icon {
-    width: 28px;
-    height: 28px;
-    font-size: 12px;
+  .admin-encadreurs-btn-view {
+    padding: 5px 10px;
+    font-size: 11px;
   }
   .admin-encadreurs-pagination {
     flex-wrap: wrap;

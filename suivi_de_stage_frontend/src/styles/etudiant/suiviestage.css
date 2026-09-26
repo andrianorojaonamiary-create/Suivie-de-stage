@@ -194,15 +194,6 @@
   margin-top: 20px;
 }
 
-.etudiant-suivi .suivi-stage-info .stage-status-text {
-  font-size: 14px;
-  font-weight: 600;
-  color: #27AE60;
-  padding: 5px 20px;
-  background: #D1FAE5;
-  border-radius: 5px;
-}
-
 .etudiant-suivi .suivi-stage-info .stage-days-text {
   font-size: 13px;
   color: #162449;
@@ -311,6 +302,10 @@
   min-height: 300px;
 }
 
+.etudiant-suivi .steps-card h3 .card-badge {
+  margin-left: auto;
+}
+
 .etudiant-suivi .steps-list {
   display: flex;
   flex-direction: column;
@@ -330,22 +325,32 @@
 }
 
 .etudiant-suivi .step-number {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: #F5F8FC;
-  color: #162449;
+  background: #162449;
+  color: #FFFFFF;
+  border: 3px solid #162449;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 13px;
+  font-weight: 700;
   flex-shrink: 0;
+  transition: all 0.3s ease;
 }
 
-.etudiant-suivi .step-item.done .step-number {
-  background: #27AE60;
-  color: white;
+.etudiant-suivi .step-item.active .step-number {
+  background: #162449;
+  border-color: #162449;
+  box-shadow: 0 0 0 4px rgba(107, 168, 230, 0.548);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.etudiant-suivi .step-item:not(.done):not(.active) .step-number {
+  background: #E5E7EB;
+  border-color: #D1D5DB;
+  color: #9CA3AF;
 }
 
 .etudiant-suivi .step-content {
@@ -361,8 +366,17 @@
 }
 
 .etudiant-suivi .step-item.done .step-label {
-  color: #27AE60;
+  color: #6BA9E6;
   text-decoration: line-through;
+}
+
+.etudiant-suivi .step-item.active .step-label {
+  color: #162449;
+  font-weight: 600;
+}
+
+.etudiant-suivi .step-item:not(.done):not(.active) .step-label {
+  color: #9CA3AF;
 }
 
 .etudiant-suivi .step-date {
@@ -371,16 +385,25 @@
 }
 
 .etudiant-suivi .step-item.done .step-date {
-  color: #27AE60;
+  color: #6BA9E6;
+}
+
+.etudiant-suivi .step-item.active .step-date {
+  color: #162449;
+  font-weight: 600;
+}
+
+.etudiant-suivi .step-item:not(.done):not(.active) .step-date {
+  color: #9CA3AF;
 }
 
 .etudiant-suivi .step-status {
   font-size: 14px;
-  color: #E1ECFE;
+  color: #D1D5DB;
 }
 
 .etudiant-suivi .step-status.done {
-  color: #27AE60;
+  color: #6BA9E6;
 }
 
 /* ============================================================
@@ -955,10 +978,6 @@
 
   .etudiant-suivi .suivi-stage-info {
     padding: 16px;
-  }
-
-  .etudiant-suivi .suivi-stage-info .stage-status-text {
-    font-size: 13px;
   }
 
   .etudiant-suivi .suivi-stage-info .stage-days-text {

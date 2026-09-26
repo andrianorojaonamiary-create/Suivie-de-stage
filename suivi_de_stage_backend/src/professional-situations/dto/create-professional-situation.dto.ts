@@ -57,4 +57,20 @@ export class CreateProfessionalSituationDto {
   @Transform(trim)
   @IsString()
   description?: string;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MaxLength(50)
+  typeContrat?: string;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @MaxLength(50)
+  statutAcademique?: string;
+
+  @IsOptional()
+  @IsDateString()
+  dateDiplome?: string;
 }

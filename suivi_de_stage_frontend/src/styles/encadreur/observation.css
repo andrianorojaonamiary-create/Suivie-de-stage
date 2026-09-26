@@ -76,7 +76,7 @@
 
 .observations-page .stats-cards {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -109,6 +109,7 @@
 }
 
 .observations-page .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
+.observations-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
 .observations-page .stat-icon.active { background: #FFF3E0; color: #F39C12; }
 
 .observations-page .stat-info {
@@ -402,6 +403,16 @@
   font-family: inherit;
 }
 
+.observations-page .form-control-static {
+  display: block;
+  padding: 10px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: transparent;
+  color: #162449;
+  font-size: 14px;
+}
+
 .observations-page .pagination {
   display: flex;
   align-items: center;
@@ -533,6 +544,13 @@
   border-radius: 8px;
   width: 100%;
   border: 1px solid #E8EEF4;
+}
+
+.observations-page .view-description-text {
+  background: transparent;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  padding: 10px 14px;
 }
 
 /* ============================================================

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
-  FaSave, FaBuilding, FaUserTie, FaCalendarAlt, 
+  FaSave, FaBuilding, FaUserTie, FaUserGraduate, FaCalendarAlt, 
   FaFileAlt, FaMapMarkerAlt, FaSpinner, FaMapPin,
   FaTimes, FaUpload,
   FaArrowLeft,FaDownload 
@@ -10,8 +10,17 @@ import { geocodeAddress } from '../../services/geocoding';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
+import { toast } from 'react-toastify';
 
-import { internshipsApi } from '../../api';
+import DateField from '../../components/Common/DateField';
+import { 
+  internshipsApi, 
+  companiesApi, 
+  supervisorsApi, 
+  usersApi 
+} from '../../api';
+import { getApiErrorMessage } from '../../api/apiClient';
+import { mapInternship } from '../../utils/internshipMapping';
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -34,22 +43,49 @@ function StageDetail() {
   const [locationMap, setLocationMap] = useState(null);
   const [geocodeError, setGeocodeError] = useState('');
   const [fichier, setFichier] = useState(null);
+  const [companies, setCompanies] = useState([]);
+  const [supervisors, setSupervisors] = useState([]);
+  const [enseignants, setEnseignants] = useState([]);
+  const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
+  const [showSupervisorSuggestions, setShowSupervisorSuggestions] = useState(false);
   
   const [formData, setFormData] = useState({
     titre: '',
-    entreprise: '',
+    description: '',
+    domaine: '',
     ville: '',
     adresse: '',
     dateDebut: '',
     dateFin: '',
-    tuteur: '',
-    encadreur: '',
-    description: '',
+    companyId: '',
+    companyNom: '',
+    supervisorId: '',
+    tuteurId: '',
+    encadreurProfessionnelNom: '',
     convention: '',
-    statut: '',
-    createdAt: '',
-    updatedAt: ''
   });
+
+  useEffect(() => {
+    const loadReferences = async () => {
+      const [companiesResult, supervisorsResult, enseignantsResult] =
+        await Promise.allSettled([
+          companiesApi.getAll({ limit: 100 }),
+          supervisorsApi.getAll({ limit: 100 }),
+          usersApi.getAll({ role: "ENSEIGNANT", limit: 100 }),
+        ]);
+
+      if (companiesResult.status === "fulfilled") {
+        setCompanies(companiesResult.value?.data || (Array.isArray(companiesResult.value) ? companiesResult.value : []));
+      }
+      if (supervisorsResult.status === "fulfilled") {
+        setSupervisors(supervisorsResult.value?.data || (Array.isArray(supervisorsResult.value) ? supervisorsResult.value : []));
+      }
+      if (enseignantsResult.status === "fulfilled") {
+        setEnseignants(enseignantsResult.value?.data || (Array.isArray(enseignantsResult.value) ? enseignantsResult.value : []));
+      }
+    };
+    loadReferences();
+  }, []);
 
   useEffect(() => {
     const fetchStage = async () => {
@@ -58,21 +94,28 @@ function StageDetail() {
         if (id) {
           const res = await internshipsApi.getById(id);
           if (res) {
+            const mapped = mapInternship(res);
             setFormData({
-              titre: res.title || res.subject || '',
-              entreprise: res.company?.name || res.companyName || '',
-              ville: res.city || res.company?.city || 'Antananarivo',
-              adresse: res.address || res.company?.address || '',
-              dateDebut: res.startDate ? res.startDate.split('T')[0] : '',
-              dateFin: res.endDate ? res.endDate.split('T')[0] : '',
-              tuteur: res.tuteurPedagogique ? `${res.tuteurPedagogique.firstName || ''} ${res.tuteurPedagogique.lastName || ''}`.trim() : '',
-              encadreur: res.supervisor ? `${res.supervisor.firstName || ''} ${res.supervisor.lastName || ''}`.trim() : '',
-              description: res.description || '',
-              convention: res.convention || 'convention_stage.pdf',
-              statut: res.status === 'en_cours' ? 'En cours' : res.status === 'termine' ? 'Terminé' : 'En attente',
-              createdAt: res.createdAt ? new Date(res.createdAt).toLocaleDateString('fr-FR') : '',
-              updatedAt: res.updatedAt ? new Date(res.updatedAt).toLocaleDateString('fr-FR') : ''
+              titre: mapped.titre,
+              description: mapped.description,
+              domaine: mapped.domaine,
+              ville: mapped.ville,
+              adresse: mapped.adresse,
+              dateDebut: mapped.dateDebut || '',
+              dateFin: mapped.dateFin || '',
+              companyId: mapped.companyId || '',
+              companyNom: mapped.entreprise || '',
+              supervisorId: mapped.supervisorId || '',
+              tuteurId: mapped.tuteurId || '',
+              encadreurProfessionnelNom: mapped.encadreurProfessionnelNom || '',
+              convention: mapped.convention || '',
+              conventionNom: mapped.conventionNom || '',
+              createdAt: mapped.dateCreation || '',
+              updatedAt: mapped.dateModification || '',
             });
+            if (res.latitude && res.longitude) {
+              setLocationMap({ lat: res.latitude, lon: res.longitude });
+            }
           }
         }
       } catch (err) {
@@ -89,6 +132,61 @@ function StageDetail() {
     if (!isEditing) return;
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const supervisorLabel = (s) => {
+    const name = [s.user?.nom, s.user?.prenom].filter(Boolean).join(" ");
+    const detail = [s.fonction, s.specialite].filter(Boolean).join(" - ");
+    return [name, detail].filter(Boolean).join(" — ");
+  };
+
+  const companyLabel = (company) =>
+    [company.nom, company.ville].filter(Boolean).join(" — ");
+
+  const handleProfessionalSupervisorChange = (e) => {
+    if (!isEditing) return;
+    const value = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      encadreurProfessionnelNom: value,
+      supervisorId: "",
+    }));
+  };
+
+  const handleSupervisorBlur = () => {
+    setShowSupervisorSuggestions(false);
+  };
+
+  const handleCompanyChange = (e) => {
+    if (!isEditing) return;
+    const value = e.target.value;
+    setFormData((prev) => ({
+      ...prev,
+      companyNom: value,
+      companyId: "",
+    }));
+  };
+
+  const handleCompanyBlur = () => {
+    setShowCompanySuggestions(false);
+  };
+
+  const selectCompany = (company) => {
+    setFormData((prev) => ({
+      ...prev,
+      companyId: company.id,
+      companyNom: companyLabel(company),
+    }));
+    setShowCompanySuggestions(false);
+  };
+
+  const selectSupervisor = (supervisor) => {
+    setFormData((prev) => ({
+      ...prev,
+      supervisorId: supervisor.id,
+      encadreurProfessionnelNom: "",
+    }));
+    setShowSupervisorSuggestions(false);
   };
 
   const handleFileChange = (e) => {
@@ -116,7 +214,7 @@ function StageDetail() {
     setGeocodeError('');
     
     try {
-      const result = await geocodeAddress(fullAddress);
+      const result = await geocodeAddress(fullAddress, { ville: formData.ville });
       if (result) {
         setLocationMap(result);
         setGeocodeError('');
@@ -133,26 +231,77 @@ function StageDetail() {
     }
   };
 
-  const handleDownload = () => {
-    alert('Téléchargement de la convention...');
+  const handleDownload = async () => {
+    try {
+      toast.info('Téléchargement de la convention...');
+      const blob = await internshipsApi.downloadConvention(id);
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = formData.conventionNom || `convention_${formData.titre || 'stage'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erreur téléchargement convention:', err);
+      toast.error(getApiErrorMessage(err, 'Impossible de télécharger la convention'));
+    }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!isEditing) return;
-    
-    if (!formData.titre || !formData.entreprise || !formData.ville || !formData.dateDebut || !formData.dateFin) {
+
+    const encadreurOk = Boolean(
+      formData.supervisorId || formData.encadreurProfessionnelNom?.trim(),
+    );
+
+    if (
+      !formData.titre ||
+      !formData.description ||
+      !formData.domaine ||
+      !formData.companyId ||
+      !formData.ville ||
+      !formData.adresse?.trim() ||
+      !formData.dateDebut ||
+      !formData.dateFin ||
+      !encadreurOk
+    ) {
       alert('Veuillez remplir tous les champs obligatoires (*)');
       return;
     }
 
     setSaving(true);
-    setTimeout(() => {
-      setSaving(false);
-      alert('Stage modifié avec succès !');
+    try {
+      await internshipsApi.update(id, {
+        intitule: formData.titre,
+        description: formData.description,
+        domaine: formData.domaine,
+        lieu: formData.adresse.trim(),
+        ville: formData.ville,
+        latitude: locationMap?.lat,
+        longitude: locationMap?.lon,
+        dateDebut: formData.dateDebut,
+        dateFin: formData.dateFin,
+        companyId: formData.companyId,
+        tuteurId: formData.tuteurId || undefined,
+        supervisorId: formData.supervisorId || undefined,
+        encadreurProfessionnelNom:
+          (formData.encadreurProfessionnelNom || "").trim() || undefined,
+      });
+      if (fichier) {
+        await internshipsApi.uploadConvention(id, fichier);
+      }
+      toast.success('Stage modifié avec succès !');
       setIsEditing(false);
-      navigate(`/etudiant/stage/${id}`);
-    }, 1500);
+      navigate(`/etudiant/stage/${id}`, { state: { editMode: false } });
+    } catch (err) {
+      console.error('Erreur modification stage:', err);
+      toast.error(getApiErrorMessage(err, 'Erreur lors de la modification du stage'));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleCancel = () => {
@@ -197,42 +346,59 @@ function StageDetail() {
       <div className="form-card">
         <form onSubmit={handleSubmit}>
           <div className="form-row">
-            <div className="form-group full-width">
-              <label><FaFileAlt /> Titre du stage {isEditing && '*'}</label>
+            <div className="form-group">
+              <label><FaFileAlt /> Titre du stage *</label>
               <input
                 type="text"
                 name="titre"
                 value={formData.titre}
                 onChange={handleChange}
                 placeholder="Ex: Développement d'une plateforme web"
-                required={isEditing}
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
+            </div>
+            <div className="form-group">
+              <label>
+                <FaUserGraduate /> Tuteur pédagogique
+              </label>
+              <select
+                name="tuteurId"
+                value={formData.tuteurId}
+                onChange={handleChange}
+                disabled={!isEditing}
+                className={!isEditing ? 'field-disabled' : ''}
+              >
+                <option value="">Sélectionner un enseignant</option>
+                {enseignants.map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {[u.nom, u.prenom].filter(Boolean).join(" ")}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
           <div className="form-row">
             <div className="form-group">
-              <label><FaCalendarAlt /> Date de début {isEditing && '*'}</label>
-              <input
-                type="date"
+              <label><FaCalendarAlt /> Date de début *</label>
+              <DateField
                 name="dateDebut"
                 value={formData.dateDebut}
                 onChange={handleChange}
-                required={isEditing}
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
             </div>
             <div className="form-group">
-              <label><FaCalendarAlt /> Date de fin {isEditing && '*'}</label>
-              <input
-                type="date"
+              <label><FaCalendarAlt /> Date de fin *</label>
+              <DateField
                 name="dateFin"
                 value={formData.dateFin}
                 onChange={handleChange}
-                required={isEditing}
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
@@ -241,25 +407,160 @@ function StageDetail() {
 
           <div className="form-row">
             <div className="form-group">
-              <label><FaUserTie /> Tuteur pédagogique</label>
+              <label>
+                <FaBuilding /> Entreprise *
+                <span className="field-tooltip" role="tooltip">
+                  Sélectionnez l'entreprise qui accueille votre stage.
+                </span>
+              </label>
+              <div className="suggestion-field">
+                <input
+                  type="text"
+                  value={formData.companyNom}
+                  onChange={handleCompanyChange}
+                  onBlur={handleCompanyBlur}
+                  onFocus={() => isEditing && setShowCompanySuggestions(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Escape') setShowCompanySuggestions(false);
+                  }}
+                  placeholder="Sélectionner ou saisir une entreprise"
+                  className="smart-select-input"
+                  required
+                  disabled={!isEditing}
+                />
+                {isEditing && showCompanySuggestions && (
+                  <div className="suggestion-list">
+                    {(() => {
+                      const search = formData.companyNom.toLowerCase();
+                      const exactMatch = companies.find(
+                        (c) => companyLabel(c).toLowerCase() === search,
+                      );
+                      const filtered = exactMatch
+                        ? [exactMatch]
+                        : companies.filter((c) => c.nom.toLowerCase().includes(search));
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="suggestion-empty">
+                            Aucune entreprise correspondante.
+                            <span className="suggestion-empty-sub">
+                              Vérifiez l'orthographe ou saisissez le nom exact.
+                            </span>
+                          </div>
+                        );
+                      }
+                      return filtered.map((company) => (
+                        <button
+                          type="button"
+                          key={company.id}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectCompany(company)}
+                        >
+                          {companyLabel(company)}
+                        </button>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>
+                <FaUserTie /> Encadreur professionnel *
+                <span className="field-tooltip" role="tooltip">
+                  Choisissez un encadreur existant ou saisissez le nom d'un
+                  encadreur sans compte.
+                </span>
+              </label>
+              <div className="suggestion-field">
+                <input
+                  type="text"
+                  value={
+                    formData.supervisorId
+                      ? supervisorLabel(
+                          supervisors.find(
+                            (s) => s.id === formData.supervisorId,
+                          ) || {},
+                        )
+                      : formData.encadreurProfessionnelNom
+                  }
+                  onChange={handleProfessionalSupervisorChange}
+                  onFocus={() => isEditing && setShowSupervisorSuggestions(true)}
+                  onBlur={handleSupervisorBlur}
+                  placeholder="Sélectionner ou saisir un encadreur"
+                  className="smart-select-input"
+                  required
+                  disabled={!isEditing}
+                />
+                {isEditing && showSupervisorSuggestions && (
+                  <div className="suggestion-list">
+                    {(() => {
+                      const search = formData.encadreurProfessionnelNom.toLowerCase();
+                      const exactMatch = supervisors.find(
+                        (s) => supervisorLabel(s).toLowerCase() === search,
+                      );
+                      const filtered = exactMatch
+                        ? [exactMatch]
+                        : supervisors.filter((s) => {
+                            const name = [s.user?.nom, s.user?.prenom]
+                              .filter(Boolean)
+                              .join(" ")
+                              .toLowerCase();
+                            return name.includes(search);
+                          });
+                      if (filtered.length === 0) {
+                        return (
+                          <div className="suggestion-empty">
+                            Aucun encadreur correspondant.
+                            <span className="suggestion-empty-sub">
+                              Vérifiez l'orthographe ou saisissez le nom exact.
+                            </span>
+                          </div>
+                        );
+                      }
+                      return filtered.map((supervisor) => (
+                        <button
+                          type="button"
+                          key={supervisor.id}
+                          onMouseDown={(e) => e.preventDefault()}
+                          onClick={() => selectSupervisor(supervisor)}
+                        >
+                          {supervisorLabel(supervisor)}
+                        </button>
+                      ));
+                    })()}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label>
+                <FaFileAlt /> Domaine *
+              </label>
               <input
                 type="text"
-                name="tuteur"
-                value={formData.tuteur}
+                name="domaine"
+                value={formData.domaine}
                 onChange={handleChange}
-                placeholder="Nom du tuteur"
+                placeholder="Ex: Informatique, Génie civil..."
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
             </div>
             <div className="form-group">
-              <label><FaUserTie /> Maître de stage</label>
+              <label>
+                <FaMapMarkerAlt /> Ville *
+              </label>
               <input
                 type="text"
-                name="encadreur"
-                value={formData.encadreur}
+                name="ville"
+                value={formData.ville}
                 onChange={handleChange}
-                placeholder="Nom de l'encadreur"
+                placeholder="Ville"
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
@@ -268,13 +569,14 @@ function StageDetail() {
 
           <div className="form-row">
             <div className="form-group full-width">
-              <label>Description</label>
+              <label>Description *</label>
               <textarea
                 name="description"
                 rows="3"
                 value={formData.description}
                 onChange={handleChange}
                 placeholder="Description du stage..."
+                required
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               />
@@ -282,65 +584,43 @@ function StageDetail() {
           </div>
 
           <div className="form-row">
-              <div className="form-group">
-                <label><FaBuilding /> Entreprise {isEditing && '*'}</label>
+            <div className="form-group full-width">
+              <label><FaMapMarkerAlt /> Adresse</label>
+              <div className="address-input-group">
                 <input
                   type="text"
-                  name="entreprise"
-                  value={formData.entreprise}
+                  name="adresse"
+                  value={formData.adresse}
                   onChange={handleChange}
-                  placeholder="Nom de l'entreprise"
-                  required={isEditing}
+                  placeholder="Rue de la Réunion, Antananarivo"
+                  className={`address-input ${!isEditing ? 'field-disabled' : ''}`}
                   disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
                 />
-              </div>
-              <div className="form-group">
-                <label><FaMapMarkerAlt /> Ville {isEditing && '*'}</label>
-                <input
-                  type="text"
-                  name="ville"
-                  value={formData.ville}
-                  onChange={handleChange}
-                  placeholder="Ville"
-                  required={isEditing}
-                  disabled={!isEditing}
-                  className={!isEditing ? 'field-disabled' : ''}
-                />
-              </div>
-            </div>
-
-            <div className="form-row">
-              <div className="form-group full-width">
-                <label><FaMapMarkerAlt /> Adresse</label>
-                <div className="address-input-group">
-                  <input
-                    type="text"
-                    name="adresse"
-                    value={formData.adresse}
-                    onChange={handleChange}
-                    placeholder="Lot II M 77, Antananarivo"
-                    className={`address-input ${!isEditing ? 'field-disabled' : ''}`}
-                    disabled={!isEditing}
-                  />
-                  {isEditing && (
-                    <button
-                      type="button"
-                      className="btn-geocode"
-                      onClick={handleGeocode}
-                      disabled={geocoding}
-                    >
-                      {geocoding ? <FaSpinner className="spinning" /> : <FaMapPin />}
-                      {geocoding ? 'Recherche...' : 'Localiser'}
-                    </button>
-                  )}
-                </div>
-                {isEditing && geocodeError && <span className="geocode-error">{geocodeError}</span>}
-                {isEditing && locationMap && (
-                  <span className="geocode-success">Localisé</span>
+                {isEditing && (
+                  <button
+                    type="button"
+                    className="btn-geocode"
+                    onClick={handleGeocode}
+                    disabled={geocoding}
+                  >
+                    {geocoding ? <FaSpinner className="spinning" /> : <FaMapPin />}
+                    {geocoding ? 'Recherche...' : 'Localiser'}
+                  </button>
                 )}
               </div>
+              {isEditing && (
+                <small className="form-hint">
+                  Astuce : indiquez le nom de la rue ou du quartier, puis la
+                  ville (ex. : Rue de la Réunion, Antananarivo). Ajoutez
+                  « Madagascar » si besoin pour une meilleure localisation.
+                </small>
+              )}
+              {isEditing && geocodeError && <span className="geocode-error">{geocodeError}</span>}
+              {isEditing && locationMap && (
+                <span className="geocode-success">Localisé</span>
+              )}
             </div>
+          </div>
 
             {(locationMap || (formData.lat && formData.lng)) && (
               <div className="form-row">
@@ -400,7 +680,7 @@ function StageDetail() {
                 ) : (
                   <div className="convention-file">
                     <FaFileAlt className="file-icon" />
-                    <span className="file-name">{formData.convention || 'Aucune convention déposée'}</span>
+                    <span className="file-name">{formData.conventionNom || formData.convention || 'Aucune convention déposée'}</span>
                     {formData.convention && (
                       <button type="button" className="btn-download" onClick={handleDownload}>
                         <FaDownload /> Télécharger
@@ -414,8 +694,8 @@ function StageDetail() {
           {/* ===== MÉTADONNÉES ===== */}
           {!isEditing && (
             <div className="form-metadata">
-              <span>Créé le : {formData.createdAt}</span>
-              <span>Dernière modification : {formData.updatedAt}</span>
+              <span>Créé le : {formData.createdAt ? new Date(formData.createdAt).toLocaleString('fr-FR') : '—'}</span>
+              <span>Dernière modification : {formData.updatedAt ? new Date(formData.updatedAt).toLocaleString('fr-FR') : '—'}</span>
             </div>
           )}
 

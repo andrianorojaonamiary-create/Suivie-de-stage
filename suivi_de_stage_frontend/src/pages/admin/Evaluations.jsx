@@ -7,8 +7,9 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
-import { evaluationsApi, internshipsApi } from '../../api';
+import { evaluationsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
 
 function AdminEvaluations() {
   // ===== ÉTATS =====
@@ -19,111 +20,43 @@ function AdminEvaluations() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
   const tableRef = useRef(null);
 
   // ===== DONNÉES ÉVALUATIONS =====
-  const [evaluations, setEvaluations] = useState([
-    {
-      id: 1,
-      etudiant: 'Miora Rakoto',
-      stage: 'Développement web RH',
-      entreprise: 'TechMada SARL',
-      encadreur: 'RABEMANANTSOA Nivo',
-      type: 'Maître de stage',
-      date: '28/09/2026',
-      status: 'Validé',
-      note: 16.4,
-      commentaire: 'Miora a montré une bonne capacité d\'adaptation et un réel investissement dans les tâches qui lui ont été confiées.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 16 },
-        { nom: 'Qualité du travail', note: 17 },
-        { nom: 'Autonomie', note: 15 },
-        { nom: 'Respect des délais', note: 18 },
-        { nom: 'Esprit d\'équipe', note: 16 },
-        { nom: 'Communication', note: 15 },
-        { nom: 'Assiduité et ponctualité', note: 17 }
-      ]
-    },
-    {
-      id: 2,
-      etudiant: 'Hery Rakotondrabe',
-      stage: 'Application mobile',
-      entreprise: 'Airtel Madagascar',
-      encadreur: 'RALAVA Marie',
-      type: 'Tuteur pédagogique',
-      date: '15/06/2025',
-      status: 'Validé',
-      note: 18.0,
-      commentaire: 'Excellent travail, l\'étudiant a dépassé les attentes.',
-      criteres: [
-        { nom: 'Compétences techniques', note: 19 },
-        { nom: 'Qualité du travail', note: 18 },
-        { nom: 'Autonomie', note: 17 },
-        { nom: 'Respect des délais', note: 18 },
-        { nom: 'Esprit d\'équipe', note: 18 },
-        { nom: 'Communication', note: 17 },
-        { nom: 'Assiduité et ponctualité', note: 19 }
-      ]
-    },
-    {
-      id: 3,
-      etudiant: 'Fanja Andriantsoa',
-      stage: 'Système de reporting',
-      entreprise: 'BNI Madagascar',
-      encadreur: 'RABEMANANTSOA Nivo',
-      type: 'Maître de stage',
-      date: '30/09/2026',
-      status: 'En attente',
-      note: null,
-      commentaire: 'En attente de validation par l\'encadreur.',
-      criteres: []
-    }
-  ]);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
     const fetchEvaluations = async () => {
       try {
-        setLoading(true);
-        // Try fetching internships to aggregate evaluations
-        const internshipsRes = await internshipsApi.getAll();
-        const internshipsList = Array.isArray(internshipsRes) ? internshipsRes : internshipsRes?.items || [];
+        const res = await evaluationsApi.getAllAdmin({ limit: 100 });
+        const list = Array.isArray(res) ? res : res?.items || res?.data || [];
         
-        let loadedEvals = [];
-        for (const stage of internshipsList) {
-          if (stage.id) {
-            try {
-              const evals = await evaluationsApi.getByInternship(stage.id);
-              const evalsList = Array.isArray(evals) ? evals : evals?.items || [];
-              evalsList.forEach((ev, idx) => {
-                loadedEvals.push({
-                  id: ev.id || `${stage.id}-${idx}`,
-                  etudiant: stage.student ? `${stage.student.firstName || ''} ${stage.student.lastName || ''}`.trim() : 'Étudiant',
-                  stage: stage.title || 'Stage',
-                  entreprise: stage.company?.name || 'Entreprise',
-                  encadreur: ev.evaluatorName || (stage.supervisor ? `${stage.supervisor.firstName || ''} ${stage.supervisor.lastName || ''}`.trim() : 'Encadreur'),
-                  type: ev.type || 'Maître de stage',
-                  date: ev.createdAt ? new Date(ev.createdAt).toLocaleDateString('fr-FR') : 'Date',
-                  status: ev.status || (ev.isValidated ? 'Validé' : 'En attente'),
-                  note: ev.note || ev.score || null,
-                  commentaire: ev.commentaire || ev.comment || '',
-                  criteres: ev.criteres || ev.criteria || []
-                });
-              });
-            } catch (err) {
-              // Ignore single stage eval fetch errors
-            }
-          }
-        }
+        const mapped = list.map((ev) => {
+          const student = ev.student;
+          const stage = ev.stage;
+          const company = stage?.company;
+          const supervisor = stage?.supervisor;
+          
+          return {
+            id: ev.id,
+            etudiant: student?.user ? `${student.user.prenom || ''} ${student.user.nom || ''}`.trim() : 'Étudiant',
+            stage: stage?.intitule || 'Stage',
+            entreprise: company?.nom || 'Entreprise',
+            encadreur: supervisor?.user ? `${supervisor.user.prenom || ''} ${supervisor.user.nom || ''}`.trim() : 
+                       ev.evaluateur ? `${ev.evaluateur.prenom || ''} ${ev.evaluateur.nom || ''}`.trim() : 'Évaluateur',
+            type: ev.typeEvaluateur,
+            date: ev.dateEvaluation ? new Date(ev.dateEvaluation).toLocaleDateString('fr-FR') : 'Date',
+            status: ev.validee ? 'Validé' : 'En attente',
+            note: ev.note,
+            commentaire: ev.commentaire,
+            criteres: ev.criteres || []
+          };
+        });
         
-        if (loadedEvals.length > 0) {
-          setEvaluations(loadedEvals);
-        }
+        setEvaluations(mapped);
       } catch (err) {
         console.error('Erreur chargement évaluations:', err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -131,12 +64,13 @@ function AdminEvaluations() {
   }, []);
 
   // ===== STATISTIQUES =====
+  const notesList = evaluations.filter(e => e.note);
   const stats = {
     total: evaluations.length,
     valides: evaluations.filter(e => e.status === 'Validé').length,
     enAttente: evaluations.filter(e => e.status === 'En attente').length,
     enRevision: evaluations.filter(e => e.status === 'En révision').length,
-    moyenneGenerale: (evaluations.filter(e => e.note).reduce((acc, e) => acc + e.note, 0) / evaluations.filter(e => e.note).length).toFixed(1) || 0
+    moyenneGenerale: notesList.length > 0 ? (notesList.reduce((acc, e) => acc + e.note, 0) / notesList.length).toFixed(1) : 0
   };
 
   // ===== STATUT STAGES POUR CAMEMBERT =====
@@ -148,9 +82,8 @@ function AdminEvaluations() {
 
   // ===== DONNÉES POUR LE GRAPHIQUE PAR TYPE =====
   const typeData = [
-    { type: 'Maître de stage', count: evaluations.filter(e => e.type === 'Maître de stage').length },
-    { type: 'Tuteur pédagogique', count: evaluations.filter(e => e.type === 'Tuteur pédagogique').length },
-    { type: 'Entreprise', count: evaluations.filter(e => e.type === 'Entreprise').length },
+    { type: 'MAITRE_DE_STAGE', label: 'Encadreur professionnel', count: evaluations.filter(e => e.type === 'MAITRE_DE_STAGE').length },
+    { type: 'TUTEUR_PEDAGOGIQUE', label: 'Tuteur pédagogique', count: evaluations.filter(e => e.type === 'TUTEUR_PEDAGOGIQUE').length },
   ];
 
   // ===== FILTRES =====
@@ -174,15 +107,14 @@ function AdminEvaluations() {
 
   // ===== TYPES D'ÉVALUATION =====
   const typeOptions = [
-    { value: 'Tous', label: 'Tous' },
-    { value: 'Maître de stage', label: 'Maître de stage' },
-    { value: 'Tuteur pédagogique', label: 'Tuteur pédagogique' },
-    { value: 'Entreprise', label: 'Entreprise' }
+    { value: 'Tous', label: 'Tous les types' },
+    { value: 'MAITRE_DE_STAGE', label: 'Encadreur professionnel' },
+    { value: 'TUTEUR_PEDAGOGIQUE', label: 'Tuteur pédagogique' }
   ];
 
   // ===== STATUTS =====
   const statusOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Tous les statuts' },
     { value: 'Validé', label: 'Validé' },
     { value: 'En attente', label: 'En attente' },
     { value: 'En révision', label: 'En révision' }
@@ -196,6 +128,22 @@ function AdminEvaluations() {
       'En révision': 'admin-eval-badge-revision',
     };
     return classes[status] || 'admin-eval-badge-attente';
+  };
+
+  const getTypeLabel = (type) => {
+    switch (type) {
+      case 'MAITRE_DE_STAGE': return 'Encadreur professionnel';
+      case 'TUTEUR_PEDAGOGIQUE': return 'Tuteur pédagogique';
+      default: return type;
+    }
+  };
+
+  const getTypeBadge = (type) => {
+    const classes = {
+      'MAITRE_DE_STAGE': 'admin-eval-type-badge-maitre',
+      'TUTEUR_PEDAGOGIQUE': 'admin-eval-type-badge-tuteur',
+    };
+    return classes[type] || 'admin-eval-type-badge';
   };
 
   // ===== AFFICHAGE DES ÉTOILES =====
@@ -237,7 +185,7 @@ function AdminEvaluations() {
       pdf.save('evaluations.pdf');
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      alert('Erreur lors de l\'export PDF');
+      toast.error('Erreur lors de l\'export PDF');
     } finally {
       setIsExporting(false);
     }
@@ -255,7 +203,10 @@ function AdminEvaluations() {
   };
 
   // ===== FORMAT PERSONNALISÉ POUR LES LABELS DU CAMEMBERT =====
+  const MIN_PERCENT = 0.08;
   const renderCustomLabel = ({ cx, cy, midAngle, outerRadius, percent, name }) => {
+    if (percent < MIN_PERCENT) return null;
+
     const RADIAN = Math.PI / 180;
     const radius = outerRadius * 1.15;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -370,13 +321,22 @@ function AdminEvaluations() {
               />
             </PieChart>
           </ResponsiveContainer>
+          <div className="admin-eval-chart-legend">
+            {statusData.map((item) => (
+              <div className="admin-eval-legend-item" key={item.name}>
+                <span className="admin-eval-legend-dot" style={{ background: item.color }} />
+                <span className="admin-eval-legend-label">{item.name}</span>
+                <span className="admin-eval-legend-count">{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="admin-eval-chart-card">
           <h3><FaChartBar /> Répartition par type</h3>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={typeData} barSize={32} barGap={12}>
               <CartesianGrid strokeDasharray="3 3" stroke="#F5F8FC" />
-              <XAxis dataKey="type" tick={{ fontSize: 11, fill: '#6c7a8a' }} />
+              <XAxis dataKey="label" tick={{ fontSize: 11, fill: '#6c7a8a' }} />
               <YAxis tick={{ fontSize: 11, fill: '#6c7a8a' }} />
               <Tooltip 
                 contentStyle={{ 
@@ -446,7 +406,7 @@ function AdminEvaluations() {
                   <td><strong>{evalItem.etudiant}</strong></td>
                   <td>{evalItem.stage}</td>
                   <td>{evalItem.entreprise}</td>
-                  <td><span className="admin-eval-type-badge">{evalItem.type}</span></td>
+                  <td><span className={getTypeBadge(evalItem.type)}>{getTypeLabel(evalItem.type)}</span></td>
                   <td>{evalItem.date}</td>
                   <td>
                     {evalItem.note ? (
@@ -519,7 +479,7 @@ function AdminEvaluations() {
                 <div className="admin-eval-modal-info-item">
                   <span className="admin-eval-modal-info-label">Évaluateur</span>
                   <span className="admin-eval-modal-info-value">{selectedEvaluation.encadreur}</span>
-                  <span className="admin-eval-modal-info-sub">{selectedEvaluation.type}</span>
+                  <span className="admin-eval-modal-info-sub">{getTypeLabel(selectedEvaluation.type)}</span>
                 </div>
                 <div className="admin-eval-modal-info-item">
                   <span className="admin-eval-modal-info-label">Date d'évaluation</span>

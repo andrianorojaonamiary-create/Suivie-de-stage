@@ -1,99 +1,76 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { 
-  FaUserTie, FaEnvelope, FaPhone, FaBuilding, 
-  FaPlus, FaEdit, FaTrash, FaEye, FaUsers
+import { Link } from 'react-router-dom';
+import {
+  FaUserTie, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaClipboardCheck, FaPlus
 } from 'react-icons/fa';
-import { supervisorsApi } from '../../api';
+import { internshipsApi, supervisorsApi } from '../../api';
+import { mapInternshipList } from '../../utils/internshipMapping';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function MonEncadreur() {
-  const navigate = useNavigate();
-  
   // ===== ÉTATS =====
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [encadreurToDelete, setEncadreurToDelete] = useState(null);
   const [loading, setLoading] = useState(true);
-  
-  // ===== DONNÉES ENCADREURS =====
-  const [encadreurs, setEncadreurs] = useState([
-    {
-      id: 1,
-      nom: 'Rakotomalala',
-      prenom: 'Jean',
-      fonction: 'Directeur technique',
-      entreprise: 'TechMada SARL',
-      email: 'j.rakotomalala@techmada.mg',
-      telephone: '+261 34 12 345 78',
-      specialite: 'Développement logiciel',
-      etudiants: ['Miora Rakoto', 'Hery Rakotondrabe']
-    }
-  ]);
-
-  const fetchSupervisors = async () => {
-    try {
-      setLoading(true);
-      const res = await supervisorsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
-      if (list.length > 0) {
-        const mapped = list.map(item => ({
-          id: item.id,
-          nom: item.lastName || item.user?.lastName || item.nom || 'Encadreur',
-          prenom: item.firstName || item.user?.firstName || item.prenom || '',
-          fonction: item.position || item.function || item.fonction || 'Encadreur',
-          entreprise: item.company?.name || item.companyName || item.entreprise || '',
-          email: item.email || item.user?.email || '',
-          telephone: item.phone || item.user?.phone || item.telephone || '',
-          specialite: item.specialty || item.specialite || '',
-          etudiants: item.students || []
-        }));
-        setEncadreurs(mapped);
-      }
-    } catch (err) {
-      console.error('Erreur chargement encadreurs:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [stages, setStages] = useState([]);
+  const [supervisors, setSupervisors] = useState([]);
+  const [selectedStageId, setSelectedStageId] = useState('all');
 
   useEffect(() => {
-    fetchSupervisors();
+    const fetchData = async () => {
+      try {
+        const [stagesRes, supervisorsRes] = await Promise.allSettled([
+          internshipsApi.getAll(),
+          supervisorsApi.getAll({ limit: 100 }),
+        ]);
+        const stagesList = stagesRes.status === 'fulfilled'
+          ? stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : [])
+          : [];
+        setStages(mapInternshipList(stagesList));
+        const supervisorsList = supervisorsRes.status === 'fulfilled'
+          ? supervisorsRes.value?.data || (Array.isArray(supervisorsRes.value) ? supervisorsRes.value : [])
+          : [];
+        setSupervisors(supervisorsList);
+      } catch (err) {
+        console.error('Erreur chargement encadreur:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
-  // ===== ACTIONS =====
-  const handleView = (id) => {
-    navigate(`/etudiant/encadreur/voir/${id}`, {state:{encadreur: encadreurs.find(e => e.id === id)}});
-  };
+  // ===== STAGE SÉLECTIONNÉ + ENCADREUR ASSOCIÉ =====
+  const stageOptions = stages.map((stage) => ({
+    value: stage.id,
+    label: stage.titre,
+  }));
 
-  const handleEdit = (encadreur) => {
-    navigate('/etudiant/encadreur/modifier', { state: { encadreur } });
-  };
+  const selectedStage = stages.find((s) => s.id === selectedStageId) || stages[0] || null;
 
-  const handleDeleteClick = (id) => {
-    setEncadreurToDelete(id);
-    setShowDeleteModal(true);
-  };
+  const matchedEncadreur = selectedStage?.encadreurId
+    ? supervisors.find((s) => s.id === selectedStage.encadreurId) || null
+    : null;
 
-  const confirmDelete = async () => {
-    try {
-      if (encadreurToDelete) {
-        await supervisorsApi.delete(encadreurToDelete);
+  const encadreur = matchedEncadreur
+    ? {
+        id: matchedEncadreur.id,
+        prenom: matchedEncadreur.user?.prenom || '',
+        nom: matchedEncadreur.user?.nom || 'Encadreur',
+        fonction: matchedEncadreur.fonction || '',
+        specialite: matchedEncadreur.specialite || '',
+        entreprise: matchedEncadreur.entreprise || '',
+        email: matchedEncadreur.user?.email || '',
+        telephone: matchedEncadreur.telephone || '',
       }
-      const encadreur = encadreurs.find(e => e.id === encadreurToDelete);
-      setEncadreurs(encadreurs.filter(e => e.id !== encadreurToDelete));
-      alert(`Encadreur "${encadreur?.prenom} ${encadreur?.nom}" supprimé !`);
-    } catch (err) {
-      console.error('Erreur suppression encadreur:', err);
-      alert('Erreur lors de la suppression de l\'encadreur');
-    } finally {
-      setShowDeleteModal(false);
-      setEncadreurToDelete(null);
-    }
-  };
-
-  const cancelDelete = () => {
-    setShowDeleteModal(false);
-    setEncadreurToDelete(null);
-  };
+    : {
+        id: selectedStage?.encadreurId || null,
+        prenom: '',
+        nom: selectedStage?.encadreur || 'Non renseigné',
+        fonction: '',
+        specialite: '',
+        entreprise: '',
+        email: '',
+        telephone: '',
+      };
 
   return (
     <div className="etudiant-encadreur-page">
@@ -101,74 +78,61 @@ function MonEncadreur() {
       <div className="page-header">
         <div>
           <h1>Mon encadreur</h1>
-          <p className="text-muted">{encadreurs.length} encadreur(s) enregistré(s)</p>
+          <p className="text-muted">
+            {selectedStage
+              ? `Encadreur associé au stage « ${selectedStage.titre} »`
+              : 'Aucun stage associé'}
+          </p>
         </div>
-        <Link to="/etudiant/encadreur/ajouter" className="btn-primary">
-          <FaPlus /> Ajouter un encadreur
-        </Link>
       </div>
 
-      {/* ===== GRILLE DES ENCADREURS ===== */}
-      <div className="encadreur-grid">
-        {encadreurs.length === 0 ? (
-          <div className="empty-state">
-            <p>Aucun encadreur enregistré</p>
-            <p className="empty-sub">Ajoutez votre maître de stage</p>
-            <Link to="/etudiant/encadreur/ajouter" className="btn-primary">
-              <FaPlus /> Ajouter
-            </Link>
-          </div>
-        ) : (
-          encadreurs.map((encadreur) => (
-            <div key={encadreur.id} className="encadreur-card">
-              <div className="encadreur-card-top">
-                <div className="encadreur-avatar">
-                  <FaUserTie />
-                </div>
-                <div className="encadreur-info">
-                  <h3>{encadreur.prenom} {encadreur.nom}</h3>
-                  <span className="encadreur-fonction">{encadreur.fonction || 'Fonction non renseignée'}</span>
-                </div>
-              </div>
-              <div className="encadreur-card-middle">
-                <p><FaBuilding /> {encadreur.entreprise || 'Entreprise non renseignée'}</p>
-                <p><FaEnvelope /> {encadreur.email || 'Non renseigné'}</p>
-                <p><FaPhone /> {encadreur.telephone || 'Non renseigné'}</p>
-                <p><FaUsers /> {encadreur.etudiants?.length || 0} étudiant(s)</p>
-              </div>
-              <div className="encadreur-card-actions">
-                <button className="btn-action" onClick={() => handleView(encadreur.id)} title="Voir">
-                  <FaEye />
-                </button>
-                <button className="btn-action btn-edit" onClick={() => handleEdit(encadreur)} title="Modifier">
-                  <FaEdit />
-                </button>
-                <button className="btn-action btn-danger" onClick={() => handleDeleteClick(encadreur.id)} title="Supprimer">
-                  <FaTrash />
-                </button>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* ===== MODALE DE SUPPRESSION ===== */}
-      {showDeleteModal && (
-        <div className="modal-overlay" onClick={cancelDelete}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <h3>Confirmer la suppression</h3>
-            <p>Voulez-vous vraiment supprimer cet encadreur ? Cette action est irréversible.</p>
-            <div className="modal-actions">
-              <button className="btn-danger" onClick={confirmDelete}>
-                Supprimer
-              </button>
-              <button className="btn-secondary" onClick={cancelDelete}>
-                Annuler
-              </button>
-            </div>
-          </div>
+      {/* ===== SÉLECTEUR DE STAGE (si plusieurs) ===== */}
+      {stageOptions.length > 1 && (
+        <div className="encadreur-stage-selector">
+          <SelectPersonnalise
+            value={selectedStageId}
+            onChange={setSelectedStageId}
+            options={stageOptions}
+            placeholder="Choisir un stage"
+          />
         </div>
       )}
+
+      {/* ===== CONTENU ===== */}
+      <div className="encadreur-grid">
+        {loading && <p>Chargement...</p>}
+
+        {!loading && stageOptions.length === 0 && (
+          <div className="empty-state">
+            <p>Aucun stage défini</p>
+            <p className="empty-sub">Ajoutez votre stage pour associer votre maître de stage</p>
+            <Link to="/etudiant/ajouter-stage" className="btn-primary">
+              <FaPlus /> Ajouter un stage
+            </Link>
+          </div>
+        )}
+
+        {!loading && selectedStage && (
+          <div className="encadreur-card">
+            <div className="encadreur-card-top">
+              <div className="encadreur-avatar">
+                <FaUserTie />
+              </div>
+              <div className="encadreur-info">
+                <h3>{[encadreur.prenom, encadreur.nom].filter(Boolean).join(' ') || 'Non renseigné'}</h3>
+                <span className="encadreur-fonction">{encadreur.fonction || 'Fonction non renseignée'}</span>
+              </div>
+            </div>
+            <div className="encadreur-card-middle">
+              <p><FaBuilding /> {encadreur.entreprise || 'Entreprise non renseignée'}</p>
+              <p><FaEnvelope /> {encadreur.email || 'Non renseigné'}</p>
+              <p><FaPhone /> {encadreur.telephone || 'Non renseigné'}</p>
+              {encadreur.specialite && <p><FaBriefcase /> {encadreur.specialite}</p>}
+              <p><FaClipboardCheck /> Stage : {selectedStage.titre}</p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

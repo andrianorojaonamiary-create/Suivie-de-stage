@@ -11,9 +11,9 @@ import { Role } from '../users/enums/role.enum';
 import { UsersService } from '../users/users.service';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { FindEvaluationsDto } from './dto/find-evaluations.dto';
+import { FindAllEvaluationsDto } from './dto/find-all-evaluations.dto';
 import { UpdateEvaluationDto } from './dto/update-evaluation.dto';
 import { Evaluation } from './entities/evaluation.entity';
-import { EvaluatorType } from './enums/evaluator-type.enum';
 import { NotificationsService } from '../notifications/notifications.service';
 
 interface AuthenticatedUser {
@@ -35,22 +35,19 @@ export class EvaluationsService {
   async create(dto: CreateEvaluationDto, actor: AuthenticatedUser) {
     const stage = await this.findStage(dto.stageId);
     const evaluator = await this.usersService.findActiveById(dto.evaluateurId);
-    const expectedRole =
-      dto.typeEvaluateur === EvaluatorType.ENCADREUR
-        ? Role.ENCADREUR
-        : Role.ENTREPRISE;
-    if (!evaluator || evaluator.role !== expectedRole) {
+    if (!evaluator || evaluator.role !== Role.ENCADREUR) {
       throw new NotFoundException('Évaluateur introuvable ou type incorrect.');
     }
     if (actor.role !== Role.ADMINISTRATEUR && dto.evaluateurId !== actor.id) {
       throw new ForbiddenException('Vous ne pouvez évaluer qu’en votre nom.');
     }
-    this.ensureEvaluatorOnStage(stage, evaluator.id, dto.typeEvaluateur);
+    this.ensureEvaluatorOnStage(stage, evaluator.id);
     const evaluation = this.evaluationsRepository.create({
       ...dto,
       stageId: dto.stageId,
       stage,
       evaluateur: evaluator,
+      validee: true,
       dateEvaluation: dto.dateEvaluation
         ? new Date(dto.dateEvaluation)
         : undefined,
@@ -85,6 +82,60 @@ export class EvaluationsService {
     return {
       data: evaluations.map((evaluation) =>
         this.toPublicEvaluation(evaluation),
+      ),
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async findAllAdmin(dto: FindAllEvaluationsDto) {
+    const page = dto.page ?? 1;
+    const limit = dto.limit ?? 20;
+    const query = this.evaluationsRepository
+      .createQueryBuilder('evaluation')
+      .leftJoinAndSelect('evaluation.evaluateur', 'evaluator')
+      .leftJoinAndSelect('evaluation.stage', 'stage')
+      .leftJoinAndSelect('stage.student', 'student')
+      .leftJoinAndSelect('student.user', 'studentUser')
+      .leftJoinAndSelect('stage.company', 'company')
+      .leftJoinAndSelect('stage.supervisor', 'supervisor')
+      .leftJoinAndSelect('supervisor.user', 'supervisorUser');
+
+    if (dto.typeEvaluateur) {
+      query.andWhere('evaluation.typeEvaluateur = :typeEvaluateur', {
+        typeEvaluateur: dto.typeEvaluateur,
+      });
+    }
+    if (dto.validee) {
+      query.andWhere('evaluation.validee = :validee', {
+        validee: dto.validee === 'true',
+      });
+    }
+    if (dto.dateDebut) {
+      query.andWhere('evaluation.dateEvaluation >= :dateDebut', {
+        dateDebut: dto.dateDebut,
+      });
+    }
+    if (dto.dateFin) {
+      query.andWhere('evaluation.dateEvaluation <= :dateFin', {
+        dateFin: dto.dateFin,
+      });
+    }
+    if (dto.search) {
+      query.andWhere(
+        '(LOWER(studentUser.nom) LIKE LOWER(:search) OR LOWER(studentUser.prenom) LIKE LOWER(:search) OR LOWER(company.nom) LIKE LOWER(:search))',
+        { search: `%${dto.search}%` },
+      );
+    }
+
+    const [evaluations, total] = await query
+      .orderBy('evaluation.dateEvaluation', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return {
+      data: evaluations.map((evaluation) =>
+        this.toPublicEvaluationAdmin(evaluation),
       ),
       meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
     };
@@ -170,15 +221,8 @@ export class EvaluationsService {
     return evaluation;
   }
 
-  private ensureEvaluatorOnStage(
-    stage: Internship,
-    evaluatorId: string,
-    type: EvaluatorType,
-  ) {
-    const assignedId =
-      type === EvaluatorType.ENCADREUR
-        ? stage.supervisor.user?.id
-        : stage.company.user?.id;
+  private ensureEvaluatorOnStage(stage: Internship, evaluatorId: string) {
+    const assignedId = stage.supervisor?.user?.id;
     if (assignedId !== evaluatorId)
       throw new ForbiddenException('Vous n’êtes pas affecté à ce stage.');
   }
@@ -187,8 +231,9 @@ export class EvaluationsService {
     const allowed =
       actor.role === Role.ADMINISTRATEUR ||
       (actor.role === Role.ETUDIANT && stage.student.user?.id === actor.id) ||
-      (actor.role === Role.ENTREPRISE && stage.company.user?.id === actor.id) ||
-      (actor.role === Role.ENCADREUR && stage.supervisor.user?.id === actor.id);
+      (actor.role === Role.ENCADREUR &&
+        stage.supervisor?.user?.id === actor.id) ||
+      (actor.role === Role.ENSEIGNANT && stage.tuteurId === actor.id);
     if (!allowed)
       throw new ForbiddenException(
         'Vous ne pouvez pas consulter cette évaluation.',
@@ -231,6 +276,60 @@ export class EvaluationsService {
       validee: evaluation.validee,
       dateCreation: evaluation.dateCreation,
       dateModification: evaluation.dateModification,
+    };
+  }
+
+  private toPublicEvaluationAdmin(evaluation: Evaluation) {
+    const base = this.toPublicEvaluation(evaluation);
+    return {
+      ...base,
+      student: evaluation.stage?.student
+        ? {
+            id: evaluation.stage.student.id,
+            matricule: evaluation.stage.student.matricule,
+            formation: evaluation.stage.student.formation,
+            niveau: evaluation.stage.student.niveau,
+            promotion: evaluation.stage.student.promotion,
+            user: evaluation.stage.student.user
+              ? {
+                  id: evaluation.stage.student.user.id,
+                  nom: evaluation.stage.student.user.nom,
+                  prenom: evaluation.stage.student.user.prenom,
+                  email: evaluation.stage.student.user.email,
+                }
+              : undefined,
+          }
+        : undefined,
+      stage: evaluation.stage
+        ? {
+            id: evaluation.stage.id,
+            intitule: evaluation.stage.intitule,
+            dateDebut: evaluation.stage.dateDebut,
+            dateFin: evaluation.stage.dateFin,
+            statut: evaluation.stage.statut,
+            company: evaluation.stage.company
+              ? {
+                  id: evaluation.stage.company.id,
+                  nom: evaluation.stage.company.nom,
+                  ville: evaluation.stage.company.ville,
+                }
+              : undefined,
+            supervisor: evaluation.stage.supervisor
+              ? {
+                  id: evaluation.stage.supervisor.id,
+                  fonction: evaluation.stage.supervisor.fonction,
+                  specialite: evaluation.stage.supervisor.specialite,
+                  user: evaluation.stage.supervisor.user
+                    ? {
+                        id: evaluation.stage.supervisor.user.id,
+                        nom: evaluation.stage.supervisor.user.nom,
+                        prenom: evaluation.stage.supervisor.user.prenom,
+                      }
+                    : undefined,
+                }
+              : undefined,
+          }
+        : undefined,
     };
   }
 }

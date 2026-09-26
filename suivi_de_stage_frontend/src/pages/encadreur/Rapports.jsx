@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   FaFileAlt, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
@@ -7,7 +7,14 @@ import {
   FaTimesCircle, FaComment, FaBuilding, FaCalendarAlt
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
+import { internshipsApi, reportsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import {
+  mapReportStatus,
+  mapReportType,
+  formatReportSize,
+  formatReportDate,
+} from '../../utils/reportMapping';
 
 function EncadreurRapports() {
   const { studentId } = useParams();
@@ -21,31 +28,101 @@ function EncadreurRapports() {
   const [selectedRapport, setSelectedRapport] = useState(null);
   const [commentaire, setCommentaire] = useState('');
 
-  const [allRapports, setAllRapports] = useState([
-    { id: 1, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, etudiant: 'Rakoto Miora', etudiantId: 1, stage: 'Plateforme web RH', entreprise: 'TechMada SARL', titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-    { id: 3, etudiant: 'Ramanantsoa Tojo', etudiantId: 2, stage: 'Migration système', entreprise: 'BNI Madagascar', titre: 'Rapport de prise en main', fileName: null, date: '—', statut: 'À déposer', size: '—' }
-  ]);
+  const [allRapports, setAllRapports] = useState([]);
+  const [allStages, setAllStages] = useState([]);
+  const [loadingRapports, setLoadingRapports] = useState(false);
 
-  const rapports = studentId 
-    ? allRapports.filter(r => r.etudiantId === parseInt(studentId))
+  useEffect(() => {
+    const fetchRapports = async () => {
+      setLoadingRapports(true);
+      try {
+        const [reportsRes, stagesRes] = await Promise.allSettled([
+          reportsApi.getAll({ limit: 100 }),
+          internshipsApi.getAll({ limit: 100 }),
+        ]);
+        const stages = stagesRes.status === 'fulfilled'
+          ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+          : [];
+        setAllStages(stages);
+
+        const stageById = new Map(stages.map((s) => [s.id, s]));
+        const stageByEtudiant = new Map();
+        stages.forEach((s) => {
+          if (s.student?.id && !stageByEtudiant.has(s.student.id)) {
+            stageByEtudiant.set(s.student.id, s);
+          }
+        });
+
+        const items = reportsRes.status === 'fulfilled'
+          ? (reportsRes.value?.items || reportsRes.value?.data || (Array.isArray(reportsRes.value) ? reportsRes.value : []))
+          : [];
+        setAllRapports(items.map(r => {
+          const stage = stageById.get(r.stage?.id) || stageByEtudiant.get(r.stage?.etudiantId) || null;
+          const etudiant = stage?.student?.user
+            ? `${stage.student.user.prenom ?? ''} ${stage.student.user.nom ?? ''}`.trim()
+            : 'Étudiant';
+          return {
+            id: r.id,
+            stageId: r.stage?.id,
+            type: r.type,
+            etudiantId: r.stage?.etudiantId,
+            etudiant,
+            stage: r.stage?.intitule || 'Stage',
+            entreprise: stage?.company?.nom || 'Entreprise',
+            titre: mapReportType(r.type),
+            fileName: r.originalName || r.fileName,
+            date: formatReportDate(r.dateCreation),
+            statut: mapReportStatus(r.statut),
+            size: formatReportSize(r.size),
+            commentaire: r.commentaire || '',
+            raison: r.commentaire || ''
+          };
+        }));
+      } catch (err) {
+        console.error('Erreur chargement rapports:', err);
+        toast.error('Erreur lors du chargement des rapports');
+      } finally {
+        setLoadingRapports(false);
+      }
+    };
+    fetchRapports();
+  }, []);
+
+  const rapports = studentId
+    ? allRapports.filter(r => String(r.etudiantId) === String(studentId))
     : allRapports;
 
   const getStudentName = () => {
     if (studentId) {
-      const student = allRapports.find(r => r.etudiantId === parseInt(studentId));
-      return student ? student.etudiant : '';
+      const student = rapports[0]?.etudiant || allRapports.find(r => String(r.etudiantId) === String(studentId))?.etudiant;
+      return student || '';
     }
     return '';
   };
 
   const studentName = getStudentName();
 
+  const typesDeposesParStage = new Map();
+  allRapports.forEach(r => {
+    if (!r.type || !r.stageId) return;
+    if (!typesDeposesParStage.has(r.stageId)) {
+      typesDeposesParStage.set(r.stageId, new Set());
+    }
+    typesDeposesParStage.get(r.stageId).add(r.type);
+  });
+  const stagesActifs = allStages.filter(
+    (s) => (s.statut === 'EN_COURS' || s.statut === 'TERMINE') &&
+      (!studentId || String(s.student?.id) === String(studentId))
+  );
+
   const stats = {
     total: rapports.length,
     valides: rapports.filter(r => r.statut === 'Validé').length,
     revision: rapports.filter(r => r.statut === 'En révision').length,
-    deposer: rapports.filter(r => r.statut === 'À déposer').length
+    deposer: stagesActifs.reduce(
+      (acc, st) => acc + Math.max(0, 3 - (typesDeposesParStage.get(st.id)?.size || 0)),
+      0
+    )
   };
 
   const filteredRapports = rapports.filter(r => {
@@ -75,20 +152,45 @@ function EncadreurRapports() {
     }
   };
 
-  const handleViewFile = (fileName) => {
-    if (fileName) {
-      window.open(`/documents/${fileName}`, '_blank');
+  const handleViewFile = async (rapport) => {
+    if (!rapport?.id) return;
+    const ext = (rapport.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleDownloadFile(rapport);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
+      return;
+    }
+    const win = window.open('', '_blank');
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+      if (win) win.close();
+      toast.error('Erreur lors de l\'ouverture du fichier');
     }
   };
 
-  const handleDownloadFile = (fileName) => {
-    if (fileName) {
+  const handleDownloadFile = async (rapport) => {
+    if (!rapport?.id) return;
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = `/documents/${fileName}`;
-      link.download = fileName;
+      link.href = url;
+      link.download = rapport.fileName || rapport.titre || 'rapport';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Erreur:', error);
+      toast.error('Erreur lors du téléchargement');
     }
   };
 
@@ -111,22 +213,50 @@ function EncadreurRapports() {
     setCommentaire('');
   };
 
-  const confirmValidate = () => {
-    setAllRapports(prev => prev.map(r =>
-      r.id === selectedRapport.id ? { ...r, statut: 'Validé' } : r
-    ));
-    toast.success(`Rapport "${selectedRapport.titre}" validé avec succès !`);
+  const confirmValidate = async () => {
+    if (!selectedRapport) return;
+    try {
+      await reportsApi.updateStatus(selectedRapport.id, {
+        statut: 'APPROUVE',
+        commentaire: commentaire.trim() || null,
+      });
+      setAllRapports(prev => prev.map(r =>
+        r.id === selectedRapport.id
+          ? { ...r, statut: 'Validé', commentaire: commentaire.trim() || '' }
+          : r
+      ));
+      toast.success(`Rapport "${selectedRapport.titre}" validé avec succès !`);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message ||
+        'Erreur lors de la validation';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
     setShowValidateModal(false);
     setSelectedRapport(null);
     setCommentaire('');
   };
 
-  const confirmReject = () => {
+  const confirmReject = async () => {
     if (!commentaire.trim()) return;
-    setAllRapports(prev => prev.map(r =>
-      r.id === selectedRapport.id ? { ...r, statut: 'Refusé', raison: commentaire } : r
-    ));
-    toast.success(`Rapport "${selectedRapport.titre}" refusé`);
+    if (!selectedRapport) return;
+    try {
+      await reportsApi.updateStatus(selectedRapport.id, {
+        statut: 'REJETE',
+        commentaire: commentaire.trim(),
+      });
+      setAllRapports(prev => prev.map(r =>
+        r.id === selectedRapport.id
+          ? { ...r, statut: 'Refusé', raison: commentaire }
+          : r
+      ));
+      toast.success(`Rapport "${selectedRapport.titre}" refusé`);
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message ||
+        'Erreur lors du refus';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
     setShowRejectModal(false);
     setSelectedRapport(null);
     setCommentaire('');
@@ -210,7 +340,6 @@ function EncadreurRapports() {
                     { value: 'tous', label: 'Tous les statuts' },
                     { value: 'Validé', label: 'Validé' },
                     { value: 'En révision', label: 'En révision' },
-                    { value: 'À déposer', label: 'À déposer' },
                     { value: 'Refusé', label: 'Refusé' }
                   ]}
                 />
@@ -237,7 +366,12 @@ function EncadreurRapports() {
           </div>
         </div>
 
-        {filteredRapports.length === 0 ? (
+        {loadingRapports ? (
+          <div className="empty-state">
+            <div className="empty-icon"><FaFileAlt /></div>
+            <h3>Chargement...</h3>
+          </div>
+        ) : filteredRapports.length === 0 ? (
           <div className="empty-state">
             <FaFileAlt className="empty-icon" />
             <h3>Aucun rapport</h3>
@@ -288,14 +422,14 @@ function EncadreurRapports() {
                           <>
                             <button 
                               className="action-btn view" 
-                              onClick={() => handleViewFile(rapport.fileName)}
+                              onClick={() => handleViewFile(rapport)}
                               title="Voir le fichier"
                             >
                               <FaEye />
                             </button>
                             <button 
                               className="action-btn download" 
-                              onClick={() => handleDownloadFile(rapport.fileName)}
+                              onClick={() => handleDownloadFile(rapport)}
                               title="Télécharger"
                             >
                               <FaDownload />
@@ -364,7 +498,7 @@ function EncadreurRapports() {
       {/* ===== MODAL VALIDATION ===== */}
       {showValidateModal && selectedRapport && (
         <div className="modal-overlay" onClick={() => closeModal('validate')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaCheckCircle className="modal-icon-validate" /> Valider le rapport</h2>
               <button className="modal-close" onClick={() => closeModal('validate')}><FaTimes /></button>
@@ -401,7 +535,7 @@ function EncadreurRapports() {
       {/* ===== MODAL REFUS ===== */}
       {showRejectModal && selectedRapport && (
         <div className="modal-overlay" onClick={() => closeModal('reject')}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+          <div className="modal-content modal-form-role" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <h2><FaTimesCircle className="modal-icon-reject" /> Refuser le rapport</h2>
               <button className="modal-close" onClick={() => closeModal('reject')}><FaTimes /></button>

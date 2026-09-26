@@ -4,6 +4,15 @@ import {
   FaArrowLeft, FaFileAlt, FaStar, FaInfoCircle,
   FaFilePdf, FaDownload, FaEye, FaCheck, FaTimes
 } from 'react-icons/fa';
+import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
+import { toast } from 'react-toastify';
+import {
+  mapReportType,
+  mapReportStatus,
+  formatReportSize,
+  formatReportDate,
+} from '../../utils/reportMapping';
+import mapInternship from '../../utils/internshipMapping';
 
 function EnseignantStudentDetail() {
   const { studentId } = useParams();
@@ -11,113 +20,166 @@ function EnseignantStudentDetail() {
   const [student, setStudent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('info');
-  const [rapports, setRapports] = useState([
-    { id: 1, titre: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', statut: 'Validé', size: '1.2 MB' },
-    { id: 2, titre: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', statut: 'En révision', size: '2.4 MB' },
-    { id: 3, titre: 'Rapport final', fileName: null, date: '—', statut: 'À déposer', size: '—' }
-  ]);
+  const [rapports, setRapports] = useState([]);
+  const [stage, setStage] = useState(null);
+  const [evaluations, setEvaluations] = useState([]);
 
   useEffect(() => {
-    setTimeout(() => {
-      const students = {
-        1: {
-          id: 1,
-          nom: 'Rakoto Miora',
-          prenom: 'Miora',
-          matricule: 'ETU-2024-0421',
-          email: 'miora.rakoto@emit.mg',
-          telephone: '+261 34 12 345 01',
-          filiere: 'Génie Logiciel',
-          niveau: 'Master 2',
-          ville: 'Antananarivo',
-          stage: {
-            id: 1,
-            titre: "Développement d'une plateforme web de gestion RH",
-            entreprise: 'TechMada SARL',
-            statut: 'En cours',
-            dateDebut: '2024-03-01',
-            dateFin: '2024-09-15',
-            progression: 65,
-            description: "Développement d'une plateforme web de gestion des ressources humaines avec React et Node.js."
-          },
-          evaluation: 'Validé',
-          rapports: 2,
-          encadreur: 'M. Rakotomalala',
-          tuteur: 'Prof. Andrianivo'
-        },
-        2: {
-          id: 2,
-          nom: 'Rakotondrabe Hery',
-          prenom: 'Hery',
-          matricule: 'ETU-2024-0422',
-          email: 'hery.rakotondrabe@emit.mg',
-          telephone: '+261 34 12 345 02',
-          filiere: 'Réseaux',
-          niveau: 'Licence 3',
-          ville: 'Antananarivo',
-          stage: {
-            id: 2,
-            titre: "Application mobile de gestion des comptes",
-            entreprise: 'Airtel Madagascar',
-            statut: 'En attente',
-            dateDebut: '2024-04-01',
-            dateFin: '2024-10-01',
-            progression: 30,
-            description: "Développement d'une application mobile de gestion des comptes clients sous Android."
-          },
-          evaluation: 'À faire',
-          rapports: 1,
-          encadreur: 'Mme. Ralava',
-          tuteur: 'Dr. Ranaivo'
-        }
-      };
-
-      setStudent(students[studentId] || null);
-      setLoading(false);
-    }, 500);
+    const fetchStudent = async () => {
+      try {
+        setLoading(true);
+        const data = await studentsApi.getById(studentId);
+        setStudent({
+          id: data.id,
+          nom: `${data.user?.prenom || ''} ${data.user?.nom || ''}`.trim() || 'Étudiant',
+          matricule: data.matricule || '—',
+          filiere: data.formation || 'Non renseigné',
+          niveau: data.niveau || 'Non renseigné',
+          email: data.user?.email || '—',
+          telephone: data.telephone || '—',
+          adresse: data.adresse || 'Non renseignée',
+          statut: data.statutAcademique || 'ACTIF',
+        });
+      } catch (err) {
+        console.error('Erreur chargement étudiant:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (studentId) fetchStudent();
   }, [studentId]);
+
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchStage = async () => {
+      try {
+        const res = await internshipsApi.getAll({ limit: 100 });
+        const items = res?.data || (Array.isArray(res) ? res : []);
+        const owned = items.filter((s) => String(s.student?.id) === String(studentId));
+        if (owned.length === 0) return;
+        const raw =
+          owned.find((s) => s.statut === 'EN_COURS') ||
+          owned.find((s) => s.statut === 'TERMINE') ||
+          owned.find((s) => s.statut === 'A_VENIR') ||
+          owned[0];
+        const mapped = mapInternship(raw);
+        setStage(mapped);
+        const evalRes = await evaluationsApi.getByInternship(mapped.id).catch(() => ({ data: [] }));
+        const list = evalRes?.data || (Array.isArray(evalRes) ? evalRes : []);
+        setEvaluations(
+          list.map((e) => ({
+            id: e.id,
+            type: 'Encadreur',
+            note: e.note,
+            date: e.dateEvaluation
+              ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR')
+              : '—',
+            statut: 'Évalué',
+            commentaire: e.commentaire || '',
+          })),
+        );
+      } catch (err) {
+        console.error('Erreur chargement stage étudiant:', err);
+      }
+    };
+    fetchStage();
+  }, [studentId]);
+
+  useEffect(() => {
+    if (!studentId) return;
+    const fetchRapports = async () => {
+      try {
+        const res = await reportsApi.getAll({ limit: 100 });
+        const items = Array.isArray(res) ? res : res?.items || [];
+        const filtered = items
+          .filter((r) => String(r.stage?.etudiantId) === String(studentId))
+          .map((r) => ({
+            id: r.id,
+            titre: mapReportType(r.type),
+            fileName: r.originalName || r.fileName,
+            size: formatReportSize(r.size),
+            date: formatReportDate(r.dateCreation),
+            statut: mapReportStatus(r.statut),
+            commentaire: r.commentaire || '',
+            raison: r.commentaire || '',
+          }));
+        setRapports(filtered);
+      } catch (err) {
+        console.error('Erreur chargement rapports étudiant:', err);
+      }
+    };
+    fetchRapports();
+  }, [studentId]);
+
+  const handleValiderRapport = async (id) => {
+    try {
+      await reportsApi.updateStatus(id, { statut: 'APPROUVE' });
+      setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
+      toast.success('Rapport validé avec succès !');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors de la validation';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
+  };
+
+  const handleRefuserRapport = async (id) => {
+    try {
+      await reportsApi.updateStatus(id, { statut: 'REJETE' });
+      setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Refusé' } : r));
+      toast.success('Rapport refusé');
+    } catch (err) {
+      const message = err?.response?.data?.message || err?.message || 'Erreur lors du refus';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
+  };
+
+  const handleViewFile = async (rapport) => {
+    if (!rapport?.id) return;
+    const ext = (rapport.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleDownloadFile(rapport);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
+      return;
+    }
+    const win = window.open('', '_blank');
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+    } catch (err) {
+      console.error('Erreur:', err);
+      if (win) win.close();
+      toast.error("Erreur lors de l'ouverture du fichier");
+    }
+  };
+
+  const handleDownloadFile = async (rapport) => {
+    if (!rapport?.id) return;
+    try {
+      const blob = await reportsApi.download(rapport.id);
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = rapport.fileName || rapport.titre || 'rapport';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Erreur:', err);
+      toast.error('Erreur lors du téléchargement');
+    }
+  };
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('fr-FR');
   };
-
-  const getStatusBadge = (statut) => {
-    const badges = {
-      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
-      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
-      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
-      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
-    };
-    const badge = badges[statut] || badges['En attente'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
-
-  const getEvalBadge = (evalStatus) => {
-    const badges = {
-      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
-      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
-      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
-    };
-    const badge = badges[evalStatus] || badges['À faire'];
-    return <span className={badge.className}>{badge.label}</span>;
-  };
-
-  const handleValiderRapport = (id) => {
-    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'Validé' } : r));
-  };
-
-  const handleRefuserRapport = (id) => {
-    setRapports(prev => prev.map(r => r.id === id ? { ...r, statut: 'À corriger' } : r));
-  };
-
-  const evaluations = [
-    { id: 1, type: 'Tuteur pédagogique', date: '15 Mai 2024', statut: 'Validé', note: '16.5', commentaire: 'Bon travail, étudiant sérieux et impliqué.' },
-    { id: 2, type: 'Maître de stage', date: '20 Mai 2024', statut: 'Validé', note: '17.0', commentaire: 'Très impliqué dans les projets.' },
-    { id: 3, type: 'Entreprise', date: '25 Mai 2024', statut: 'À faire', note: null, commentaire: 'En attente d\'évaluation' }
-  ];
 
   const tabs = [
     { id: 'info', label: 'Informations', icon: <FaInfoCircle /> },
@@ -169,7 +231,7 @@ function EnseignantStudentDetail() {
         {activeTab === 'info' && (
           <div className="info-fields-grid">
             <div className="info-field info-field-full">
-              <span className="info-field-label">Nom</span>
+              <span className="info-field-label">Nom complet</span>
               <span className="info-field-box">{student.nom}</span>
             </div>
             <div className="info-field">
@@ -193,50 +255,44 @@ function EnseignantStudentDetail() {
               <span className="info-field-box">{student.telephone || 'Non renseigné'}</span>
             </div>
             <div className="info-field">
-              <span className="info-field-label">Ville</span>
-              <span className="info-field-box">{student.ville || 'Non renseignée'}</span>
+              <span className="info-field-label">Adresse</span>
+              <span className="info-field-box">{student.adresse || 'Non renseignée'}</span>
             </div>
             <div className="info-field">
-              <span className="info-field-label">Encadreur</span>
-              <span className="info-field-box">{student.encadreur || 'Non renseigné'}</span>
-            </div>
-            <div className="info-field-divider" />
-            <div className="info-field info-field-full">
-              <span className="info-field-label">Stage</span>
-              <span className="info-field-box"><strong>{student.stage.titre}</strong></span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Entreprise</span>
-              <span className="info-field-box">{student.stage.entreprise}</span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Période</span>
-              <span className="info-field-box">{formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}</span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Progression</span>
-              <span className="info-field-box">
-                <div className="inline-progress">
-                  <div className="inline-progress-bar">
-                    <div className="inline-progress-fill" style={{ width: `${student.stage.progression}%` }} />
-                  </div>
-                  <span>{student.stage.progression}%</span>
-                </div>
-              </span>
-            </div>
-            <div className="info-field">
-              <span className="info-field-label">Statut</span>
-              <span className="info-field-box">{getStatusBadge(student.stage.statut)}</span>
+              <span className="info-field-label">Statut académique</span>
+              <span className="info-field-box">{student.statut}</span>
             </div>
             <div className="info-field info-field-full">
-              <span className="info-field-label">Description</span>
-              <span className="info-field-box info-field-desc">{student.stage.description || 'Non renseignée'}</span>
+              <span className="info-field-label">Informations de stage</span>
+              {stage ? (
+                <span className="info-field-box info-field-desc">
+                  {stage.intitule}
+                  {(stage.entreprise || stage.lieu) && (
+                    <span className="info-field-sub">
+                      {[stage.entreprise, stage.lieu].filter(Boolean).join(' · ')}
+                      {stage.encadreur && ` · Encadreur : ${stage.encadreur}`}
+                    </span>
+                  )}
+                  <span className="info-field-sub">
+                    Période : {formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)} · Statut : {stage.statut} · Progression : {stage.progression}%
+                  </span>
+                </span>
+              ) : (
+                <span className="info-field-box info-field-desc">Aucun stage enregistré</span>
+              )}
             </div>
           </div>
         )}
 
         {activeTab === 'evaluations' && (
           <div className="eval-table-wrap">
+            {evaluations.length === 0 ? (
+              <div className="empty-state">
+                <FaStar className="empty-icon" />
+                <h3>Aucune évaluation</h3>
+                <p>Aucune évaluation n'a encore été déposée pour ce stage.</p>
+              </div>
+            ) : (
             <table className="eval-table">
               <thead>
                 <tr>
@@ -262,7 +318,7 @@ function EnseignantStudentDetail() {
                       </td>
                       <td className="eval-table-date" data-label="Date">{evalItem.date}</td>
                       <td data-label="Statut">
-                        <span className={`badge ${evalItem.statut === 'Validé' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
+                        <span className={`badge ${evalItem.statut === 'Évalué' ? 'badge-valide' : evalItem.statut === 'À corriger' ? 'badge-refuse' : 'badge-en-attente'}`}>
                           {evalItem.statut}
                         </span>
                       </td>
@@ -273,6 +329,7 @@ function EnseignantStudentDetail() {
                 ))}
               </tbody>
             </table>
+            )}
           </div>
         )}
 
@@ -312,8 +369,8 @@ function EnseignantStudentDetail() {
                     <div className="report-col-actions">
                       {rapport.fileName && (
                         <>
-                          <button className="btn-action-icon" title="Voir"><FaEye /></button>
-                          <button className="btn-action-icon" title="Télécharger"><FaDownload /></button>
+                          <button className="btn-action-icon" title="Voir" onClick={() => handleViewFile(rapport)}><FaEye /></button>
+                          <button className="btn-action-icon" title="Télécharger" onClick={() => handleDownloadFile(rapport)}><FaDownload /></button>
                           {rapport.statut !== 'Validé' && (
                             <>
                               <button className="btn-action-icon" title="Valider" onClick={() => handleValiderRapport(rapport.id)}><FaCheck /></button>

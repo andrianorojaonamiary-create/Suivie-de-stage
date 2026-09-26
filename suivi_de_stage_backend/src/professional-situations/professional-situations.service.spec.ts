@@ -33,7 +33,7 @@ describe('ProfessionalSituationsService', () => {
     ).resolves.toMatchObject({
       id: 'situation-id',
       studentId: 'student-id',
-      situation: ProfessionalSituationType.EMPLOYE,
+      situation: 'En emploi',
     });
     expect(situationsRepository.save).toHaveBeenCalled();
   });

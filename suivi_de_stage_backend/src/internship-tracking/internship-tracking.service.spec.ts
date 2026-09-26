@@ -12,9 +12,11 @@ describe('InternshipTrackingService', () => {
     createQueryBuilder: jest.fn(),
   };
   const internshipsRepository = { findOne: jest.fn() };
+  const notificationsService = { notifyObservationAdded: jest.fn() };
   const service = new InternshipTrackingService(
     followUpsRepository as never,
     internshipsRepository as never,
+    notificationsService as never,
   );
   const stage = {
     id: 'stage-id',
@@ -41,7 +43,7 @@ describe('InternshipTrackingService', () => {
 
   it.each([
     [Role.ETUDIANT, 'student-id'],
-    [Role.ENTREPRISE, 'company-id'],
+    [Role.ENSEIGNANT, 'enseignant-id'],
   ])('rejects observation creation by %s', async (role, id) => {
     internshipsRepository.findOne.mockResolvedValue(stage);
 

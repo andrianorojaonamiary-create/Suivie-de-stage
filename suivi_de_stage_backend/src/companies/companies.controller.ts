@@ -31,13 +31,13 @@ export class CompaniesController {
   constructor(private readonly companiesService: CompaniesService) {}
 
   @Post()
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ETUDIANT)
   create(@Body() dto: CreateCompanyDto, @Req() request: AuthenticatedRequest) {
     return this.companiesService.create(dto, request.user);
   }
 
   @Get()
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT)
   findAll(
     @Query() dto: FindCompaniesDto,
     @Req() request: AuthenticatedRequest,
@@ -46,13 +46,19 @@ export class CompaniesController {
   }
 
   @Get('me')
-  @Roles(Role.ENTREPRISE, Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
   findMe(@Req() request: AuthenticatedRequest) {
     return this.companiesService.findMe(request.user);
   }
 
+  @Get('encadreur')
+  @Roles(Role.ENCADREUR)
+  findSupervisedCompanies(@Req() request: AuthenticatedRequest) {
+    return this.companiesService.findSupervisedCompanies(request.user);
+  }
+
   @Get(':id/students')
-  @Roles(Role.ENTREPRISE, Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
   findHostedStudents(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
@@ -61,7 +67,7 @@ export class CompaniesController {
   }
 
   @Get(':id')
-  @Roles(Role.ENTREPRISE, Role.ENCADREUR, Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
@@ -70,7 +76,7 @@ export class CompaniesController {
   }
 
   @Patch(':id')
-  @Roles(Role.ENTREPRISE, Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ETUDIANT)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateCompanyDto,
@@ -89,7 +95,7 @@ export class CompaniesController {
   }
 
   @Delete(':id')
-  @Roles(Role.ADMINISTRATEUR)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT)
   remove(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,

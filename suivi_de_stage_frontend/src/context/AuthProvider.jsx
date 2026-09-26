@@ -1,9 +1,7 @@
-import { createContext, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import apiClient, { getApiErrorMessage, normalizeUser } from '../api/apiClient';
 import { toast } from 'react-toastify';
-
-// Création du contexte (à l'intérieur du fichier)
-const AuthContext = createContext(null);
+import { AuthContext } from './authContext';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
@@ -64,19 +62,27 @@ export function AuthProvider({ children }) {
         role: userData.role,
         ...(userData.matricule && { matricule: userData.matricule }),
         ...(userData.niveau && { niveau: userData.niveau }),
-        ...(userData.filiere && { filiere: userData.filiere }),
+        ...(userData.formation && { formation: userData.formation }),
+        ...(userData.promotion && { promotion: userData.promotion }),
         ...(userData.grade && { grade: userData.grade }),
         ...(userData.departement && { departement: userData.departement }),
         ...(userData.specialite && { specialite: userData.specialite }),
         ...(userData.entreprise && { entreprise: userData.entreprise }),
-        ...(userData.poste && { poste: userData.poste }),
+        ...(userData.fonction && { fonction: userData.fonction }),
         ...(userData.telephone && { telephone: userData.telephone }),
         ...(userData.adresse && { adresse: userData.adresse }),
       };
 
       const response = await apiClient.post('/auth/register', payload);
-      toast.success('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-      return response.data.user || response.data;
+      const { accessToken, user } = response.data;
+
+      localStorage.setItem('token', accessToken);
+      setToken(accessToken);
+      const normalizedUser = normalizeUser(user);
+      setUser(normalizedUser);
+
+      toast.success(`Bienvenue ${normalizedUser.prenom} !`);
+      return normalizedUser;
     } catch (error) {
       toast.error(getApiErrorMessage(error, "Erreur lors de l'inscription"));
       throw error;
@@ -96,6 +102,18 @@ export function AuthProvider({ children }) {
     }
   };
 
+  const refreshUser = async () => {
+    try {
+      const { data } = await apiClient.get('/auth/me');
+      const normalizedUser = normalizeUser(data);
+      setUser(normalizedUser);
+      return normalizedUser;
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement du profil:', error);
+      throw error;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setToken(null);
@@ -109,6 +127,7 @@ export function AuthProvider({ children }) {
     login,
     register,
     updateProfile,
+    refreshUser,
     logout
   };
 
@@ -118,6 +137,3 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
-
-// Exporter le contexte pour qu'il soit accessible par le hook
-export { AuthContext };

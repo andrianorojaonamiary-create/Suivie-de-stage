@@ -1,9 +1,15 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { Role } from '../users/enums/role.enum';
 import { StatisticsService } from './statistics.service';
+import { FindStatisticsDto } from './dto/find-statistics.dto';
 
 @Controller('statistics')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -12,13 +18,18 @@ export class StatisticsController {
   constructor(private readonly statisticsService: StatisticsService) {}
 
   @Get('dashboard')
-  getDashboard() {
-    return this.statisticsService.getDashboard();
+  getDashboard(@Query() dto: FindStatisticsDto) {
+    return this.statisticsService.getDashboard(dto);
+  }
+
+  @Get('overview')
+  getOverview(@Query() dto: FindStatisticsDto) {
+    return this.statisticsService.getOverview(dto);
   }
 
   @Get('internships')
-  getInternships() {
-    return this.statisticsService.getInternshipStatistics();
+  getInternships(@Query() dto: FindStatisticsDto) {
+    return this.statisticsService.getInternshipStatistics(dto);
   }
 
   @Get('employment')

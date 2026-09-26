@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye,
   FaUserTie, FaUsers, FaChalkboardTeacher, FaBriefcase,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 
-import EncadreurForm from './components/EncadreurForm';
 import EncadreurDetail from './components/EncadreurDetail';
-import EncadreurDelete from './components/EncadreurDelete';
 import supervisorsApi from '../../api/supervisorsApi';
+import usersApi from '../../api/usersApi';
+import internshipsApi from '../../api/internshipsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEncadreurs() {
@@ -16,54 +16,100 @@ function AdminEncadreurs() {
   const [filterType, setFilterType] = useState('Tous');
   const [filterFonction, setFilterFonction] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEncadreur, setSelectedEncadreur] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [encadreurs, setEncadreurs] = useState([]);
-  const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    type: 'professionnel',
-    fonction: '',
-    entreprise: ''
-  });
   const itemsPerPage = 5;
 
   const loadSupervisors = async () => {
     try {
-      setLoading(true);
-      const res = await supervisorsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.data || res?.items || [];
+      const getList = (res, value) => {
+        if (!res || res !== 'fulfilled') return [];
+        return Array.isArray(value) ? value : value?.data ?? value?.items ?? [];
+      };
 
-      const mapped = list.map(item => {
-        const u = item.user || {};
-        const isPedago = u.role === 'ENSEIGNANT' || u.role === 'ROLE_ENSEIGNANT';
+      const fetchAllInternships = async () => {
+        const all = [];
+        let page = 1;
+        let total = Infinity;
+        while (all.length < total) {
+          const res = await internshipsApi.getAll({ limit: 100, page });
+          const items = Array.isArray(res) ? res : res?.data ?? res?.items ?? [];
+          all.push(...items);
+          total = res?.meta?.total ?? all.length;
+          if (items.length === 0) break;
+          page += 1;
+        }
+        return all;
+      };
+
+      const [prosResult, tuteursResult] = await Promise.allSettled([
+        supervisorsApi.getAll({ limit: 100 }),
+        usersApi.getAll({ role: 'ENSEIGNANT', limit: 100 }),
+      ]);
+
+      const namesBySupervisor = new Map();
+      const namesByTuteur = new Map();
+      try {
+        const internships = await fetchAllInternships();
+        internships.forEach((internship) => {
+          const student = internship.student;
+          if (!student) return;
+          const name = student.user ? `${student.user.prenom} ${student.user.nom}` : 'Étudiant';
+          if (internship.supervisor?.user?.id) {
+            const key = internship.supervisor.user.id;
+            if (!namesBySupervisor.has(key)) namesBySupervisor.set(key, new Map());
+            namesBySupervisor.get(key).set(student.id, name);
+          }
+          if (internship.tuteur?.id) {
+            const key = internship.tuteur.id;
+            if (!namesByTuteur.has(key)) namesByTuteur.set(key, new Map());
+            namesByTuteur.get(key).set(student.id, name);
+          }
+        });
+      } catch (err) {
+        console.error('Erreur chargement des stages:', err);
+      }
+
+      const professionnels = getList(prosResult.status, prosResult.value).map(item => {
+        const userId = item.user?.id;
         return {
           id: item.id,
-          nom: u.nom || item.nom || 'Nom',
-          prenom: u.prenom || item.prenom || 'Prénom',
-          email: u.email || item.email || '—',
-          telephone: item.telephone || u.telephone || '—',
-          type: isPedago ? 'pedagogique' : 'professionnel',
-          fonction: item.fonction || item.specialite || item.grade || (isPedago ? 'Tuteur pédagogique' : 'Encadreur pro'),
-          entreprise: item.entreprise?.nom || (isPedago ? 'EMIT' : 'Entreprise'),
-          etudiants: item.internships ? item.internships.map(i => i.student?.user ? `${i.student.user.prenom} ${i.student.user.nom}` : 'Étudiant') : []
+          userId,
+          nom: item.user?.nom || item.nom || 'NOM',
+          prenom: item.user?.prenom || item.prenom || 'Prénom',
+          email: item.user?.email || item.email || 'email@emit.mg',
+          telephone: item.telephone || item.user?.telephone || '+261 34 00 000 00',
+          type: item.user?.role === 'ENSEIGNANT' ? 'pedagogique' : 'professionnel',
+          fonction: item.fonction || item.specialite || 'Responsable technique',
+          entreprise: item.entreprise || 'Entreprise',
+          etudiants: userId ? Array.from((namesBySupervisor.get(userId) || new Map()).values()) : []
         };
       });
-      setEncadreurs(mapped);
+
+      const pedagogiques = getList(tuteursResult.status, tuteursResult.value).map(item => ({
+        id: item.id,
+        nom: item.nom || 'NOM',
+        prenom: item.prenom || 'Prénom',
+        email: item.email || 'email@emit.mg',
+        telephone: item.telephone || '+261 34 00 000 00',
+        type: 'pedagogique',
+        fonction: item.grade || "Enseignant à l'EMIT",
+        entreprise: 'EMIT',
+        etudiants: Array.from((namesByTuteur.get(item.id) || new Map()).values())
+      }));
+
+      setEncadreurs([...professionnels, ...pedagogiques]);
     } catch (err) {
       console.error('Erreur chargement encadreurs:', err);
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadSupervisors();
+    const run = async () => {
+      await loadSupervisors();
+    };
+    run();
   }, []);
 
   const stats = {
@@ -97,7 +143,7 @@ function AdminEncadreurs() {
     { value: 'pedagogique', label: 'Tuteur pédagogique' }
   ];
   const fonctionOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Toutes les fonctions' },
     { value: 'Responsable technique', label: 'Responsable technique' },
     { value: 'Responsable projet', label: 'Responsable projet' },
     { value: 'Responsable RH', label: 'Responsable RH' },
@@ -111,58 +157,6 @@ function AdminEncadreurs() {
 
   const getTypeLabel = (type) => {
     return type === 'professionnel' ? 'Encadreur pro.' : 'Tuteur pédago.';
-  };
-
-  const resetForm = () => {
-    setFormData({
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      type: 'professionnel',
-      fonction: '',
-      entreprise: ''
-    });
-  };
-
-  const handleEdit = async () => {
-    try {
-      if (selectedEncadreur?.id) {
-        await supervisorsApi.update(selectedEncadreur.id, {
-          type: formData.type,
-          grade: formData.fonction
-        });
-        await loadSupervisors();
-      }
-    } catch {
-      setEncadreurs(encadreurs.map(e => e.id === selectedEncadreur?.id ? { ...e, ...formData } : e));
-    }
-    setShowEditModal(false);
-    resetForm();
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (selectedEncadreur?.id) {
-        await supervisorsApi.delete(selectedEncadreur.id);
-        await loadSupervisors();
-      }
-    } catch {
-      setEncadreurs(encadreurs.filter(e => e.id !== selectedEncadreur?.id));
-    }
-    setShowDeleteModal(false);
-    setSelectedEncadreur(null);
-  };
-
-  const openEditModal = (encadreur) => {
-    setSelectedEncadreur(encadreur);
-    setFormData(encadreur);
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (encadreur) => {
-    setSelectedEncadreur(encadreur);
-    setShowDeleteModal(true);
   };
 
   const openDetailModal = (encadreur) => {
@@ -298,9 +292,7 @@ function AdminEncadreurs() {
                   </td>
                   <td>
                     <div className="admin-encadreurs-actions">
-                      <button className="admin-encadreurs-btn-icon" onClick={() => openDetailModal(encadreur)} title="Voir"><FaEye /></button>
-                      <button className="admin-encadreurs-btn-icon" onClick={() => openEditModal(encadreur)} title="Modifier"><FaEdit /></button>
-                      <button className="admin-encadreurs-btn-icon danger" onClick={() => openDeleteModal(encadreur)} title="Supprimer"><FaTrash /></button>
+                      <button className="admin-encadreurs-btn-view" onClick={() => openDetailModal(encadreur)} title="Voir"><FaEye /> Voir</button>
                     </div>
                   </td>
                 </tr>
@@ -323,27 +315,6 @@ function AdminEncadreurs() {
       </div>
 
       {/* ===== MODALES ===== */}
-      {showEditModal && (
-        <EncadreurForm
-          title="Modifier l'encadreur"
-          submitLabel="Modifier"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
-          typeOptions={typeOptions}
-          fonctionOptions={fonctionOptions}
-        />
-      )}
-
-      {showDeleteModal && (
-        <EncadreurDelete
-          encadreur={selectedEncadreur}
-          onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setSelectedEncadreur(null); }}
-        />
-      )}
-
       {showDetailModal && (
         <EncadreurDetail
           encadreur={selectedEncadreur}

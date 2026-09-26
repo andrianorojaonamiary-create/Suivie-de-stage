@@ -1,15 +1,14 @@
-import {
-  Injectable,
-  NotFoundException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Internship } from '../internships/entities/internship.entity';
+import { InternshipStatus } from '../internships/enums/internship-status.enum';
 import { Role } from '../users/enums/role.enum';
+import { User } from '../users/entities/user.entity';
 import { FindNotificationsDto } from './dto/find-notifications.dto';
 import { Notification } from './entities/notification.entity';
 import { NotificationType } from './enums/notification-type.enum';
+import { MailService } from '../mail/mail.service';
 
 interface AuthenticatedUser {
   id: string;
@@ -21,6 +20,9 @@ export class NotificationsService {
   constructor(
     @InjectRepository(Notification)
     private readonly notificationsRepository: Repository<Notification>,
+    @InjectRepository(User)
+    private readonly usersRepository: Repository<User>,
+    private readonly mailService: MailService,
   ) {}
 
   async findAll(dto: FindNotificationsDto, actor: AuthenticatedUser) {
@@ -78,6 +80,50 @@ export class NotificationsService {
     );
   }
 
+  async notifyStageAwaitingValidation(stage: Internship) {
+    const supervisorId = stage.supervisor?.user?.id;
+    if (supervisorId) {
+      await this.createNotification(
+        supervisorId,
+        NotificationType.STAGE_AFFECTE,
+        'Stage en attente de validation',
+        `Le stage « ${stage.intitule} » soumis par ${this.getStudentName(stage)} attend votre validation.`,
+        stage.id,
+      );
+    }
+  }
+
+  async notifyStageAwaitingProfessionalSupervisor(stage: Internship) {
+    const admins = await this.usersRepository.find({
+      where: { role: Role.ADMINISTRATEUR, actif: true },
+    });
+    await Promise.all(
+      admins.map((admin) =>
+        this.createNotification(
+          admin.id,
+          NotificationType.STAGE_AFFECTE,
+          'Stage en attente d’encadreur professionnel',
+          `Le stage « ${stage.intitule} » de ${this.getStudentName(stage)} a été soumis sans encadreur professionnel identifié.`,
+          stage.id,
+        ),
+      ),
+    );
+  }
+
+  async notifyStageStatusChanged(stage: Internship) {
+    const message =
+      stage.statut === InternshipStatus.REFUSE
+        ? `Le stage « ${stage.intitule} » a été refusé par votre encadreur.`
+        : `Le stage « ${stage.intitule} » a été validé par votre encadreur.`;
+    await this.notifyParticipants(
+      stage,
+      NotificationType.STAGE_MODIFIE,
+      'Stage évalué',
+      message,
+      stage.supervisor?.user?.id,
+    );
+  }
+
   async notifyStageModified(stage: Internship) {
     const supervisorId = stage.supervisor?.user?.id;
     if (supervisorId) {
@@ -119,6 +165,18 @@ export class NotificationsService {
       );
   }
 
+  async notifyObservationAdded(stage: Internship) {
+    const userId = stage.student?.user?.id;
+    if (!userId) return;
+    await this.createNotification(
+      userId,
+      NotificationType.OBSERVATION,
+      'Nouvelle observation',
+      `Une observation a été ajoutée au stage « ${stage.intitule} ».`,
+      stage.id,
+    );
+  }
+
   async notifyStageEndingSoon(stage: Internship) {
     const participants = [
       stage.student?.user?.id,
@@ -145,6 +203,52 @@ export class NotificationsService {
         );
     }
     await this.notifyEvaluationRequired(stage);
+  }
+
+  async notifyReportSubmitted(
+    stage: Internship,
+    report: { type: string },
+  ) {
+    const recipients = [
+      stage.tuteurId,
+      stage.supervisor?.user?.id,
+    ].filter((id): id is string => Boolean(id));
+    for (const userId of new Set(recipients)) {
+      await this.createNotification(
+        userId,
+        NotificationType.RAPPORT_DEPOSE,
+        'Rapport déposé',
+        `${this.getStudentName(stage)} a déposé un rapport ${this.getReportTypeLabel(report.type)} pour le stage « ${stage.intitule} ».`,
+        stage.id,
+      );
+    }
+  }
+
+  async notifyReportReviewed(
+    stage: Internship,
+    report: { type: string; commentaire: string | null },
+    statut: string,
+  ) {
+    const studentId = stage.student?.user?.id;
+    if (!studentId) return;
+    await this.createNotification(
+      studentId,
+      NotificationType.RAPPORT_REVU,
+      statut === 'APPROUVE' ? 'Rapport validé' : 'Rapport refusé',
+      statut === 'APPROUVE'
+        ? `Le rapport ${this.getReportTypeLabel(report.type)} du stage « ${stage.intitule} » a été validé.`
+        : `Le rapport ${this.getReportTypeLabel(report.type)} du stage « ${stage.intitule} » a été refusé.${report.commentaire ? ` Motif : ${report.commentaire}` : ''}`,
+      stage.id,
+    );
+  }
+
+  private getReportTypeLabel(type: string) {
+    const labels: Record<string, string> = {
+      PRISE_EN_MAIN: 'de prise en main',
+      INTERMEDIAIRE: 'intermédiaire',
+      FINAL: 'final',
+    };
+    return labels[type] || type.toLowerCase();
   }
 
   private async notifyParticipants(
@@ -209,6 +313,34 @@ export class NotificationsService {
         message,
         referenceId: referenceId ?? null,
       }),
+    );
+  }
+
+  async notifyNewUserRegistration(user: Omit<User, 'motDePasse'>) {
+    const admins = await this.usersRepository.find({
+      where: { role: Role.ADMINISTRATEUR, actif: true },
+    });
+
+    const message = `${user.prenom} ${user.nom} (${user.email}) s'est inscrit en tant que ${user.role}.`;
+
+    // 1. Notifications in-app pour chaque admin
+    await Promise.all(
+      admins.map((admin) =>
+        this.createNotification(
+          admin.id,
+          NotificationType.NOUVEL_INSCRIT,
+          'Nouvel inscrit',
+          message,
+          user.id,
+        ),
+      ),
+    );
+
+    // 2. Emails aux admins (fire-and-forget, on ignore les erreurs d'envoi)
+    await Promise.all(
+      admins.map((admin) =>
+        this.mailService.sendNewUserNotificationEmail(admin.email, message).catch(() => {}),
+      ),
     );
   }
 

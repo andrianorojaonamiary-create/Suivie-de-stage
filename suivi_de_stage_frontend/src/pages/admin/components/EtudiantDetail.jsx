@@ -1,9 +1,10 @@
 // src/pages/admin/components/EtudiantDetail.jsx
-import { FaTimes, FaEnvelope, FaPhone, FaBuilding, FaGraduationCap } from 'react-icons/fa';
+import { FaTimes, FaEnvelope, FaPhone, FaGraduationCap } from 'react-icons/fa';
 
 function EtudiantDetail({ etudiant, onClose }) {
   const getStatusBadge = (statut) => {
-    return statut === 'Actif' ? 'badge-actif' : 'badge-diplome';
+    if (statut === 'DIPLOME') return 'badge-diplome';
+    return 'badge-actif';
   };
 
   if (!etudiant) return null;
@@ -20,12 +21,12 @@ function EtudiantDetail({ etudiant, onClose }) {
         <div className="modal-body">
           <div className="detail-grid">
             <div className="detail-item">
-              <label>Matricule</label>
-              <span>{etudiant.matricule}</span>
-            </div>
-            <div className="detail-item">
               <label>Nom complet</label>
               <span>{etudiant.prenom} {etudiant.nom}</span>
+            </div>
+            <div className="detail-item">
+              <label>Matricule</label>
+              <span>{etudiant.matricule}</span>
             </div>
             <div className="detail-item">
               <label>Email</label>
@@ -36,8 +37,8 @@ function EtudiantDetail({ etudiant, onClose }) {
               <span><FaPhone /> {etudiant.telephone}</span>
             </div>
             <div className="detail-item">
-              <label>Filière</label>
-              <span>{etudiant.filiere}</span>
+              <label>Formation</label>
+              <span>{etudiant.formation}</span>
             </div>
             <div className="detail-item">
               <label>Promotion</label>
@@ -50,14 +51,6 @@ function EtudiantDetail({ etudiant, onClose }) {
             <div className="detail-item">
               <label>Statut</label>
               <span className={getStatusBadge(etudiant.statut)}>{etudiant.statut}</span>
-            </div>
-            <div className="detail-item">
-              <label>Stage</label>
-              <span>{etudiant.stage || '—'}</span>
-            </div>
-            <div className="detail-item">
-              <label>Entreprise</label>
-              <span><FaBuilding /> {etudiant.entreprise || '—'}</span>
             </div>
           </div>
         </div>

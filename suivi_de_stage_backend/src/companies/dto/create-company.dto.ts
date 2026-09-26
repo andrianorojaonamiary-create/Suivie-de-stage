@@ -21,8 +21,9 @@ const normalizeEmail = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string' ? value.trim().toLowerCase() : value;
 
 export class CreateCompanyDto {
+  @IsOptional()
   @IsUUID()
-  userId: string;
+  userId?: string;
 
   @Transform(trim)
   @IsString()
@@ -51,9 +52,10 @@ export class CreateCompanyDto {
   ville: string;
 
   @Transform(trim)
+  @IsOptional()
   @IsString()
   @Length(2, 100)
-  region: string;
+  region?: string;
 
   @Transform(trim)
   @IsOptional()

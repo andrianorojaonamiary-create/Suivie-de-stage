@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye,
   FaList,
   FaChevronLeft, FaChevronRight, FaCheck, FaTimes, FaClock
 } from 'react-icons/fa';
 
-import StageForm from './components/StageForm';
 import StageDetail from './components/StageDetail';
-import StageDelete from './components/StageDelete';
 import internshipsApi from '../../api/internshipsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
@@ -16,28 +14,13 @@ function AdminStages() {
   const [filterStatut, setFilterStatut] = useState('Tous');
   const [filterDomaine, setFilterDomaine] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedStage, setSelectedStage] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [stages, setStages] = useState([]);
-  const [formData, setFormData] = useState({
-    titre: '',
-    etudiant: '',
-    entreprise: '',
-    encadreur: '',
-    domaine: '',
-    dateDebut: '',
-    dateFin: '',
-    statut: 'En cours',
-    progression: 0
-  });
   const itemsPerPage = 5;
 
   const loadStages = async () => {
     try {
-      setLoading(true);
       const res = await internshipsApi.getAll();
       const list = Array.isArray(res) ? res : res?.items || res?.data || [];
 
@@ -74,14 +57,15 @@ function AdminStages() {
       });
       setStages(mapped);
     } catch (err) {
-      console.error('Erreur chargement stages:', err);
-    } finally {
-      setLoading(false);
+      console.error('Erreur récurrente stages:', err);
     }
   };
 
   useEffect(() => {
-    loadStages();
+    const run = async () => {
+      await loadStages();
+    };
+    run();
   }, []);
 
   const stats = {
@@ -109,13 +93,13 @@ function AdminStages() {
   };
 
   const statutOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Tous les statuts' },
     { value: 'À venir', label: 'À venir' },
     { value: 'En cours', label: 'En cours' },
     { value: 'Terminé', label: 'Terminé' }
   ];
   const domaineOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Tous les domaines' },
     { value: 'Développement Web', label: 'Développement Web' },
     { value: 'Développement Mobile', label: 'Développement Mobile' },
     { value: 'Analyse de Données', label: 'Analyse de Données' },
@@ -130,60 +114,6 @@ function AdminStages() {
       'Terminé': 'badge-termine'
     };
     return classes[statut] || 'badge-en-cours';
-  };
-
-  const resetForm = () => {
-    setFormData({
-      titre: '',
-      etudiant: '',
-      entreprise: '',
-      encadreur: '',
-      domaine: '',
-      dateDebut: '',
-      dateFin: '',
-      statut: 'En cours',
-      progression: 0
-    });
-  };
-
-  const handleEdit = async () => {
-    try {
-      if (selectedStage?.id) {
-        await internshipsApi.update(selectedStage.id, {
-          titre: formData.titre,
-          statut: formData.statut === 'En cours' ? 'en_cours' : formData.statut === 'À venir' ? 'a_venir' : 'termine'
-        });
-        await loadStages();
-      }
-    } catch {
-      setStages(stages.map(s => s.id === selectedStage?.id ? { ...s, ...formData } : s));
-    }
-    setShowEditModal(false);
-    resetForm();
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (selectedStage?.id) {
-        await internshipsApi.delete(selectedStage.id);
-        await loadStages();
-      }
-    } catch {
-      setStages(stages.filter(s => s.id !== selectedStage?.id));
-    }
-    setShowDeleteModal(false);
-    setSelectedStage(null);
-  };
-
-  const openEditModal = (stage) => {
-    setSelectedStage(stage);
-    setFormData(stage);
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (stage) => {
-    setSelectedStage(stage);
-    setShowDeleteModal(true);
   };
 
   const openDetailModal = (stage) => {
@@ -317,9 +247,7 @@ function AdminStages() {
                   <td><span className={getStatusBadge(stage.statut)}>{stage.statut}</span></td>
                   <td>
                     <div className="admin-stages-actions">
-                      <button className="admin-stages-btn-icon" onClick={() => openDetailModal(stage)} title="Voir"><FaEye /></button>
-                      <button className="admin-stages-btn-icon" onClick={() => openEditModal(stage)} title="Modifier"><FaEdit /></button>
-                      <button className="admin-stages-btn-icon danger" onClick={() => openDeleteModal(stage)} title="Supprimer"><FaTrash /></button>
+                      <button className="admin-stages-btn-view" onClick={() => openDetailModal(stage)} title="Voir"><FaEye /> Voir</button>
                     </div>
                   </td>
                 </tr>
@@ -340,27 +268,6 @@ function AdminStages() {
           </div>
         )}
       </div>
-
-      {showEditModal && (
-        <StageForm
-          title="Modifier le stage"
-          submitLabel="Modifier"
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
-          statutOptions={statutOptions}
-          domaineOptions={domaineOptions}
-        />
-      )}
-
-      {showDeleteModal && (
-        <StageDelete
-          stage={selectedStage}
-          onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setSelectedStage(null); }}
-        />
-      )}
 
       {showDetailModal && (
         <StageDetail

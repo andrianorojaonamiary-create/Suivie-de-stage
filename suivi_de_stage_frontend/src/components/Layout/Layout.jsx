@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useState } from 'react';
+import { Outlet } from 'react-router-dom';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
@@ -7,12 +7,6 @@ import MobileDrawer from './MobileDrawer';
 
 function Layout() {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const location = useLocation();
-
-  // Fermer le drawer lors de la navigation
-  useEffect(() => {
-    setDrawerOpen(false);
-  }, [location.pathname]);
 
   return (
     <div className="layout-container">

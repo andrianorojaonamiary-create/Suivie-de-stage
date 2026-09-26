@@ -27,6 +27,9 @@ export class Supervisor {
   @Column({ type: 'varchar', length: 30, nullable: true })
   telephone: string | null;
 
+  @Column({ type: 'varchar', length: 150, nullable: true })
+  entreprise?: string | null;
+
   @Column({ name: 'user_id', type: 'uuid' })
   userId: string;
 

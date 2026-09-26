@@ -27,6 +27,28 @@ export const internshipsApi = {
   update: (id, data) => unwrap(apiClient.patch(`/internships/${id}`, data)),
 
   /**
+   * Déposer la convention de stage (PDF, max 5 Mo)
+   * @param {string} id
+   * @param {File} fichier
+   */
+  uploadConvention: (id, fichier) => {
+    const formData = new FormData();
+    formData.append('fichier', fichier);
+    return unwrap(
+      apiClient.post(`/internships/${id}/convention`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }),
+    );
+  },
+
+  /**
+   * Télécharger la convention de stage (cez un Blob)
+   * @param {string} id
+   */
+  downloadConvention: (id) =>
+    unwrap(apiClient.get(`/internships/${id}/convention`, { responseType: 'blob' })),
+
+  /**
    * Supprimer un stage (Admin)
    * @param {string} id
    */

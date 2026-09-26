@@ -17,6 +17,7 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/enums/role.enum';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
 import { FindEvaluationsDto } from './dto/find-evaluations.dto';
+import { FindAllEvaluationsDto } from './dto/find-all-evaluations.dto';
 import { UpdateEvaluationDto } from './dto/update-evaluation.dto';
 import { EvaluationsService } from './evaluations.service';
 
@@ -30,7 +31,7 @@ export class EvaluationsController {
   constructor(private readonly evaluationsService: EvaluationsService) {}
 
   @Post()
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENTREPRISE)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
   create(
     @Body() dto: CreateEvaluationDto,
     @Req() request: AuthenticatedRequest,
@@ -38,8 +39,14 @@ export class EvaluationsController {
     return this.evaluationsService.create(dto, request.user);
   }
 
+  @Get()
+  @Roles(Role.ADMINISTRATEUR)
+  findAllAdmin(@Query() dto: FindAllEvaluationsDto) {
+    return this.evaluationsService.findAllAdmin(dto);
+  }
+
   @Get('internships/:stageId')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENTREPRISE)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENSEIGNANT)
   findAll(
     @Param('stageId', new ParseUUIDPipe()) stageId: string,
     @Query() dto: FindEvaluationsDto,
@@ -49,7 +56,7 @@ export class EvaluationsController {
   }
 
   @Get(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENTREPRISE)
+  @Roles(Role.ADMINISTRATEUR, Role.ETUDIANT, Role.ENCADREUR, Role.ENSEIGNANT)
   findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Req() request: AuthenticatedRequest,
@@ -58,7 +65,7 @@ export class EvaluationsController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR, Role.ENTREPRISE)
+  @Roles(Role.ADMINISTRATEUR, Role.ENCADREUR)
   update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateEvaluationDto,

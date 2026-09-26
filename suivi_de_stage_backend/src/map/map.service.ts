@@ -27,12 +27,13 @@ export class MapService {
       .innerJoin('internship.student', 'student')
       .innerJoin('student.user', 'studentUser')
       .innerJoin('internship.supervisor', 'supervisor')
+      .leftJoin('internship.tuteur', 'tuteur')
       .select([
         'internship.id AS id',
         'company.id AS "companyId"',
         'company.nom AS "nomEntreprise"',
-        'internship.latitude AS latitude',
-        'internship.longitude AS longitude',
+        'COALESCE(internship.latitude, company.latitude) AS latitude',
+        'COALESCE(internship.longitude, company.longitude) AS longitude',
         'internship.ville AS ville',
         'company.region AS region',
         'internship.domaine AS domaine',
@@ -46,9 +47,11 @@ export class MapService {
         'studentUser.prenom AS "prenomEtudiant"',
         'student.formation AS formation',
         'student.promotion AS promotion',
+        'tuteur.nom AS "nomTuteur"',
+        'tuteur.prenom AS "prenomTuteur"',
       ])
-      .where('internship.latitude IS NOT NULL')
-      .andWhere('internship.longitude IS NOT NULL');
+      .where('COALESCE(internship.latitude, company.latitude) IS NOT NULL')
+      .andWhere('COALESCE(internship.longitude, company.longitude) IS NOT NULL');
 
     this.applyInternshipAccess(query, actor);
     this.applyFilters(query, filters, 'internship', 'company', 'student');
@@ -77,6 +80,8 @@ export class MapService {
       prenomEtudiant: point.prenomEtudiant,
       formation: point.formation,
       promotion: point.promotion,
+      nomTuteur: point.nomTuteur,
+      prenomTuteur: point.prenomTuteur,
     }));
   }
 
@@ -177,10 +182,10 @@ export class MapService {
   ) {
     if (actor.role === Role.ETUDIANT) {
       query.andWhere('student.userId = :actorId', { actorId: actor.id });
-    } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ENCADREUR) {
       query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
+    } else if (actor.role === Role.ENSEIGNANT) {
+      query.andWhere('internship.tuteurId = :actorId', { actorId: actor.id });
     }
   }
 
@@ -192,8 +197,6 @@ export class MapService {
       query.andWhere('supervisor.userId = :actorId', { actorId: actor.id });
     } else if (actor.role === Role.ETUDIANT) {
       query.andWhere('student.userId = :actorId', { actorId: actor.id });
-    } else if (actor.role === Role.ENTREPRISE) {
-      query.andWhere('company.userId = :actorId', { actorId: actor.id });
     }
   }
 }

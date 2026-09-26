@@ -33,11 +33,11 @@ describe('SupervisorsService', () => {
     ).resolves.toMatchObject({ id: 'supervisor-id' });
   });
 
-  it('rejects supervisor CRUD creation by a company', async () => {
+  it('rejects supervisor CRUD creation by a non-administrator', async () => {
     await expect(
       service.create({ userId: 'user-id' } as never, {
-        id: 'company-id',
-        role: Role.ENTREPRISE,
+        id: 'student-id',
+        role: Role.ETUDIANT,
       }),
     ).rejects.toBeInstanceOf(ForbiddenException);
   });

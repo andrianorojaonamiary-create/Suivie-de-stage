@@ -1,15 +1,66 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import {
   FaUserCircle, FaEnvelope, FaPhone, FaBuilding, 
   FaLock, FaSave, FaUser, FaBook, FaGraduationCap, FaBriefcase,
-  FaIdCard, FaMapMarkerAlt, FaGlobe,FaChalkboardTeacher ,FaShieldAlt, FaTimes,
-  FaEye, FaEyeSlash
+  FaIdCard, FaMapMarkerAlt, FaChalkboardTeacher ,FaShieldAlt, FaTimes,
+  FaEye, FaEyeSlash, FaCalendarAlt
 } from 'react-icons/fa';
 import { sanitizePhone } from '../utils/phone';
+import { toast } from 'react-toastify';
+import studentsApi from '../api/studentsApi';
+import supervisorsApi from '../api/supervisorsApi';
+import authApi from '../api/authApi';
+
+const formatLastPasswordChange = (dateStr) => {
+  if (!dateStr) return 'Jamais modifié';
+  const date = new Date(dateStr);
+  if (Number.isNaN(date.getTime())) return 'Jamais modifié';
+
+  const diffMs = Date.now() - date.getTime();
+  const minutes = Math.floor(diffMs / 60000);
+  const hours = Math.floor(diffMs / 3600000);
+  const days = Math.floor(diffMs / 86400000);
+  const months = Math.floor(diffMs / 2592000000);
+  const years = Math.floor(diffMs / 31536000000);
+
+  if (minutes < 1) return 'modifié à l\'instant';
+  if (minutes < 60) return `modifié il y a ${minutes} minute${minutes > 1 ? 's' : ''}`;
+  if (hours < 24) return `modifié il y a ${hours} heure${hours > 1 ? 's' : ''}`;
+  if (days < 30) return `modifié il y a ${days} jour${days > 1 ? 's' : ''}`;
+  if (months < 12) return `modifié il y a ${months} mois`;
+  return `modifié il y a ${years} an${years > 1 ? 's' : ''}`;
+};
 
 function Profil() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, refreshUser } = useAuth();
+  const [studentProfile, setStudentProfile] = useState(null);
+  const [supervisorProfile, setSupervisorProfile] = useState(null);
+
+  useEffect(() => {
+    if (user?.role === 'ROLE_ETUDIANT') {
+      const fetchStudentProfile = async () => {
+        try {
+          const res = await studentsApi.getAll();
+          const profile = res?.items?.[0];
+          if (profile) setStudentProfile(profile);
+        } catch (err) {
+          console.error('Erreur chargement profil étudiant:', err);
+        }
+      };
+      fetchStudentProfile();
+    } else if (user?.role === 'ROLE_ENCADREUR') {
+      const fetchSupervisorProfile = async () => {
+        try {
+          const profile = await supervisorsApi.getMe();
+          if (profile) setSupervisorProfile(profile);
+        } catch (err) {
+          console.error('Erreur chargement profil encadreur:', err);
+        }
+      };
+      fetchSupervisorProfile();
+    }
+  }, [user?.role, user?.id]);
 
   const getProfileData = () => {
     const role = user?.role;
@@ -18,8 +69,7 @@ function Profil() {
       nom: user?.nom || '',
       prenom: user?.prenom || '',
       email: user?.email || '',
-      telephone: user?.telephone || '',
-      adresse: user?.adresse || '',
+      telephone: supervisorProfile?.telephone || studentProfile?.telephone || user?.telephone || '',
       role: role || 'ROLE_ETUDIANT',
       membreDepuis: 'Stage EMIT 2026',
     };
@@ -27,29 +77,28 @@ function Profil() {
     const roleData = {
       'ROLE_ADMIN': {
         ...common,
-        departement: user?.departement || 'Administration centrale',
         staffId: user?.id?.substring(0, 8) || 'ADM-001',
       },
       'ROLE_ETUDIANT': {
         ...common,
-        matricule: user?.studentProfile?.matricule || user?.matricule || 'Non défini',
-        niveau: user?.studentProfile?.niveau || user?.niveau || 'L3',
-        filiere: user?.studentProfile?.parcours || user?.filiere || 'Informatique',
-        ville: user?.adresse || 'Fianarantsoa',
+        matricule: studentProfile?.matricule || '—',
+        niveau: studentProfile?.niveau || '—',
+        filiere: studentProfile?.formation || '—',
+        promotion: studentProfile?.promotion || '—',
+        ville: studentProfile?.adresse || '—',
       },
       'ROLE_ENSEIGNANT': {
         ...common,
-        grade: user?.supervisorProfile?.grade || user?.grade || 'Enseignant',
-        departement: user?.supervisorProfile?.departement || user?.departement || 'Informatique',
-        specialite: user?.supervisorProfile?.specialite || user?.specialite || 'Informatique',
-        staffId: user?.id?.substring(0, 8) || 'ENS-001',
+        grade: user?.grade || '—',
+        departement: user?.departement || '—',
+        specialite: user?.specialite || '—',
+        matricule: user?.matricule || '—',
       },
       'ROLE_ENCADREUR': {
         ...common,
-        entreprise: user?.supervisorProfile?.entreprise?.nom || user?.entreprise || 'Entreprise',
-        poste: user?.poste || 'Encadreur professionnel',
-        adresse: user?.adresse || 'Madagascar',
-        secteur: user?.supervisorProfile?.entreprise?.secteur || 'Technologie',
+        poste: supervisorProfile?.fonction || '—',
+        specialite: supervisorProfile?.specialite || '—',
+        entreprise: supervisorProfile?.entreprise || '—',
       },
     };
 
@@ -57,6 +106,14 @@ function Profil() {
   };
 
   const [profile, setProfile] = useState(getProfileData());
+
+  useEffect(() => {
+    const syncProfile = async () => {
+      setProfile(getProfileData());
+    };
+    syncProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studentProfile, supervisorProfile, user]);
   const [showPassForm, setShowPassForm] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   const [showCurrent, setShowCurrent] = useState(false);
@@ -97,35 +154,36 @@ function Profil() {
     fields.push(
       { name: 'nom', label: 'Nom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
       { name: 'prenom', label: 'Prénom', icon: <FaUser style={{ color: '#A0B8D0' }} /> },
-      { name: 'email', label: 'Email', icon: <FaEnvelope style={{ color: '#A0B8D0' }} />, type: 'email' },
-      { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel', maxLength: 14, inputMode: 'tel' },
+      { name: 'email', label: 'Email', icon: <FaEnvelope style={{ color: '#A0B8D0' }} />, type: 'email', fullWidth: false },
     );
 
     if (role === 'ROLE_ADMIN') {
       fields.push(
-        { name: 'departement', label: 'Service', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
-        { name: 'staffId', label: 'ID Utilisateur', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
+        { name: 'staffId', label: 'ID Utilisateur', icon: <FaIdCard style={{ color: '#A0B8D0' }} />, readOnly: true },
       );
     } else if (role === 'ROLE_ETUDIANT') {
       fields.push(
-        { name: 'matricule', label: 'Numéro étudiant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
-        { name: 'niveau', label: 'Niveau', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} /> },
-        { name: 'filiere', label: 'Parcours', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
+        { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel', maxLength: 14, inputMode: 'tel', fullWidth: false },
+        { name: 'matricule', label: 'Numéro étudiant', icon: <FaIdCard style={{ color: '#A0B8D0' }} />, readOnly: true },
+        { name: 'niveau', label: 'Niveau', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} />, readOnly: true },
+        { name: 'filiere', label: 'Parcours', icon: <FaBook style={{ color: '#A0B8D0' }} />, readOnly: true },
+        { name: 'promotion', label: 'Promotion', icon: <FaCalendarAlt style={{ color: '#A0B8D0' }} />, readOnly: true },
         { name: 'ville', label: 'Adresse / Ville', icon: <FaMapMarkerAlt style={{ color: '#A0B8D0' }} /> },
       );
     } else if (role === 'ROLE_ENSEIGNANT') {
       fields.push(
+        { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel', maxLength: 14, inputMode: 'tel', fullWidth: false },
+        { name: 'matricule', label: 'Matricule', icon: <FaIdCard style={{ color: '#A0B8D0' }} />, readOnly: true },
         { name: 'grade', label: 'Grade', icon: <FaGraduationCap style={{ color: '#A0B8D0' }} /> },
         { name: 'departement', label: 'Département', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
         { name: 'specialite', label: 'Spécialité', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
-        { name: 'staffId', label: 'ID Enseignant', icon: <FaIdCard style={{ color: '#A0B8D0' }} /> },
       );
     } else if (role === 'ROLE_ENCADREUR') {
       fields.push(
-        { name: 'entreprise', label: "Nom de l'entreprise", icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
+        { name: 'telephone', label: 'Téléphone', icon: <FaPhone style={{ color: '#A0B8D0' }} />, type: 'tel', maxLength: 14, inputMode: 'tel', fullWidth: false },
         { name: 'poste', label: 'Fonction', icon: <FaBriefcase style={{ color: '#A0B8D0' }} /> },
-        { name: 'adresse', label: "Adresse de l'entreprise", icon: <FaMapMarkerAlt style={{ color: '#A0B8D0' }} /> },
-        { name: 'secteur', label: "Secteur d'activité", icon: <FaGlobe style={{ color: '#A0B8D0' }} /> },
+        { name: 'specialite', label: 'Spécialité', icon: <FaBook style={{ color: '#A0B8D0' }} /> },
+        { name: 'entreprise', label: 'Entreprise', icon: <FaBuilding style={{ color: '#A0B8D0' }} /> },
       );
     }
 
@@ -145,20 +203,61 @@ function Profil() {
 
   const handleSave = async () => {
     try {
-      await updateProfile({
-        nom: profile.nom,
-        prenom: profile.prenom,
-        telephone: profile.telephone,
-        adresse: profile.adresse,
-      });
-    } catch {
-      // toast error standard
+      if (user?.role === 'ROLE_ETUDIANT') {
+        await updateProfile({
+          nom: profile.nom,
+          prenom: profile.prenom,
+        });
+        if (studentProfile?.id) {
+          await studentsApi.update(studentProfile.id, {
+            telephone: profile.telephone || undefined,
+            adresse: profile.ville || undefined,
+          });
+        }
+      } else if (user?.role === 'ROLE_ENSEIGNANT') {
+        await updateProfile({
+          nom: profile.nom,
+          prenom: profile.prenom,
+          telephone: profile.telephone || undefined,
+          grade: profile.grade || undefined,
+          departement: profile.departement || undefined,
+          specialite: profile.specialite || undefined,
+        });
+      } else if (user?.role === 'ROLE_ENCADREUR') {
+        await updateProfile({
+          nom: profile.nom,
+          prenom: profile.prenom,
+        });
+        if (supervisorProfile?.id) {
+          await supervisorsApi.update(supervisorProfile.id, {
+            fonction: profile.poste || undefined,
+            specialite: profile.specialite || undefined,
+            telephone: profile.telephone || undefined,
+            entreprise: profile.entreprise || undefined,
+          });
+        }
+      } else {
+        await updateProfile({
+          nom: profile.nom,
+          prenom: profile.prenom,
+        });
+      }
+    } catch (err) {
+      console.error('Erreur mise à jour du profil:', err);
     }
   };
 
   const handlePasswordUpdate = async () => {
+    if (!passwords.current) {
+      setErrorMessage('Veuillez saisir votre mot de passe actuel');
+      return;
+    }
     if (!passwords.new) {
       setErrorMessage('Veuillez saisir un nouveau mot de passe');
+      return;
+    }
+    if (passwords.new.length < 8) {
+      setErrorMessage('Le nouveau mot de passe doit contenir au moins 8 caractères');
       return;
     }
     if (passwords.new !== passwords.confirm) {
@@ -166,11 +265,18 @@ function Profil() {
       return;
     }
     try {
-      await updateProfile({ motDePasse: passwords.new });
+      await authApi.changePassword({
+        ancienMotDePasse: passwords.current,
+        nouveauMotDePasse: passwords.new,
+      });
+      setErrorMessage('');
       setShowPassForm(false);
       setPasswords({ current: '', new: '', confirm: '' });
-    } catch {
-      // toast error
+      toast.success('Mot de passe modifié avec succès !');
+      refreshUser();
+    } catch (err) {
+      const message = err.response?.data?.message || 'Erreur lors du changement du mot de passe';
+      setErrorMessage(Array.isArray(message) ? message.join(', ') : message);
     }
   };
 
@@ -201,7 +307,7 @@ function Profil() {
         <div className="profil-form-container">
           <div className="profil-form-grid">
             {roleFields.map((field, index) => (
-              <div key={index} className={`profil-form-group ${field.name === 'email' || field.name === 'telephone' ? 'full-width' : ''}`}>
+              <div key={index} className={`profil-form-group ${(field.name === 'email' || field.name === 'telephone') && field.fullWidth !== false ? 'full-width' : ''}`}>
                 <label>
                   <span style={{ color: '#A0B8D0', marginRight: '8px', fontSize: '16px' }}>
                     {field.icon}
@@ -217,6 +323,7 @@ function Profil() {
                   placeholder={field.label}
                   maxLength={field.maxLength}
                   inputMode={field.inputMode}
+                  readOnly={field.readOnly}
                 />
               </div>
             ))}
@@ -237,7 +344,7 @@ function Profil() {
             <div className="profil-security-row">
               <div>
                 <div className="profil-security-label">Mot de passe</div>
-                <div className="profil-security-sub">Dernière modification il y a 3 mois</div>
+                <div className="profil-security-sub">{formatLastPasswordChange(user?.motDePasseChangeAt)}</div>
               </div>
               <button className="profil-password-btn" onClick={() => setShowPassForm(true)}>
                 Changer le mot de passe

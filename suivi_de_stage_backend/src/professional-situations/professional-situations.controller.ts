@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -66,5 +67,14 @@ export class ProfessionalSituationsController {
     @Req() request: AuthenticatedRequest,
   ) {
     return this.situationsService.update(id, dto, request.user);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ETUDIANT, Role.ADMINISTRATEUR)
+  remove(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Req() request: AuthenticatedRequest,
+  ) {
+    return this.situationsService.remove(id, request.user);
   }
 }

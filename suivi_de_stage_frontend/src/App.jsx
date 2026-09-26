@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, Component } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import AuthLayout from './pages/auth/AuthLayout';
@@ -23,7 +23,6 @@ const MesRapports = lazy(() => import('./pages/etudiant/MesRapports'));
 const MonEntreprise = lazy(() => import('./pages/etudiant/MonEntreprise'));
 const AjouterEntreprise = lazy(() => import('./pages/etudiant/AjouterEntreprise'));
 const MonEncadreur = lazy(() => import('./pages/etudiant/MonEncadreur'));
-const AjouterEncadreur = lazy(() => import('./pages/etudiant/AjouterEncadreur'));
 const SuiviStage = lazy(() => import('./pages/etudiant/SuiviStage'));
 const MonAvenir = lazy(() => import('./pages/etudiant/MonAvenir'));
 
@@ -42,7 +41,6 @@ const EncadreurEvaluations = lazy(() => import('./pages/encadreur/Evaluations'))
 const EncadreurObservations = lazy(() => import('./pages/encadreur/Observations'));
 const EncadreurRapports = lazy(() => import('./pages/encadreur/Rapports'));
 const EncadreurStudentDetail = lazy(() => import('./pages/encadreur/StudentDetail'));
-const EncadreurStageDetail = lazy(() => import('./pages/encadreur/StageDetail'));
 const EncadreurEntreprise = lazy(() => import('./pages/encadreur/Entreprise'));
 
 // Pages communes
@@ -68,6 +66,41 @@ function LoadingFallback() {
   );
 }
 
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error) {
+    console.error('Erreur rendu :', error);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center', gap: '16px', padding: '24px' }}>
+          <h1 style={{ color: '#EF4444' }}>Une erreur est survenue</h1>
+          <p style={{ color: '#6c7a8a', maxWidth: '480px' }}>
+            Le chargement de cette page a échoué. Rechargez la page ou réessayez.
+          </p>
+          <button
+            onClick={() => this.setState({ hasError: false })}
+            style={{ backgroundColor: '#6BA9E6', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '10px 20px', cursor: 'pointer', fontWeight: 600 }}
+          >
+            Réessayer
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function DynamicDashboardRedirect() {
   const { user } = useAuth();
   const role = user?.role;
@@ -88,8 +121,9 @@ function App() {
   return (
     <>
       <ToastContainer position="top-right" autoClose={3000} hideProgressBar={true}/>
-      <Suspense fallback={<LoadingFallback />}>
-        <Routes>
+      <ErrorBoundary>
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
           {/* Routes publiques */}
           <Route path="/login" element={<AuthLayout initialMode="login" />} />
           <Route path="/register" element={<AuthLayout initialMode="register" />} />
@@ -135,9 +169,6 @@ function App() {
               <Route path="/etudiant/entreprise/modifier" element={<AjouterEntreprise />} />
               <Route path="/etudiant/entreprise/voir/:id" element={<AjouterEntreprise />} />
               <Route path="/etudiant/encadreur" element={<MonEncadreur />} />
-              <Route path="/etudiant/encadreur/ajouter" element={<AjouterEncadreur />} />
-              <Route path="/etudiant/encadreur/modifier" element={<AjouterEncadreur />} />
-              <Route path="/etudiant/encadreur/voir/:id" element={<AjouterEncadreur />} />
               <Route path="/etudiant/suivi-stage" element={<SuiviStage />} />
               <Route path="/etudiant/mon-avenir" element={<MonAvenir />} />
               <Route path="/etudiant/carte" element={<CarteStages />} />
@@ -167,7 +198,6 @@ function App() {
               <Route path="/encadreur/etudiants" element={<EncadreurEtudiants />} />
               <Route path="/encadreur/etudiant/:studentId" element={<EncadreurStudentDetail />} />
               <Route path="/encadreur/stages" element={<EncadreurStages />} />
-              <Route path="/encadreur/stage/:id" element={<EncadreurStageDetail />} />
               <Route path="/encadreur/evaluations" element={<EncadreurEvaluations />} />
               <Route path="/encadreur/evaluations/:studentId" element={<EncadreurEvaluations />} />
               <Route path="/encadreur/observations" element={<EncadreurObservations />} />
@@ -189,6 +219,7 @@ function App() {
           } />
         </Routes>
       </Suspense>
+      </ErrorBoundary>
     </>
   );
 }

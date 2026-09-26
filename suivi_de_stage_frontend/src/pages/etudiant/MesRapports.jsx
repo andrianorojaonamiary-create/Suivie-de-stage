@@ -5,13 +5,20 @@ import {
   FaFilePdf, FaFileWord, FaEye, 
   FaBuilding, FaFilter, FaTimes, FaInfoCircle, FaPlus
 } from 'react-icons/fa';
-import { internshipsApi } from '../../api';
+import { internshipsApi, reportsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import {
+  mapReportStatus,
+  mapReportType,
+  REPORT_TYPE_ENUM,
+  formatReportSize,
+  formatReportDate,
+} from '../../utils/reportMapping';
 
 function MesRapports() {
   const [selectedStage, setSelectedStage] = useState('all');
   const fileInputRef = useRef(null);
-  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   
   // ===== ÉTAT DU FORMULAIRE =====
   const [showForm, setShowForm] = useState(false);
@@ -27,49 +34,37 @@ function MesRapports() {
   const [reportToDelete, setReportToDelete] = useState(null);
 
   // ===== DONNÉES : RAPPORTS PAR STAGE =====
-  const [stages, setStages] = useState([
-    {
-      id: 1,
-      titre: 'Développement plateforme web RH',
-      entreprise: 'TechMada SARL',
-      rapports: [
-        { id: 1, title: 'Rapport de prise en main', fileName: 'rapport_prise_en_main.pdf', date: '20 Mar 2024', status: 'Validé', size: '1.2 MB', commentaire: 'Très bon travail !' },
-        { id: 2, title: 'Rapport intermédiaire', fileName: 'rapport_intermediaire.pdf', date: '15 Mai 2024', status: 'En révision', size: '2.4 MB', commentaire: 'En attente de validation' },
-      ]
+  const [stages, setStages] = useState([]);
+
+  const fetchStagesWithRapports = async () => {
+    try {
+      const res = await internshipsApi.getAll();
+      const list = Array.isArray(res) ? res : res?.data || [];
+      const mapped = list.map(item => ({
+        id: item.id,
+        titre: item.intitule || item.titre || item.title || 'Stage',
+        entreprise: item.company?.name || item.companyName || 'Entreprise',
+        rapports: (item.reports || item.rapports || []).map((r) => ({
+          id: r.id,
+          title: mapReportType(r.type),
+          fileName: r.originalName || r.fileName || null,
+          date: formatReportDate(r.dateCreation || r.submittedAt),
+          status: mapReportStatus(r.statut || r.status),
+          size: formatReportSize(r.size),
+          commentaire: r.commentaire || r.comment || ''
+        }))
+      }));
+      setStages(mapped);
+    } catch (err) {
+      console.error('Erreur chargement rapports:', err);
     }
-  ]);
+  };
 
   useEffect(() => {
-    const fetchStagesWithRapports = async () => {
-      try {
-        setLoading(true);
-        const res = await internshipsApi.getAll();
-        const list = Array.isArray(res) ? res : res?.items || [];
-        if (list.length > 0) {
-          const mapped = list.map(item => ({
-            id: item.id,
-            titre: item.title || item.subject || 'Stage',
-            entreprise: item.company?.name || item.companyName || 'Entreprise',
-            rapports: (item.reports || item.rapports || []).map((r, idx) => ({
-              id: r.id || idx + 1,
-              title: r.title || r.type || 'Rapport',
-              fileName: r.fileName || r.file || null,
-              date: r.submittedAt ? new Date(r.submittedAt).toLocaleDateString('fr-FR') : '—',
-              status: r.status || 'En révision',
-              size: r.size || '—',
-              commentaire: r.commentaire || r.comment || ''
-            }))
-          }));
-          setStages(mapped);
-        }
-      } catch (err) {
-        console.error('Erreur chargement rapports:', err);
-      } finally {
-        setLoading(false);
-      }
+    const run = async () => {
+      await fetchStagesWithRapports();
     };
-
-    fetchStagesWithRapports();
+    run();
   }, []);
 
   // ===== RAPPORTS À DÉPOSER =====
@@ -96,6 +91,7 @@ function MesRapports() {
       'Validé': 'badge-valide',
       'En révision': 'badge-en-cours',
       'À corriger': 'badge-refuse',
+      'Refusé': 'badge-refuse',
     };
     return classes[status] || 'badge-en-attente';
   };
@@ -152,7 +148,7 @@ function MesRapports() {
     }
   };
 
-  const handleSubmitReport = () => {
+  const handleSubmitReport = async () => {
     if (!formData.stageId) {
       toast.error('Veuillez sélectionner un stage');
       return;
@@ -162,49 +158,73 @@ function MesRapports() {
       return;
     }
 
-    const selectedStage = stages.find(s => s.id === parseInt(formData.stageId));
-    
-    toast.success(`Rapport "${formData.file.name}" déposé avec succès pour ${selectedStage?.titre} !`);
-    handleCloseForm();
+    const selectedStage = stages.find(s => s.id === formData.stageId);
+    const typeEnum = REPORT_TYPE_ENUM[formData.type];
+
+    setSubmitting(true);
+    try {
+      await reportsApi.upload(formData.stageId, formData.file, typeEnum);
+      toast.success(`Rapport "${formData.file.name}" déposé avec succès pour ${selectedStage?.titre || 'ce stage'} !`);
+      handleCloseForm();
+      await fetchStagesWithRapports();
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message ||
+        'Erreur lors du dépôt du rapport';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // ===== ACTIONS =====
 
   // ===== VOIR - Ouvre le fichier dans un nouvel onglet =====
-  const handleVoir = (fileName) => {
-    if (!fileName) {
+  const handleVoir = async (report) => {
+    if (!report?.id) {
       toast.error('Aucun fichier à visualiser');
       return;
     }
-    
+    const ext = (report.fileName || '').split('.').pop()?.toLowerCase();
+    if (ext !== 'pdf') {
+      handleTelecharger(report);
+      toast.info("Ce type de fichier (DOC/DOCX) ne peut pas s'afficher dans le navigateur. Téléchargement lancé.");
+      return;
+    }
+    const win = window.open('', '_blank');
     try {
-      // Ouvrir le fichier dans un nouvel onglet
-      // En production, utilisez l'URL de votre API
-      window.open(`/documents/${fileName}`, '_blank');
-      toast.info(`Ouverture de "${fileName}"...`);
+      const blob = await reportsApi.download(report.id);
+      const url = URL.createObjectURL(blob);
+      if (win) {
+        win.location.href = url;
+      } else {
+        window.open(url, '_blank');
+      }
+      toast.info(`Ouverture de "${report.fileName || report.title}"...`);
     } catch (error) {
       toast.error('Erreur lors de l\'ouverture du fichier');
       console.error('Erreur:', error);
+      if (win) win.close();
     }
   };
 
   // ===== TÉLÉCHARGER - Télécharge le fichier =====
-  const handleTelecharger = (fileName) => {
-    if (!fileName) {
+  const handleTelecharger = async (report) => {
+    if (!report?.id) {
       toast.error('Aucun fichier à télécharger');
       return;
     }
-    
     try {
-      // Créer un lien de téléchargement
+      const blob = await reportsApi.download(report.id);
+      const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
-      link.href = `/documents/${fileName}`;
-      link.download = fileName;
+      link.href = url;
+      link.download = report.fileName || report.title || 'rapport';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
-      toast.success(`Téléchargement de "${fileName}"...`);
+      URL.revokeObjectURL(url);
+      toast.success(`Téléchargement de "${report.fileName || report.title}"...`);
     } catch (error) {
       toast.error('Erreur lors du téléchargement');
       console.error('Erreur:', error);
@@ -217,10 +237,23 @@ function MesRapports() {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    toast.success(`Rapport "${reportToDelete?.title}" supprimé !`);
-    setShowDeleteModal(false);
-    setReportToDelete(null);
+  const confirmDelete = async () => {
+    if (!reportToDelete?.id) {
+      toast.error('Impossible de supprimer ce rapport');
+      return;
+    }
+    try {
+      await reportsApi.remove(reportToDelete.id);
+      toast.success(`Rapport "${reportToDelete?.title}" supprimé !`);
+      setShowDeleteModal(false);
+      setReportToDelete(null);
+      await fetchStagesWithRapports();
+    } catch (error) {
+      const message =
+        error?.response?.data?.message || error?.message ||
+        'Erreur lors de la suppression';
+      toast.error(Array.isArray(message) ? message.join(', ') : message);
+    }
   };
 
   const cancelDelete = () => {
@@ -355,8 +388,8 @@ function MesRapports() {
             <button className="btn-secondary" onClick={handleCloseForm}>
               Annuler
             </button>
-            <button className="btn-primary" onClick={handleSubmitReport}>
-              <FaUpload /> Déposer le rapport
+            <button className="btn-primary" onClick={handleSubmitReport} disabled={submitting}>
+              <FaUpload /> {submitting ? 'Dépôt en cours...' : 'Déposer le rapport'}
             </button>
           </div>
         </div>
@@ -407,14 +440,14 @@ function MesRapports() {
                   <>
                     <button 
                       className="btn-action-icon" 
-                      onClick={() => handleVoir(report.fileName)}
+                      onClick={() => handleVoir(report)}
                       title="Voir le fichier"
                     >
                       <FaEye />
                     </button>
                     <button 
                       className="btn-action-icon" 
-                      onClick={() => handleTelecharger(report.fileName)}
+                      onClick={() => handleTelecharger(report)}
                       title="Télécharger"
                     >
                       <FaDownload />
@@ -425,7 +458,7 @@ function MesRapports() {
                   <>
                     <button 
                       className="btn-action-icon" 
-                      onClick={() => handleVoir(report.fileName)}
+                      onClick={() => handleVoir(report)}
                       title="Voir le fichier"
                     >
                       <FaEye />

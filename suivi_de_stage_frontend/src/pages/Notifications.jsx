@@ -1,18 +1,11 @@
-import { useState, useMemo } from 'react';
-import { useAuth } from '../hooks/useAuth';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  FaCheckCircle, FaFileAlt, FaExclamationTriangle, 
-  FaCalendarAlt, FaComment, FaBuilding, FaCheck,
-  FaUserPlus, FaClock, FaStar, FaUsers, FaBell,
-  FaUpload, FaFilePdf
-} from 'react-icons/fa';
+import { FaCheck, FaBell, FaUpload, FaUserPlus, FaTrash } from 'react-icons/fa';
 
 import { useEffect } from 'react';
 import notificationsApi from '../api/notificationsApi';
 
 function Notifications() {
-  const { user } = useAuth();
   const [filter, setFilter] = useState('all');
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,18 +14,20 @@ function Notifications() {
     const fetchNotifications = async () => {
       try {
         setLoading(true);
-        const res = await notificationsApi.getAll();
-        const dataList = Array.isArray(res) ? res : res?.items || [];
+        const res = await notificationsApi.getAll({ limit: 100 });
+        const dataList = Array.isArray(res) ? res : res?.data || res?.items || [];
         
         const mapped = dataList.map(n => ({
           id: n.id,
           type: n.type || 'Info',
           text: n.titre ? `${n.titre} : ${n.message || ''}` : (n.message || 'Notification'),
-          time: (n.dateCreation || n.createdAt) ? new Date(n.dateCreation || n.createdAt).toLocaleDateString('fr-FR') : 'Récemment',
-          read: Boolean(n.lu ?? n.estLue ?? n.read),
-          icon: <FaBell />,
-          color: n.type === 'alerte' ? '#E74C3C' : '#6BA9E6',
-          bg: n.type === 'alerte' ? '#FEE2E2' : '#E1ECFE'
+          time: n.dateCreation || n.createdAt
+            ? new Date(n.dateCreation || n.createdAt).toLocaleDateString('fr-FR')
+            : 'Récemment',
+          read: Boolean(n.lu),
+          icon: n.type === 'NOUVEL_INSCRIT' ? <FaUserPlus /> : <FaBell />,
+          color: n.type === 'NOUVEL_INSCRIT' ? '#27AE60' : n.type === 'alerte' ? '#E74C3C' : '#6BA9E6',
+          bg: n.type === 'NOUVEL_INSCRIT' ? '#E8F8F0' : n.type === 'alerte' ? '#FEE2E2' : '#E1ECFE'
         }));
         setItems(mapped);
       } catch (err) {
@@ -61,6 +56,16 @@ function Notifications() {
       setItems(prev => prev.map(n => ({ ...n, read: true })));
     } catch {
       setItems(prev => prev.map(n => ({ ...n, read: true })));
+    }
+  };
+
+  const deleteNotification = async (id, e) => {
+    e.stopPropagation();
+    try {
+      await notificationsApi.delete(id);
+      setItems(prev => prev.filter(n => n.id !== id));
+    } catch {
+      setItems(prev => prev.filter(n => n.id !== id));
     }
   };
 
@@ -152,6 +157,13 @@ function Notifications() {
                 </Link>
               )}
             </div>
+            <button
+              className="notification-delete"
+              title="Supprimer"
+              onClick={(e) => deleteNotification(notif.id, e)}
+            >
+              <FaTrash />
+            </button>
             {/* ===== POINT POUR NON LU ===== */}
             {!notif.read && <span className="unread-dot"></span>}
           </div>

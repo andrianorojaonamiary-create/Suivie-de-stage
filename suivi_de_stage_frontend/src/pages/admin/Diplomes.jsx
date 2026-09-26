@@ -12,6 +12,7 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
 import { professionalSituationsApi } from '../../api';
+import { toast } from 'react-toastify';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminDiplomes() {
@@ -23,95 +24,15 @@ function AdminDiplomes() {
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
   const itemsPerPage = 5;
   const tableRef = useRef(null);
 
   // ===== DONNÉES DIPLÔMÉS =====
-  const [diplomes, setDiplomes] = useState([
-    {
-      id: 1,
-      nom: 'Rakoto',
-      prenom: 'Miora',
-      email: 'miora.rakoto@email.mg',
-      telephone: '+261 34 12 345 67',
-      promotion: '2023',
-      filiere: 'Génie Informatique',
-      situation: 'En emploi',
-      entreprise: 'TechMada SARL',
-      poste: 'Développeur Full-Stack',
-      localisation: 'Antananarivo',
-      dateEmbauche: '2023-11-15',
-      secteur: 'Technologies',
-      contrat: 'CDI',
-      historique: [
-        { entreprise: 'ABC Informatique', poste: 'Développeur Junior', dateDebut: '2023-01-01', dateFin: '2023-10-31' },
-        { entreprise: 'TechMada SARL', poste: 'Développeur Full-Stack', dateDebut: '2023-11-15', dateFin: 'Présent' }
-      ]
-    },
-    {
-      id: 2,
-      nom: 'Rakotondrabe',
-      prenom: 'Hery',
-      email: 'hery.rakotondrabe@email.mg',
-      telephone: '+261 34 23 456 78',
-      promotion: '2023',
-      filiere: 'Management',
-      situation: 'En recherche',
-      entreprise: '',
-      poste: '',
-      localisation: 'Fianarantsoa',
-      dateEmbauche: null,
-      secteur: '',
-      contrat: '',
-      historique: [
-        { entreprise: 'ABC Consulting', poste: 'Assistant Manager', dateDebut: '2023-02-01', dateFin: '2023-08-31' }
-      ]
-    },
-    {
-      id: 3,
-      nom: 'Andriantsoa',
-      prenom: 'Fanja',
-      email: 'fanja.andriantsoa@email.mg',
-      telephone: '+261 34 34 567 89',
-      promotion: '2022',
-      filiere: 'Relations publiques & Multimédia',
-      situation: 'En emploi',
-      entreprise: 'BNI Madagascar',
-      poste: 'Chargée de communication',
-      localisation: 'Antananarivo',
-      dateEmbauche: '2022-07-01',
-      secteur: 'Banque',
-      contrat: 'CDI',
-      historique: [
-        { entreprise: 'BNI Madagascar', poste: 'Chargée de communication', dateDebut: '2022-07-01', dateFin: 'Présent' }
-      ]
-    },
-    {
-      id: 4,
-      nom: 'Ramanantsoa',
-      prenom: 'Tojo',
-      email: 'tojo.ramanantsoa@email.mg',
-      telephone: '+261 34 45 678 90',
-      promotion: '2023',
-      filiere: 'Génie Informatique',
-      situation: 'Études supérieures',
-      entreprise: 'Université d\'Antananarivo',
-      poste: 'Master en Intelligence Artificielle',
-      localisation: 'Antananarivo',
-      dateEmbauche: '2023-09-01',
-      secteur: 'Éducation',
-      contrat: 'Étudiant',
-      historique: [
-        { entreprise: 'JIRAMA', poste: 'Stagiaire', dateDebut: '2023-01-01', dateFin: '2023-06-30' }
-      ]
-    }
-  ]);
+  const [diplomes, setDiplomes] = useState([]);
 
   useEffect(() => {
     const fetchDiplomes = async () => {
       try {
-        setLoading(true);
         const res = await professionalSituationsApi.getAll();
         const list = Array.isArray(res) ? res : res?.data || res?.items || [];
         if (list.length > 0) {
@@ -146,8 +67,6 @@ function AdminDiplomes() {
         }
       } catch (err) {
         console.error('Erreur chargement diplômés:', err);
-      } finally {
-        setLoading(false);
       }
     };
 
@@ -160,7 +79,7 @@ function AdminDiplomes() {
     enEmploi: diplomes.filter(d => d.situation === 'En emploi').length,
     enRecherche: diplomes.filter(d => d.situation === 'En recherche').length,
     etudesSuperieures: diplomes.filter(d => d.situation === 'Études supérieures').length,
-    tauxEmploi: Math.round((diplomes.filter(d => d.situation === 'En emploi').length / diplomes.length) * 100)
+    tauxEmploi: diplomes.length > 0 ? Math.round((diplomes.filter(d => d.situation === 'En emploi').length / diplomes.length) * 100) : 0
   };
 
   // ===== DONNÉES POUR GRAPHIQUES =====
@@ -198,13 +117,13 @@ function AdminDiplomes() {
 
   // ===== OPTIONS =====
   const situationOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Toutes les situations' },
     { value: 'En emploi', label: 'En emploi' },
     { value: 'En recherche', label: 'En recherche' },
     { value: 'Études supérieures', label: 'Études supérieures' }
   ];
   const promotionOptions = [
-    { value: 'Tous', label: 'Tous' },
+    { value: 'Tous', label: 'Toutes les promotions' },
     { value: '2021', label: '2021' },
     { value: '2022', label: '2022' },
     { value: '2023', label: '2023' }
@@ -253,7 +172,7 @@ function AdminDiplomes() {
       pdf.save('diplomes.pdf');
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      alert('Erreur lors de l\'export PDF');
+      toast.error('Erreur lors de l\'export PDF');
     } finally {
       setIsExporting(false);
     }
@@ -271,7 +190,10 @@ function AdminDiplomes() {
   };
 
   // ===== FORMAT PERSONNALISÉ POUR LES LABELS DU CAMEMBERT =====
+  const MIN_PERCENT = 0.08;
   const renderCustomLabel = ({ cx, cy, midAngle,  outerRadius, percent, name }) => {
+    if (percent < MIN_PERCENT) return null;
+
     const RADIAN = Math.PI / 180;
     const radius = outerRadius * 1.15;
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
@@ -386,6 +308,15 @@ function AdminDiplomes() {
               />
             </PieChart>
           </ResponsiveContainer>
+          <div className="admin-diplome-chart-legend">
+            {situationData.map((item) => (
+              <div className="admin-diplome-legend-item" key={item.name}>
+                <span className="admin-diplome-legend-dot" style={{ background: item.color }} />
+                <span className="admin-diplome-legend-label">{item.name}</span>
+                <span className="admin-diplome-legend-count">{item.value}</span>
+              </div>
+            ))}
+          </div>
         </div>
         <div className="admin-diplome-chart-card">
           <h3><FaChartBar /> Répartition par promotion</h3>

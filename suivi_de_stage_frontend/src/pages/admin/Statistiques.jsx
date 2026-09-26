@@ -1,16 +1,19 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   FaChartBar, FaChartLine, FaUsers, FaBuilding,
   FaGraduationCap,
   FaClock, FaTrophy, FaUserGraduate,
   FaFilter, FaDownload, FaBriefcase,
-  FaStar, 
+  FaStar,
 } from 'react-icons/fa';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
+import statisticsApi from '../../api/statisticsApi';
+import { notificationsApi, getApiErrorMessage } from '../../api';
 
 // ===== TOOLTIP PERSONNALISÉ =====
 const EvaluationTooltip = ({ active, payload, label }) => {
@@ -27,42 +30,116 @@ const EvaluationTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-import { useEffect } from 'react';
-import statisticsApi from '../../api/statisticsApi';
+const MOIS_FR = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc'];
+
+const formatMois = (mois) => {
+  const match = /^(\d{4})-(\d{2})$/.exec(mois || '');
+  if (!match) return mois || '';
+  return `${MOIS_FR[Number(match[2]) - 1]} ${match[1]}`;
+};
+
+// Année scolaire : début novembre, fin octobre de l'année suivante
+const anneeScolaireCourante = () => {
+  const now = new Date();
+  const y = now.getFullYear();
+  const start = now.getMonth() + 1 >= 11 ? y : y - 1;
+  return `${start}-${start + 1}`;
+};
+
+const periodeParams = (annee) => {
+  if (!annee || annee === 'Toutes') return {};
+  const [start] = String(annee).split('-').map(Number);
+  return { debut: `${start}-11-01`, fin: `${start + 1}-10-31`, promotion: String(start) };
+};
+
+const optionsAnneeScolaireFromPromos = (promotions) => {
+  const starts = new Set();
+  (promotions || []).forEach((p) => {
+    const n = Number(p);
+    if (!Number.isNaN(n)) starts.add(n);
+  });
+  return [...starts]
+    .sort((a, b) => a - b)
+    .map((y) => ({ value: `${y}-${y + 1}`, label: `Année ${y}-${y + 1}` }));
+};
 
 function Statistiques() {
-
-  const [filterYear, setFilterYear] = useState('2026');
+  const [filterAnneeScolaire, setFilterAnneeScolaire] = useState('Toutes');
+  const [anneeOptions, setAnneeOptions] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
-  const [statsData, setStatsData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const statsRef = useRef(null);
 
+  const [dashboard, setDashboard] = useState(null);
+  const [internshipStats, setInternshipStats] = useState(null);
+  const [overview, setOverview] = useState(null);
+  const [activites, setActivites] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  const COLORS = ['#6BA9E6', '#F59E0B', '#22C55E', '#7C3AED', '#EF4444', '#3B82F6', '#EC4899', '#14B8A6', '#162449'];
+
+  // ===== CHARGEMENT DES DONNÉES BACKEND =====
+  // 1) Options des années scolaires (appel sans filtre) + sélection par défaut
   useEffect(() => {
-    const fetchAllStats = async () => {
+    const buildOptions = async () => {
       try {
-        setLoading(true);
-        const [dash, intern, emp, geo] = await Promise.allSettled([
-          statisticsApi.getDashboard(),
-          statisticsApi.getInternships(),
-          statisticsApi.getEmployment(),
-          statisticsApi.getGeography()
-        ]);
-        setStatsData({
-          dash: dash.status === 'fulfilled' ? dash.value : null,
-          intern: intern.status === 'fulfilled' ? intern.value : null,
-          emp: emp.status === 'fulfilled' ? emp.value : null,
-          geo: geo.status === 'fulfilled' ? geo.value : null,
-        });
+        const res = await statisticsApi.getDashboard();
+        const promotions = Array.isArray(res) ? res : res?.promotions || [];
+        const options = [
+          { value: 'Toutes', label: 'Toutes les années' },
+          ...optionsAnneeScolaireFromPromos(promotions),
+        ];
+        setAnneeOptions(options);
+        const current = anneeScolaireCourante();
+        setFilterAnneeScolaire(
+          options.some((o) => o.value === current) ? current : 'Toutes',
+        );
       } catch (err) {
-        console.error('Erreur chargement statistiques:', err);
+        setError(getApiErrorMessage(err, 'Erreur lors du chargement des statistiques'));
+      }
+    };
+    buildOptions();
+  }, []);
+
+  // 2) Données filtrées par année scolaire
+  useEffect(() => {
+    const fetchAll = async () => {
+      setLoading(true);
+      try {
+        const params = periodeParams(filterAnneeScolaire);
+        const [dashRes, statsRes, overviewRes, notifsRes] = await Promise.allSettled([
+          statisticsApi.getDashboard(params),
+          statisticsApi.getInternships(params),
+          statisticsApi.getOverview(params),
+          notificationsApi.getAll({ limit: 5 }),
+        ]);
+        if (dashRes.status === 'fulfilled' && dashRes.value) setDashboard(dashRes.value);
+        if (statsRes.status === 'fulfilled' && statsRes.value) setInternshipStats(statsRes.value);
+        if (overviewRes.status === 'fulfilled' && overviewRes.value) setOverview(overviewRes.value);
+        const notifsValue = notifsRes.status === 'fulfilled' ? notifsRes.value : null;
+        const notifs = Array.isArray(notifsValue)
+          ? notifsValue
+          : notifsValue?.data || notifsValue?.items || [];
+        setActivites(
+          notifs.slice(0, 5).map((n, idx) => {
+            const date = n.date_creation ?? n.dateCreation ?? n.createdAt;
+            return {
+              id: n.id || idx,
+              action: n.titre || n.title || 'Notification',
+              utilisateur: '—',
+              details: n.message || n.content || '',
+              date: date ? new Date(date).toLocaleDateString('fr-FR') : '—',
+            };
+          }),
+        );
+      } catch (err) {
+        setError(getApiErrorMessage(err, 'Erreur lors du chargement des statistiques'));
       } finally {
         setLoading(false);
       }
     };
-
-    fetchAllStats();
-  }, [filterYear]);
+    fetchAll();
+  }, [filterAnneeScolaire]);
 
   // ===== FONCTION EXPORT PDF =====
   const handleExportPDF = async () => {
@@ -70,7 +147,7 @@ function Statistiques() {
     try {
       const element = statsRef.current;
       if (!element) return;
-      
+
       const html2canvas = (await import('html2canvas')).default;
       const { jsPDF } = await import('jspdf');
 
@@ -79,117 +156,107 @@ function Statistiques() {
         useCORS: true,
         backgroundColor: '#FFFFFF'
       });
-      
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF('p', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
+
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      pdf.save(`statistiques_${filterYear}.pdf`);
+      pdf.save(`statistiques_${filterAnneeScolaire}.pdf`);
     } catch (error) {
       console.error('Erreur export PDF:', error);
-      alert('Erreur lors de l\'export PDF');
+      toast.error('Erreur lors de l\'export PDF');
     } finally {
       setIsExporting(false);
     }
   };
 
-  // ===== KPI CARDS =====
-  const totalStudents = statsData?.dash?.counts?.students ?? 0;
-  const totalCompanies = statsData?.dash?.counts?.companies ?? 0;
-  const totalInternships = statsData?.dash?.counts?.internships ?? 0;
-  const totalSupervisors = statsData?.dash?.counts?.supervisors ?? 0;
+  // ===== DONNÉES DÉRIVÉES =====
+  const counts = dashboard?.counts || {};
+  const utilisateursTotal = (counts.students || 0) + (counts.supervisors || 0);
 
   const kpiData = [
-    { label: 'Total utilisateurs', value: String(totalStudents + totalCompanies + totalSupervisors), evolution: 'Inscrits BDD', vs: 'total général', icon: <FaUsers />, color: '#6BA9E6', bg: '#DBEBF9' },
-    { label: 'Étudiants', value: String(totalStudents), evolution: 'Enregistrés', vs: 'dans la base', icon: <FaUserGraduate />, color: '#7C3AED', bg: '#EDE9FE' },
-    { label: 'Entreprises', value: String(totalCompanies), evolution: 'Partenaires', vs: 'dans la base', icon: <FaBuilding />, color: '#F59E0B', bg: '#FEF3C7' },
-    { label: 'Stages créés', value: String(totalInternships), evolution: 'Enregistrés', vs: 'au total', icon: <FaBriefcase />, color: '#22C55E', bg: '#D1FAE5' },
+    { label: 'Utilisateurs totaux', value: String(utilisateursTotal), evolution: '—', vs: '', icon: <FaUsers />, color: '#6BA9E6', bg: '#DBEBF9' },
+    { label: 'Étudiants', value: String(counts.students || 0), evolution: '—', vs: '', icon: <FaUserGraduate />, color: '#7C3AED', bg: '#EDE9FE' },
+    { label: 'Entreprises', value: String(counts.companies || 0), evolution: '—', vs: '', icon: <FaBuilding />, color: '#F59E0B', bg: '#FEF3C7' },
+    { label: 'Stages créés', value: String(counts.internships || 0), evolution: '—', vs: '', icon: <FaBriefcase />, color: '#22C55E', bg: '#D1FAE5' },
   ];
 
-  // ===== STAGES PAR MOIS =====
-  const stagesParMois = statsData?.intern?.byYear?.map(y => ({
-    mois: String(y.year),
-    stages: Number(y.count)
-  })) || [
-    { mois: 'En cours', stages: statsData?.dash?.internships?.ongoing || 0 },
-    { mois: 'À venir', stages: statsData?.dash?.internships?.upcoming || 0 },
-    { mois: 'Terminés', stages: statsData?.dash?.internships?.completed || 0 },
-  ];
+  const months = overview?.byMonth || [];
 
-  // ===== ÉVOLUTION STAGES =====
-  const evolutionStages = [
-    { mois: 'À venir', crees: statsData?.dash?.internships?.upcoming || 0, termines: 0 },
-    { mois: 'En cours', crees: statsData?.dash?.internships?.ongoing || 0, termines: 0 },
-    { mois: 'Terminés', crees: 0, termines: statsData?.dash?.internships?.completed || 0 },
-  ];
+  const stagesParMois = months.map((m) => ({
+    mois: formatMois(m.mois),
+    stages: m.crees,
+  }));
 
-  // ===== STATUT STAGES =====
-  const ongoingCount = statsData?.dash?.internships?.ongoing || 0;
-  const upcomingCount = statsData?.dash?.internships?.upcoming || 0;
-  const completedCount = statsData?.dash?.internships?.completed || 0;
+  const evolutionStages = months.map((m) => ({
+    mois: formatMois(m.mois),
+    crees: m.crees,
+    termines: m.termines,
+  }));
 
+  const rawStatus = dashboard?.statusData || [];
+  const totalStatutStages = rawStatus.reduce(
+    (acc, s) => acc + (Number(s.value) || 0),
+    0,
+  );
   const statutStages = [
-    { name: 'Total', value: totalInternships },
-    { name: 'En cours', value: ongoingCount, pourcentage: totalInternships ? `${Math.round((ongoingCount / totalInternships) * 100)}%` : '0%' },
-    { name: 'À venir', value: upcomingCount, pourcentage: totalInternships ? `${Math.round((upcomingCount / totalInternships) * 100)}%` : '0%' },
-    { name: 'Terminés', value: completedCount, pourcentage: totalInternships ? `${Math.round((completedCount / totalInternships) * 100)}%` : '0%' },
+    { name: 'Total', value: totalStatutStages, pourcentage: '100%' },
+    ...rawStatus.map((s) => {
+      const value = Number(s.value) || 0;
+      return {
+        name: s.name,
+        value,
+        pourcentage: totalStatutStages > 0 ? `${Math.round((value / totalStatutStages) * 100)}%` : '0%',
+      };
+    }),
   ];
+  const statusColorsMap = {
+    'En attente': '#F59E0B',
+    'En cours': '#162449',
+    'Terminé': '#27AE60',
+  };
+  const statutStagesPie = rawStatus.map((s, index) => ({
+    name: s.name,
+    value: Number(s.value) || 0,
+    color: statusColorsMap[s.name] || COLORS[index % COLORS.length],
+  }));
 
-  // ===== STAGES PAR FILIÈRE / DOMAINE =====
-  const stagesParFiliere = statsData?.intern?.byDomain?.map((d, i) => ({
-    filiere: d.domain || 'Autre',
-    valeur: Number(d.count || 0),
-    pourcentage: totalInternships ? `${Math.round((Number(d.count || 0) / totalInternships) * 100)}%` : '0%',
-    color: COLORS[i % COLORS.length]
-  })) || [
-    { filiere: 'Informatique', valeur: totalInternships, pourcentage: '100%', color: '#162449' }
-  ];
+  const byDomain = internshipStats?.byDomain || [];
+  const totalDomaines = byDomain.reduce((acc, d) => acc + Number(d.count), 0);
+  const stagesParFiliere = byDomain.map((d, index) => ({
+    filiere: d.domain,
+    valeur: Number(d.count),
+    pourcentage: totalDomaines > 0 ? `${Math.round((Number(d.count) / totalDomaines) * 100)}%` : '0%',
+    color: COLORS[index % COLORS.length],
+  }));
 
-  // ===== TOP 5 ENTREPRISES PAR VILLE =====
-  const topEntreprises = statsData?.geo?.byCity?.map((c, i) => ({
-    nom: `Entreprises de ${c.city || 'Ville'}`,
-    stages: Number(c.count || 0),
-    ville: c.city || 'Madagascar',
-    secteur: 'Multi-secteurs'
-  })) || [
-    { nom: 'Toutes entreprises', stages: totalInternships, ville: 'Madagascar', secteur: 'Général' }
-  ];
-
-  // ===== RÉPARTITION PAR NIVEAU =====
+  const byNiveau = overview?.byNiveau || [];
+  const totalNiveau = byNiveau.reduce((acc, n) => acc + Number(n.count), 0);
   const repartitionNiveau = [
-    { niveau: 'Étudiants inscrits', nombre: totalStudents, pourcentage: 100 },
-    { niveau: 'Diplômés insérés', nombre: statsData?.dash?.employment?.graduates || 0, pourcentage: totalStudents ? Math.round(((statsData?.dash?.employment?.graduates || 0) / totalStudents) * 100) : 0 },
+    ...byNiveau.map((n) => ({
+      niveau: n.niveau,
+      nombre: Number(n.count),
+      pourcentage: totalNiveau > 0 ? Math.round((Number(n.count) / totalNiveau) * 100) : 0,
+    })),
+    { niveau: 'Total', nombre: totalNiveau, pourcentage: 100 },
   ];
 
-  // ===== ACTIVITÉS RÉCENTES =====
-  const activitesRecentes = [
-    { action: 'Système initialisé', utilisateur: 'Admin', details: 'Statistiques mises à jour avec la base de données', date: new Date().toLocaleDateString('fr-FR') },
-  ];
+  const topEntreprises = (overview?.topCompanies || []).map((c) => ({
+    nom: c.nom,
+    ville: c.ville,
+    secteur: c.secteur,
+    stages: Number(c.stages),
+  }));
 
-  // ===== STATUT STAGES POUR CAMEMBERT =====
-  const statutStagesPie = [
-    { name: 'En cours', value: ongoingCount, color: '#3B82F6' },
-    { name: 'À venir', value: upcomingCount, color: '#F59E0B' },
-    { name: 'Terminés', value: completedCount, color: '#22C55E' },
-  ];
+  const evaluationsData = (overview?.evalDist || []).map((e) => ({
+    note: e.note,
+    count: e.count,
+    intervalle: '/20',
+  }));
 
-  // ===== ÉVALUATIONS =====
-  const evaluationsData = [
-    { note: 'Insertion pro', intervalle: 'Taux', count: Math.round(statsData?.dash?.employment?.insertionRate || 0), pourcentage: `${statsData?.dash?.employment?.insertionRate || 0}%` },
-    { note: 'En emploi', intervalle: 'Diplômés', count: statsData?.dash?.employment?.employed || 0, pourcentage: `${statsData?.dash?.employment?.employed || 0}` },
-    { note: 'En recherche', intervalle: 'Diplômés', count: statsData?.dash?.employment?.seekingEmployment || 0, pourcentage: `${statsData?.dash?.employment?.seekingEmployment || 0}` },
-  ];
-
-  const COLORS = ['#6BA9E6', '#F59E0B', '#22C55E', '#7C3AED', '#EF4444', '#3B82F6', '#EC4899', '#14B8A6','#162449'];
-
-  // ===== OPTIONS DU FILTRE =====
-  const yearOptions = [
-    { value: '2024', label: '2024' },
-    { value: '2025', label: '2025' },
-    { value: '2026', label: '2026' },
-  ];
+  const activitesRecentes = activites;
 
   return (
     <div className="admin-stats-page" ref={statsRef}>
@@ -200,7 +267,7 @@ function Statistiques() {
           <p className="admin-stats-subtitle">Vue d'ensemble des données de la plateforme</p>
         </div>
         <div className="admin-stats-actions">
-          <button 
+          <button
             className="admin-stats-btn-export"
             onClick={handleExportPDF}
             disabled={isExporting}
@@ -210,21 +277,27 @@ function Statistiques() {
         </div>
       </div>
 
-      {/* ===== FILTRE COMME DANS LA PAGE MAP ===== */}
+      {error && <div className="alert alert-danger">{error}</div>}
+
+      {/* ===== FILTRE PAR ANNÉE SCOLAIRE ===== */}
       <div className="admin-stats-filter-section">
         <div className="admin-stats-filter-group">
           <label>
-            <FaFilter /> Filtrer par année
+            <FaFilter /> Filtrer par année scolaire
           </label>
           <SelectPersonnalise
-            value={filterYear}
-            onChange={setFilterYear}
-            options={yearOptions}
+            value={filterAnneeScolaire}
+            onChange={setFilterAnneeScolaire}
+            options={anneeOptions}
             className="admin-stats-filter-select"
           />
         </div>
         <div className="admin-stats-filter-count">
-          <strong>{filterYear}</strong> · Données affichées
+          {loading ? (
+            <span>Chargement...</span>
+          ) : (
+            <><strong>{filterAnneeScolaire}</strong> · Données affichées</>
+          )}
         </div>
       </div>
 
@@ -253,18 +326,20 @@ function Statistiques() {
         <div className="stats-card stats-card-2-3">
           <div className="stats-card-header">
             <h3><FaChartBar /> Stages par mois</h3>
-            <span className="stats-badge">{filterYear}</span>
+            <span className="stats-badge">{filterAnneeScolaire}</span>
           </div>
           <div className="stats-card-body">
-            <ResponsiveContainer width="100%" height={280}>
+            <div className="stats-diagramme-max">
+<ResponsiveContainer width="100%" height={280}>
               <BarChart data={stagesParMois} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#F5F8FC" />
                 <XAxis dataKey="mois" tick={{ fontSize: 11, fill: '#6c7a8a' }} />
                 <YAxis tick={{ fontSize: 11, fill: '#6c7a8a' }} />
                 <Tooltip contentStyle={{ borderRadius: '10px', border: '1px solid #E1ECFE' }} />
-                <Bar dataKey="stages" fill={COLORS[8]} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="stages" fill={COLORS[8]} radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
+            </div>
           </div>
         </div>
 
@@ -282,13 +357,19 @@ function Statistiques() {
                 </tr>
               </thead>
               <tbody>
-                {repartitionNiveau.map((item, index) => (
-                  <tr key={index} className={item.niveau === 'Total' ? 'stats-table-total' : ''}>
-                    <td><strong>{item.niveau}</strong></td>
-                    <td>{item.nombre}</td>
-                    <td>{item.pourcentage}%</td>
+                {repartitionNiveau.length === 0 ? (
+                  <tr>
+                    <td colSpan="3" className="admin-rapports-empty">Aucune donnée</td>
                   </tr>
-                ))}
+                ) : (
+                  repartitionNiveau.map((item, index) => (
+                    <tr key={index} className={item.niveau === 'Total' ? 'stats-table-total' : ''}>
+                      <td><strong>{item.niveau}</strong></td>
+                      <td>{item.nombre}</td>
+                      <td>{item.pourcentage}%</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -340,14 +421,14 @@ function Statistiques() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ borderRadius: '10px', border: '1px solid #E1ECFE', zIndex: 9999 }}
                       formatter={(value, name) => [`${value} stages`, name]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="stats-statut-total" style={{ zIndex: 1 }}>
-                  <span className="stats-statut-total-value">{statutStages[0].value}</span>
+                  <span className="stats-statut-total-value">{statutStages[0]?.value ?? 0}</span>
                   <span className="stats-statut-total-label">Total</span>
                 </div>
               </div>
@@ -391,18 +472,21 @@ function Statistiques() {
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Pie>
-                    <Tooltip 
+                    <Tooltip
                       contentStyle={{ borderRadius: '10px', border: '1px solid #E1ECFE' }}
                       formatter={(value, name) => [`Nombre d'étudiants : ${value}`, name]}
                     />
                   </PieChart>
                 </ResponsiveContainer>
                 <div className="stats-filiere-total" style={{ zIndex: 1 }}>
-                  <span className="stats-filiere-total-value">105</span>
+                  <span className="stats-filiere-total-value">{totalDomaines}</span>
                   <span className="stats-filiere-total-label">Total</span>
                 </div>
               </div>
               <div className="stats-filiere-list">
+                {stagesParFiliere.length === 0 && (
+                  <div className="admin-rapports-empty">Aucune donnée</div>
+                )}
                 {stagesParFiliere.map((item, index) => (
                   <div key={index} className="stats-filiere-item">
                     <span className="stats-filiere-dot" style={{ backgroundColor: item.color }} />
@@ -461,24 +545,30 @@ function Statistiques() {
                 </tr>
               </thead>
               <tbody>
-                {topEntreprises.map((item, index) => (
-                  <tr key={index}>
-                    <td>
-                      <span 
-                        className="stats-top-rank"
-                        style={{
-                          backgroundColor: index === 0 ? '#F59E0B' : index === 1 ? '#9CA3AF' : index === 2 ? '#D97706' : '#6BA9E6'
-                        }}
-                      >
-                        {index + 1}
-                      </span>
-                    </td>
-                    <td><strong>{item.nom}</strong></td>
-                    <td>{item.ville}</td>
-                    <td>{item.secteur}</td>
-                    <td><strong>{item.stages}</strong></td>
+                {topEntreprises.length === 0 ? (
+                  <tr>
+                    <td colSpan="5" className="admin-rapports-empty">Aucune donnée</td>
                   </tr>
-                ))}
+                ) : (
+                  topEntreprises.map((item, index) => (
+                    <tr key={index}>
+                      <td>
+                        <span
+                          className="stats-top-rank"
+                          style={{
+                            backgroundColor: index === 0 ? '#F59E0B' : index === 1 ? '#9CA3AF' : index === 2 ? '#D97706' : '#6BA9E6'
+                          }}
+                        >
+                          {index + 1}
+                        </span>
+                      </td>
+                      <td><strong>{item.nom}</strong></td>
+                      <td>{item.ville}</td>
+                      <td>{item.secteur}</td>
+                      <td><strong>{item.stages}</strong></td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -502,14 +592,20 @@ function Statistiques() {
                 </tr>
               </thead>
               <tbody>
-                {activitesRecentes.map((item, index) => (
-                  <tr key={index}>
-                    <td><strong>{item.action}</strong></td>
-                    <td>{item.utilisateur}</td>
-                    <td>{item.details}</td>
-                    <td className="stats-activite-date-cell">{item.date}</td>
+                {activitesRecentes.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="admin-rapports-empty">Aucune activité récente</td>
                   </tr>
-                ))}
+                ) : (
+                  activitesRecentes.map((item, index) => (
+                    <tr key={index}>
+                      <td><strong>{item.action}</strong></td>
+                      <td>{item.utilisateur}</td>
+                      <td>{item.details}</td>
+                      <td className="stats-activite-date-cell">{item.date}</td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>

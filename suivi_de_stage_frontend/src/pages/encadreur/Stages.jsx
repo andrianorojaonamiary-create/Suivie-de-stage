@@ -1,106 +1,93 @@
-import { useState } from 'react';
-import { 
-  FaClipboardList, FaSearch, FaFilter, FaChevronLeft, FaChevronRight,
-  FaClock, FaCheckCircle, FaEye, FaTimes, 
-} from 'react-icons/fa';
-import ViewModal from './components/ViewModal';
-import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
+import {
+  FaClipboardList,
+  FaSearch,
+  FaFilter,
+  FaChevronLeft,
+  FaChevronRight,
+  FaClock,
+  FaCheckCircle,
+  FaEye,
+  FaTimes,
+  FaCheck,
+  FaFileAlt,
+} from "react-icons/fa";
+import { internshipsApi } from "../../api";
+import {
+  mapInternshipList,
+  STATUT_LABELS,
+} from "../../utils/internshipMapping";
+import ValidateModal from "../enseignant/components/ValidateModal";
+import RejectModal from "../enseignant/components/RejectModal";
+import StageDetailModal from "./components/StageDetailModal";
+import SelectPersonnalise from "../../components/Common/SelectPersonnalise";
 
 function EncadreurStages() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('tous');
+  const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("tous");
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
 
-  // ===== MODAL =====
-  const [showViewModal, setShowViewModal] = useState(false);
+  // ===== MODALS =====
+  const [modalValidateOpen, setModalValidateOpen] = useState(false);
+  const [modalRejectOpen, setModalRejectOpen] = useState(false);
+  const [modalViewStage, setModalViewStage] = useState(null);
   const [selectedStage, setSelectedStage] = useState(null);
+  const [commentaire, setCommentaire] = useState("");
 
-  const [stages] = useState([
-    {
-      id: 1,
-      titre: "Plateforme web RH",
-      etudiant: 'Rakoto Miora',
-      entreprise: 'TechMada SARL',
-      ville: 'Antananarivo',
-      dateDebut: '2024-03-01',
-      dateFin: '2024-09-15',
-      statut: 'En cours',
-      statutValidation: 'valide',
-      progression: 65,
-      description: "Développement d'une plateforme web de gestion RH",
-      encadreur: 'M. Rakotomalala',
-      tuteur: 'Prof. Andrianivo'
-    },
-    {
-      id: 2,
-      titre: "Migration système",
-      etudiant: 'Ramanantsoa Tojo',
-      entreprise: 'BNI Madagascar',
-      ville: 'Antananarivo',
-      dateDebut: '2024-05-01',
-      dateFin: '2024-11-01',
-      statut: 'En attente',
-      statutValidation: 'en_attente',
-      progression: 15,
-      description: "Migration du système d'information",
-      encadreur: 'M. Rakotomalala',
-      tuteur: 'Prof. Andrianivo'
-    },
-    {
-      id: 3,
-      titre: "Gestion rendez-vous",
-      etudiant: 'Razafindramary Fy',
-      entreprise: 'Santé Plus',
-      ville: 'Antananarivo',
-      dateDebut: '2024-08-01',
-      dateFin: '2025-01-15',
-      statut: 'En cours',
-      statutValidation: 'valide',
-      progression: 5,
-      description: "Application de gestion des rendez-vous",
-      encadreur: 'M. Rakotomalala',
-      tuteur: 'Prof. Andrianivo'
-    },
-    {
-      id: 4,
-      titre: "Gestion de stock",
-      etudiant: 'Rajaonarivelo Ando',
-      entreprise: 'DistriTech',
-      ville: 'Antananarivo',
-      dateDebut: '2024-07-01',
-      dateFin: '2024-12-31',
-      statut: 'Refusé',
-      statutValidation: 'refuse',
-      progression: 20,
-      description: "Système de gestion de stock",
-      encadreur: 'M. Rakotomalala',
-      tuteur: 'Dr. Ranaivo'
-    }
-  ]);
+  // ===== DONNÉES API =====
+  const [stages, setStages] = useState([]);
 
+  useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const res = await internshipsApi.getAll({ limit: 100 });
+        const list = res?.data || (Array.isArray(res) ? res : []);
+        setStages(mapInternshipList(list));
+      } catch (err) {
+        console.error("Erreur chargement stages encadreur:", err);
+      }
+    };
+    fetchStages();
+  }, []);
+
+  // ===== STATISTIQUES =====
   const stats = {
     total: stages.length,
-    enCours: stages.filter(s => s.statut === 'En cours').length,
-    enAttente: stages.filter(s => s.statut === 'En attente').length,
-    termines: stages.filter(s => s.statut === 'Terminé' || s.statut === 'Validé').length,
-    refuses: stages.filter(s => s.statut === 'Refusé').length
+    enCours: stages.filter((s) => s.statutApi === "EN_COURS").length,
+    enAttente: stages.filter((s) => s.statutApi === "EN_ATTENTE").length,
+    refuses: stages.filter((s) => s.statutApi === "REFUSE").length,
   };
 
-  const filteredStages = stages.filter(s => {
-    if (selectedStatus !== 'tous' && s.statut !== selectedStatus) return false;
-    if (searchTerm.trim() !== '') {
+  // ===== FILTRAGE ET RECHERCHE =====
+  const filteredStages = stages.filter((s) => {
+    if (selectedStatus !== "tous" && s.statutApi !== selectedStatus)
+      return false;
+    if (searchTerm.trim() !== "") {
       const term = searchTerm.toLowerCase().trim();
-      return s.etudiant.toLowerCase().includes(term) ||
-             s.titre.toLowerCase().includes(term) ||
-             s.entreprise.toLowerCase().includes(term);
+      return (
+        s.etudiant.toLowerCase().includes(term) ||
+        s.titre.toLowerCase().includes(term) ||
+        s.entreprise.toLowerCase().includes(term)
+      );
     }
     return true;
   });
 
+  // ===== PAGINATION =====
   const totalPages = Math.ceil(filteredStages.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedStages = filteredStages.slice(startIndex, startIndex + itemsPerPage);
+  const paginatedStages = filteredStages.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
+
+  const handleFilterChange = (value) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
 
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
@@ -113,28 +100,129 @@ function EncadreurStages() {
     }
   };
 
+  // ===== FORMAT DATE =====
   const formatDate = (dateStr) => {
-    if (!dateStr) return '—';
+    if (!dateStr) return "—";
     const date = new Date(dateStr);
-    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+    return date.toLocaleDateString("fr-FR", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
   };
 
+  // ===== BADGE STATUT =====
   const getStatusBadge = (statut) => {
     const badges = {
-      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
-      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
-      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
-      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
-      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+      EN_COURS: { className: "status-badge status-en-cours", label: "En cours" },
+      REFUSE: { className: "status-badge status-refuse", label: "Refusé" },
+      EN_ATTENTE: {
+        className: "status-badge status-en-attente",
+        label: "En attente",
+      },
     };
-    const badge = badges[statut] || badges['En attente'];
+    const badge = badges[statut] || {
+      className: "status-badge status-en-attente",
+      label: STATUT_LABELS[statut] || "En attente",
+    };
     return <span className={badge.className}>{badge.label}</span>;
   };
 
   // ===== ACTIONS =====
-  const openViewModal = (stage) => {
+  const openView = (stage) => {
+    setModalViewStage(stage);
+  };
+
+  const openValidateModal = (stage) => {
     setSelectedStage(stage);
-    setShowViewModal(true);
+    setCommentaire("");
+    setModalValidateOpen(true);
+  };
+
+  const openRejectModal = (stage) => {
+    setSelectedStage(stage);
+    setCommentaire("");
+    setModalRejectOpen(true);
+  };
+
+  const closeValidateModal = () => {
+    if (!loading) {
+      setModalValidateOpen(false);
+      setSelectedStage(null);
+      setCommentaire("");
+    }
+  };
+
+  const closeRejectModal = () => {
+    if (!loading) {
+      setModalRejectOpen(false);
+      setSelectedStage(null);
+      setCommentaire("");
+    }
+  };
+
+  const confirmValidate = async () => {
+    setLoading(true);
+    try {
+      await internshipsApi.update(selectedStage.id, {
+        statut: "EN_COURS",
+        observations: commentaire,
+      });
+      setStages((prev) =>
+        prev.map((s) =>
+          s.id === selectedStage.id
+            ? {
+                ...s,
+                statutApi: "EN_COURS",
+                statut: "En cours",
+                commentaireValidation: commentaire,
+              }
+            : s,
+        ),
+      );
+      toast.success(`Stage "${selectedStage?.titre}" validé avec succès !`);
+    } catch {
+      toast.error("Erreur lors de la validation");
+    } finally {
+      setLoading(false);
+      setModalValidateOpen(false);
+      setSelectedStage(null);
+      setCommentaire("");
+    }
+  };
+
+  const confirmReject = async () => {
+    if (!commentaire || commentaire.trim() === "") {
+      toast.warning("Veuillez ajouter un commentaire pour justifier le refus");
+      return;
+    }
+    setLoading(true);
+    try {
+      await internshipsApi.update(selectedStage.id, {
+        statut: "REFUSE",
+        observations: commentaire,
+      });
+      setStages((prev) =>
+        prev.map((s) =>
+          s.id === selectedStage.id
+            ? {
+                ...s,
+                statutApi: "REFUSE",
+                statut: "Refusé",
+                commentaireValidation: commentaire,
+              }
+            : s,
+        ),
+      );
+      toast.success(`Stage "${selectedStage?.titre}" refusé.`);
+    } catch {
+      toast.error("Erreur lors du refus");
+    } finally {
+      setLoading(false);
+      setModalRejectOpen(false);
+      setSelectedStage(null);
+      setCommentaire("");
+    }
   };
 
   return (
@@ -148,31 +236,39 @@ function EncadreurStages() {
 
       <div className="stats-cards">
         <div className="stat-card">
-          <div className="stat-icon total"><FaClipboardList /></div>
+          <div className="stat-icon total">
+            <FaFileAlt />
+          </div>
           <div className="stat-info">
             <span className="stat-value">{stats.total}</span>
             <span className="stat-label">Total</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon active"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enCours}</span>
-            <span className="stat-label">En cours</span>
+          <div className="stat-icon pending">
+            <FaClock />
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaClock /></div>
           <div className="stat-info">
             <span className="stat-value">{stats.enAttente}</span>
             <span className="stat-label">En attente</span>
           </div>
         </div>
         <div className="stat-card">
-          <div className="stat-icon done"><FaCheckCircle /></div>
+          <div className="stat-icon active">
+            <FaCheckCircle />
+          </div>
           <div className="stat-info">
-            <span className="stat-value">{stats.termines}</span>
-            <span className="stat-label">Terminés</span>
+            <span className="stat-value">{stats.enCours}</span>
+            <span className="stat-label">En cours</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon rejected">
+            <FaTimes />
+          </div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.refuses}</span>
+            <span className="stat-label">Refusés</span>
           </div>
         </div>
       </div>
@@ -185,20 +281,18 @@ function EncadreurStages() {
                 <FaFilter className="filter-icon" />
                 <SelectPersonnalise
                   value={selectedStatus}
-                  onChange={setSelectedStatus}
+                  onChange={handleFilterChange}
                   options={[
-                    { value: 'tous', label: 'Tous les statuts' },
-                    { value: 'En cours', label: 'En cours' },
-                    { value: 'En attente', label: 'En attente' },
-                    { value: 'Terminé', label: 'Terminé' },
-                    { value: 'Validé', label: 'Validé' },
-                    { value: 'Refusé', label: 'Refusé' }
+                    { value: "tous", label: "Tous les statuts" },
+                    { value: "EN_ATTENTE", label: "En attente" },
+                    { value: "EN_COURS", label: "En cours" },
+                    { value: "REFUSE", label: "Refusé" },
                   ]}
                 />
               </div>
             </div>
           </div>
-          
+
           <div className="search-wrapper">
             <div className="search-group">
               <FaSearch className="search-icon" />
@@ -210,7 +304,10 @@ function EncadreurStages() {
                 className="search-input"
               />
               {searchTerm && (
-                <button className="search-clear" onClick={() => setSearchTerm('')}>
+                <button
+                  className="search-clear"
+                  onClick={() => setSearchTerm("")}
+                >
                   <FaTimes />
                 </button>
               )}
@@ -229,7 +326,7 @@ function EncadreurStages() {
               <thead>
                 <tr>
                   <th>Étudiant</th>
-                  <th>tage</th>
+                  <th>Stage</th>
                   <th>Entreprise</th>
                   <th>Période</th>
                   <th>Statut</th>
@@ -239,17 +336,40 @@ function EncadreurStages() {
               <tbody>
                 {paginatedStages.map((stage) => (
                   <tr key={stage.id}>
-                    <td><strong>{stage.etudiant}</strong></td>
+                    <td>
+                      <strong>{stage.etudiant}</strong>
+                    </td>
                     <td>{stage.titre}</td>
                     <td>{stage.entreprise}</td>
-                    <td>{formatDate(stage.dateDebut)} → {formatDate(stage.dateFin)}</td>
-                    <td>{getStatusBadge(stage.statut)}</td>
+                    <td>
+                      {formatDate(stage.dateDebut)} →{" "}
+                      {formatDate(stage.dateFin)}
+                    </td>
+                    <td>{getStatusBadge(stage.statutApi)}</td>
                     <td>
                       <div className="action-buttons">
-                        <button 
-                          className="action-btn view" 
-                          onClick={() => openViewModal(stage)}
-                          title="Voir les détails"
+                        {stage.statutApi === "EN_ATTENTE" && (
+                          <>
+                            <button
+                              className="action-btn validate"
+                              onClick={() => openValidateModal(stage)}
+                              title="Valider le stage"
+                            >
+                              <FaCheck />
+                            </button>
+                            <button
+                              className="action-btn reject"
+                              onClick={() => openRejectModal(stage)}
+                              title="Refuser le stage"
+                            >
+                              <FaTimes />
+                            </button>
+                          </>
+                        )}
+                        <button
+                          className="action-btn view"
+                          onClick={() => openView(stage)}
+                          title="Voir les détails du stage"
                         >
                           <FaEye />
                         </button>
@@ -262,7 +382,7 @@ function EncadreurStages() {
 
             {totalPages > 1 && (
               <div className="pagination">
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage === 1}
@@ -272,13 +392,13 @@ function EncadreurStages() {
                 {[...Array(totalPages)].map((_, index) => (
                   <button
                     key={index}
-                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
+                    className={`page-btn ${currentPage === index + 1 ? "active" : ""}`}
                     onClick={() => goToPage(index + 1)}
                   >
                     {index + 1}
                   </button>
                 ))}
-                <button 
+                <button
                   className="page-btn"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
@@ -286,7 +406,8 @@ function EncadreurStages() {
                   <FaChevronRight />
                 </button>
                 <span className="page-info">
-                  {filteredStages.length} stage{filteredStages.length > 1 ? 's' : ''}
+                  {filteredStages.length} stage
+                  {filteredStages.length > 1 ? "s" : ""}
                 </span>
               </div>
             )}
@@ -294,11 +415,30 @@ function EncadreurStages() {
         )}
       </div>
 
-      {/* ===== MODAL VIEW ===== */}
-      <ViewModal
+      {/* ===== MODALS ===== */}
+      <ValidateModal
         stage={selectedStage}
-        isOpen={showViewModal}
-        onClose={() => setShowViewModal(false)}
+        isOpen={modalValidateOpen}
+        onClose={closeValidateModal}
+        onConfirm={confirmValidate}
+        loading={loading}
+        commentaire={commentaire}
+        setCommentaire={setCommentaire}
+      />
+
+      <RejectModal
+        stage={selectedStage}
+        isOpen={modalRejectOpen}
+        onClose={closeRejectModal}
+        onConfirm={confirmReject}
+        loading={loading}
+        commentaire={commentaire}
+        setCommentaire={setCommentaire}
+      />
+
+      <StageDetailModal
+        stage={modalViewStage}
+        onClose={() => setModalViewStage(null)}
       />
     </div>
   );

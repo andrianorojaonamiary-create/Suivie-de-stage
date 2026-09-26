@@ -72,7 +72,7 @@
 /* ===== KPI GRILLE & CARTES ===== */
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
   margin-bottom: 24px;
 }
@@ -172,15 +172,6 @@
   font-weight: 600;
   color: #192543;
   margin-top: 4px;
-}
-
-.kpi-change {
-  font-size: 12px;
-  font-weight: 700;
-  margin-top: 4px;
-  display: flex;
-  align-items: center;
-  gap: 4px;
 }
 
 /* ===== GRILLES DASHBOARD ===== */

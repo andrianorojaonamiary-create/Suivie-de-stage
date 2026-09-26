@@ -23,4 +23,28 @@ export class UpdateOwnProfileDto {
   )
   @IsEmail()
   email?: string;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @Length(2, 100)
+  grade?: string;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @Length(2, 100)
+  departement?: string;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @Length(2, 150)
+  specialite?: string;
+
+  @IsOptional()
+  @Transform(trim)
+  @IsString()
+  @Length(5, 30)
+  telephone?: string;
 }

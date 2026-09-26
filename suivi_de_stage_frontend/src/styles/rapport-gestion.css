@@ -65,21 +65,9 @@
 .rapports-enseignant .filter-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  justify-content: center;
   flex: 1;
   min-width: 150px;
-}
-
-.rapports-admin .filter-group label,
-.rapports-enseignant .filter-group label {
-  font-size: 11px;
-  font-weight: 600;
-  color: #6c7a8a;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
 }
 
 .rapports-admin .filter-select,
@@ -240,6 +228,29 @@
 .rapports-encadreur .btn-action-icon:hover {
   background: #FAFBFF;
   border-color: #6BA9E6;
+}
+
+/* Bouton Voir avec texte (Admin) */
+.rapports-admin .admin-rapports-btn-view {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #A0B8D0;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rapports-admin .admin-rapports-btn-view:hover {
+  background: #6BA9E6;
+  border-color: #6BA9E6;
+  color: white;
 }
 
 /* Bouton Valider (Admin & Enseignant) */

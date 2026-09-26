@@ -11,7 +11,13 @@ describe('NotificationsService', () => {
     remove: jest.fn(),
     createQueryBuilder: jest.fn(),
   };
-  const service = new NotificationsService(repository as never);
+  const usersRepository = { find: jest.fn() };
+  const mailService = { sendNewUserNotificationEmail: jest.fn() };
+  const service = new NotificationsService(
+    repository as never,
+    usersRepository as never,
+    mailService as never,
+  );
 
   beforeEach(() => jest.clearAllMocks());
 
@@ -33,6 +39,26 @@ describe('NotificationsService', () => {
         referenceId: 'stage-id',
       }),
     );
+  });
+
+  it('notifies every active administrator when a professional supervisor is missing', async () => {
+    const stage = {
+      id: 'stage-id',
+      intitule: 'Projet web',
+      student: { user: { id: 'student-id' } },
+      supervisor: null,
+    } as never;
+    usersRepository.find.mockResolvedValue([
+      { id: 'admin-1' },
+      { id: 'admin-2' },
+    ]);
+
+    await service.notifyStageAwaitingProfessionalSupervisor(stage);
+
+    expect(usersRepository.find).toHaveBeenCalledWith({
+      where: { role: Role.ADMINISTRATEUR, actif: true },
+    });
+    expect(repository.save).toHaveBeenCalledTimes(2);
   });
 
   it('marks only an owned notification as read', async () => {

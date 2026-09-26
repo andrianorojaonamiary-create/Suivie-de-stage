@@ -86,10 +86,10 @@ function EtudiantForm({
               />
             </div>
             <div className="form-group">
-              <label>Filière / Formation *</label>
+              <label>Formation</label>
               <SelectPersonnalise
-                value={formData.filiere || ''}
-                onChange={(v) => setFormData({...formData, filiere: v})}
+                value={formData.formation}
+                onChange={(v) => setFormData({...formData, formation: v})}
                 placeholder="Sélectionner"
                 className="form-control"
                 options={filiereOptions.filter(f => f.value !== 'Tous')}
@@ -115,17 +115,15 @@ function EtudiantForm({
                 options={niveauOptions}
               />
             </div>
-            {!isCreate && (
-              <div className="form-group">
-                <label>Statut</label>
-                <SelectPersonnalise
-                  value={formData.statut || 'Actif'}
-                  onChange={(v) => setFormData({...formData, statut: v})}
-                  className="form-control"
-                  options={statutOptions}
-                />
-              </div>
-            )}
+            <div className="form-group">
+              <label>Statut</label>
+              <SelectPersonnalise
+                value={formData.statutAcademique}
+                onChange={(v) => setFormData({...formData, statutAcademique: v})}
+                className="form-control"
+                options={statutOptions}
+              />
+            </div>
           </div>
         </div>
         <div className="modal-footer">

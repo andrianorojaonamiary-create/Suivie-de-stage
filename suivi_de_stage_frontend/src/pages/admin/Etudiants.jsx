@@ -1,16 +1,14 @@
 import { useState, useEffect } from 'react';
-import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+import {
+  FaSearch, FaFilter, FaEye,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 import { toast } from 'react-toastify';
 
-import EtudiantForm from './components/EtudiantForm';
 import EtudiantDetail from './components/EtudiantDetail';
-import EtudiantDelete from './components/EtudiantDelete';
 import studentsApi from '../../api/studentsApi';
-import usersApi from '../../api/usersApi';
+import { internshipsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
 function AdminEtudiants() {
@@ -18,66 +16,65 @@ function AdminEtudiants() {
   const [filterFiliere, setFilterFiliere] = useState('Tous');
   const [filterPromotion, setFilterPromotion] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEtudiant, setSelectedEtudiant] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [etudiants, setEtudiants] = useState([]);
-  const [formData, setFormData] = useState({
-    matricule: '',
-    nom: '',
-    prenom: '',
-    email: '',
-    motDePasse: '',
-    telephone: '',
-    filiere: 'Génie Informatique',
-    promotion: '2026',
-    niveau: 'L3',
-    statut: 'Actif'
-  });
+  const [enStage, setEnStage] = useState(0);
   const itemsPerPage = 5;
 
   const loadStudents = async () => {
     try {
-      setLoading(true);
-      const res = await studentsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.data || res?.items || [];
+      const [studentsRes, stagesRes] = await Promise.allSettled([
+        studentsApi.getAll(),
+        internshipsApi.getAll({ limit: 100 }),
+      ]);
+
+      const res = studentsRes.status === 'fulfilled' ? studentsRes.value : null;
+      const list = res?.items || [];
 
       const mapped = list.map(item => ({
         id: item.id,
         userId: item.userId || item.user?.id,
         matricule: item.matricule || 'ETU-00',
-        nom: item.user?.nom || item.nom || 'Nom',
-        prenom: item.user?.prenom || item.prenom || 'Prénom',
-        email: item.user?.email || item.email || '—',
-        telephone: item.telephone || item.user?.telephone || '—',
-        filiere: item.formation || item.parcours || item.filiere || 'Informatique',
+        nom: item.user?.nom || 'Nom',
+        prenom: item.user?.prenom || 'Prénom',
+        email: item.user?.email || 'email@emit.mg',
+        telephone: item.telephone || '—',
+        formation: item.formation || 'Non renseigné',
         promotion: item.promotion || '2026',
-        niveau: item.niveau || 'L1',
-        statut: (item.statutAcademique === 'DIPLOME' || item.statutEmploi === 'en_emploi') ? 'Diplômé' : 'Actif',
-        stage: item.internships?.[0]?.intitule || item.internships?.[0]?.titre || '—',
-        entreprise: item.internships?.[0]?.company?.nom || item.internships?.[0]?.entreprise?.nom || '—'
+        niveau: item.niveau || 'L3',
+        statut: item.statutAcademique || 'ACTIF',
       }));
       setEtudiants(mapped);
+
+      const stagesList = stagesRes.status === 'fulfilled'
+        ? (stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : []))
+        : [];
+      setEnStage(
+        new Set(
+          stagesList
+            .filter((s) => s.statut === 'EN_COURS')
+            .map((s) => s.student?.id || s.student?.user?.id)
+            .filter(Boolean),
+        ).size,
+      );
     } catch (err) {
       console.error('Erreur chargement étudiants:', err);
-      toast.error('Erreur lors du chargement des étudiants');
-    } finally {
-      setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadStudents();
+    const run = async () => {
+      await loadStudents();
+    };
+    run();
   }, []);
 
   const stats = {
     total: etudiants.length,
-    actifs: etudiants.filter(e => e.statut === 'Actif').length,
-    diplomes: etudiants.filter(e => e.statut === 'Diplômé').length,
-    enStage: etudiants.filter(e => e.stage && e.stage !== '—').length
+    actifs: etudiants.filter(e => e.statut === 'ACTIF').length,
+    diplomes: etudiants.filter(e => e.statut === 'DIPLOME').length,
+    enStage
   };
 
   const filteredEtudiants = etudiants.filter(e => {
@@ -85,7 +82,7 @@ function AdminEtudiants() {
                         (e.prenom || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (e.matricule || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
                         (e.email || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchFiliere = filterFiliere === 'Tous' || e.filiere === filterFiliere;
+    const matchFiliere = filterFiliere === 'Tous' || e.formation === filterFiliere;
     const matchPromotion = filterPromotion === 'Tous' || e.promotion === filterPromotion;
     return matchSearch && matchFiliere && matchPromotion;
   });
@@ -99,127 +96,17 @@ function AdminEtudiants() {
   };
 
   const filiereOptions = [
-    { value: 'Tous', label: 'Tous' },
-    { value: 'Génie Informatique', label: 'Génie Informatique' },
-    { value: 'Management', label: 'Management' },
-    { value: 'Relations publiques & Multimédia', label: 'Relations publiques & Multimédia' }
+    { value: 'Tous', label: 'Toutes les formations' },
+    ...[...new Set(etudiants.map(e => e.formation).filter(Boolean))].map(v => ({ value: v, label: v }))
   ];
   const promotionOptions = [
-    { value: 'Tous', label: 'Tous' },
-    { value: '2024', label: '2024' },
-    { value: '2025', label: '2025' },
-    { value: '2026', label: '2026' }
+    { value: 'Tous', label: 'Toutes les promotions' },
+    ...[...new Set(etudiants.map(e => e.promotion).filter(Boolean))].map(v => ({ value: v, label: v }))
   ];
-  const niveauOptions = [{ value: 'L1', label: 'L1' }, { value: 'L2', label: 'L2' }, { value: 'L3', label: 'L3' }, { value: 'M1', label: 'M1' }, { value: 'M2', label: 'M2' }];
-  const statutOptions = [{ value: 'Actif', label: 'Actif' }, { value: 'Diplômé', label: 'Diplômé' }];
 
   const getStatusBadge = (statut) => {
-    return statut === 'Actif' ? 'badge-actif' : 'badge-diplome';
-  };
-
-  const resetForm = () => {
-    setFormData({
-      matricule: '',
-      nom: '',
-      prenom: '',
-      email: '',
-      motDePasse: '',
-      telephone: '',
-      filiere: 'Génie Informatique',
-      promotion: '2026',
-      niveau: 'L3',
-      statut: 'Actif'
-    });
-  };
-
-  const handleCreate = async () => {
-    if (!formData.nom || !formData.prenom || !formData.email || !formData.matricule || !formData.motDePasse) {
-      toast.error('Veuillez remplir les champs obligatoires (*)');
-      return;
-    }
-    try {
-      // 1. Créer le compte utilisateur
-      const newUser = await usersApi.create({
-        nom: formData.nom,
-        prenom: formData.prenom,
-        email: formData.email,
-        motDePasse: formData.motDePasse,
-        role: 'ETUDIANT'
-      });
-
-      // 2. Créer le profil étudiant
-      await studentsApi.create({
-        userId: newUser.id,
-        matricule: formData.matricule,
-        formation: formData.filiere,
-        promotion: formData.promotion,
-        niveau: formData.niveau,
-        telephone: formData.telephone || undefined
-      });
-
-      toast.success('Étudiant créé avec succès !');
-      setShowCreateModal(false);
-      resetForm();
-      await loadStudents();
-    } catch (err) {
-      console.error('Erreur création étudiant:', err);
-      const msg = err.response?.data?.message || err.message || 'Erreur lors de la création';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
-    }
-  };
-
-  const handleEdit = async () => {
-    try {
-      if (selectedEtudiant?.id) {
-        await studentsApi.update(selectedEtudiant.id, {
-          matricule: formData.matricule,
-          formation: formData.filiere,
-          promotion: formData.promotion,
-          niveau: formData.niveau,
-          telephone: formData.telephone
-        });
-        toast.success('Étudiant mis à jour !');
-        await loadStudents();
-      }
-    } catch (err) {
-      console.error('Erreur modification étudiant:', err);
-      const msg = err.response?.data?.message || err.message || 'Erreur lors de la modification';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
-    }
-    setShowEditModal(false);
-    resetForm();
-  };
-
-  const handleDelete = async () => {
-    try {
-      if (selectedEtudiant?.id) {
-        await studentsApi.delete(selectedEtudiant.id);
-        toast.success('Étudiant supprimé');
-        await loadStudents();
-      }
-    } catch (err) {
-      console.error('Erreur suppression étudiant:', err);
-      const msg = err.response?.data?.message || err.message || 'Erreur lors de la suppression';
-      toast.error(Array.isArray(msg) ? msg.join(', ') : msg);
-    }
-    setShowDeleteModal(false);
-    setSelectedEtudiant(null);
-  };
-
-  const openCreateModal = () => {
-    resetForm();
-    setShowCreateModal(true);
-  };
-
-  const openEditModal = (etudiant) => {
-    setSelectedEtudiant(etudiant);
-    setFormData(etudiant);
-    setShowEditModal(true);
-  };
-
-  const openDeleteModal = (etudiant) => {
-    setSelectedEtudiant(etudiant);
-    setShowDeleteModal(true);
+    if (statut === 'DIPLOME') return 'badge-diplome';
+    return 'badge-actif';
   };
 
   const openDetailModal = (etudiant) => {
@@ -313,11 +200,10 @@ function AdminEtudiants() {
             <tr>
               <th>Matricule</th>
               <th>Étudiant</th>
-              <th>Filière</th>
+              <th>Formation</th>
               <th>Promotion</th>
               <th>Niveau</th>
               <th>Statut</th>
-              <th>Stage / Entreprise</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -328,7 +214,7 @@ function AdminEtudiants() {
               </tr>
             ) : paginatedEtudiants.length === 0 ? (
               <tr>
-                <td colSpan="8" className="admin-etudiants-empty">Aucun étudiant trouvé</td>
+                <td colSpan="7" className="admin-etudiants-empty">Aucun étudiant trouvé</td>
               </tr>
             ) : (
               paginatedEtudiants.map((etudiant) => (
@@ -343,26 +229,14 @@ function AdminEtudiants() {
                       </div>
                     </div>
                   </td>
-                  <td>{etudiant.filiere}</td>
+                  <td>{etudiant.formation}</td>
                   <td><span className="admin-etudiants-promotion-badge">{etudiant.promotion}</span></td>
                   <td>{etudiant.niveau}</td>
                   <td><span className={getStatusBadge(etudiant.statut)}>{etudiant.statut}</span></td>
                   <td>
-                    <div className="admin-etudiants-stage-info">
-                      <span className="admin-etudiants-stage-name">{etudiant.stage || '—'}</span>
-                      <span className="admin-etudiants-entreprise-name">{etudiant.entreprise || '—'}</span>
-                    </div>
-                  </td>
-                  <td>
                     <div className="admin-etudiants-actions">
-                      <button className="admin-etudiants-btn-icon" onClick={() => openDetailModal(etudiant)} title="Voir">
-                        <FaEye />
-                      </button>
-                      <button className="admin-etudiants-btn-icon" onClick={() => openEditModal(etudiant)} title="Modifier">
-                        <FaEdit />
-                      </button>
-                      <button className="admin-etudiants-btn-icon danger" onClick={() => openDeleteModal(etudiant)} title="Supprimer">
-                        <FaTrash />
+                      <button className="admin-etudiants-btn-view" onClick={() => openDetailModal(etudiant)} title="Voir">
+                        <FaEye /> Voir
                       </button>
                     </div>
                   </td>
@@ -386,47 +260,7 @@ function AdminEtudiants() {
         )}
       </div>
 
-      {/* ===== MODALES ===== */}
-      {showCreateModal && (
-        <EtudiantForm
-          title="Ajouter un étudiant"
-          submitLabel="Créer"
-          isCreate={true}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleCreate}
-          onCancel={() => { setShowCreateModal(false); resetForm(); }}
-          filiereOptions={filiereOptions}
-          promotionOptions={promotionOptions}
-          niveauOptions={niveauOptions}
-          statutOptions={statutOptions}
-        />
-      )}
-
-      {showEditModal && (
-        <EtudiantForm
-          title="Modifier l'étudiant"
-          submitLabel="Modifier"
-          isCreate={false}
-          formData={formData}
-          setFormData={setFormData}
-          onSubmit={handleEdit}
-          onCancel={() => { setShowEditModal(false); resetForm(); }}
-          filiereOptions={filiereOptions}
-          promotionOptions={promotionOptions}
-          niveauOptions={niveauOptions}
-          statutOptions={statutOptions}
-        />
-      )}
-
-      {showDeleteModal && (
-        <EtudiantDelete
-          etudiant={selectedEtudiant}
-          onConfirm={handleDelete}
-          onCancel={() => { setShowDeleteModal(false); setSelectedEtudiant(null); }}
-        />
-      )}
-
+      {/* ===== MODALE DÉTAIL ===== */}
       {showDetailModal && (
         <EtudiantDetail
           etudiant={selectedEtudiant}

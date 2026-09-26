@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FaSignOutAlt, FaBell, FaBars } from 'react-icons/fa';
-import notificationsApi from '../../api/notificationsApi';
+import { notificationsApi } from '../../api';
 
 function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const { user, logout } = useAuth();
@@ -10,28 +10,24 @@ function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
   const location = useLocation();
   const handleToggle = onToggleMobileMenu || onMobileMenuToggle;
 
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
-    if (!user) {
-      setUnreadNotifications(0);
-      return;
-    }
-
-    let isMounted = true;
-    const fetchUnreadCount = async () => {
+    let cancelled = false;
+    const fetchUnread = async () => {
       try {
-        const res = await notificationsApi.getAll();
-        const dataList = Array.isArray(res) ? res : res?.items || res?.data || [];
-        const count = dataList.filter(n => !(n.lu || n.estLue || n.read)).length;
-        if (isMounted) setUnreadNotifications(count);
+        const res = await notificationsApi.getAll({ lu: false });
+        const total = res?.meta?.total ?? res?.data?.length ?? 0;
+        if (!cancelled) setUnreadCount(Number(total) || 0);
       } catch {
-        if (isMounted) setUnreadNotifications(0);
+        if (!cancelled) setUnreadCount(0);
       }
     };
-
-    fetchUnreadCount();
-  }, [user, location.pathname]);
+    fetchUnread();
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();
@@ -123,8 +119,8 @@ function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
           title="Notifications"
         >
           <FaBell />
-          {unreadNotifications > 0 && (
-            <span className="header-notif-badge">{unreadNotifications}</span>
+          {unreadCount > 0 && (
+            <span className="header-notif-badge">{unreadCount}</span>
           )}
         </button>
 
