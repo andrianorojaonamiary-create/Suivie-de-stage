@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus,
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -9,8 +9,24 @@ import EtudiantForm from './components/EtudiantForm';
 import EtudiantDetail from './components/EtudiantDetail';
 import EtudiantDelete from './components/EtudiantDelete';
 import studentsApi from '../../api/studentsApi';
+import usersApi from '../../api/usersApi';
 import { extractList } from '../../api/listResult';
+import { getApiErrorMessage } from '../../api/apiClient';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { toast } from 'react-toastify';
+
+const EMPTY_FORM = {
+  matricule: '',
+  nom: '',
+  prenom: '',
+  email: '',
+  motDePasse: '',
+  telephone: '',
+  filiere: '',
+  promotion: '',
+  niveau: '',
+  statut: 'Actif'
+};
 
 function AdminEtudiants() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -18,22 +34,15 @@ function AdminEtudiants() {
   const [filterPromotion, setFilterPromotion] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEtudiant, setSelectedEtudiant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [etudiants, setEtudiants] = useState([]);
-  const [formData, setFormData] = useState({
-    matricule: '',
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    filiere: '',
-    promotion: '',
-    niveau: '',
-    statut: 'Actif'
-  });
+  const [createError, setCreateError] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const itemsPerPage = 5;
 
   const loadStudents = async () => {
@@ -129,17 +138,71 @@ function AdminEtudiants() {
   };
 
   const resetForm = () => {
-    setFormData({
-      matricule: '',
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      filiere: '',
-      promotion: '',
-      niveau: '',
-      statut: 'Actif'
-    });
+    setFormData({ ...EMPTY_FORM });
+  };
+
+  const openCreateModal = () => {
+    setCreateError('');
+    setFormData({ ...EMPTY_FORM });
+    setShowCreateModal(true);
+  };
+
+  const handleCreate = async () => {
+    if (!formData.nom || !formData.prenom) {
+      setCreateError('Le nom et le prénom sont obligatoires.');
+      return;
+    }
+    if (!formData.email) {
+      setCreateError('L\'adresse email est obligatoire.');
+      return;
+    }
+    if (!formData.motDePasse || formData.motDePasse.length < 8) {
+      setCreateError('Le mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+    if (!formData.matricule || !formData.filiere || !formData.niveau || !formData.promotion) {
+      setCreateError('Matricule, filière, niveau et promotion sont obligatoires.');
+      return;
+    }
+
+    let createdUserId = null;
+    try {
+      setCreating(true);
+      setCreateError('');
+
+      const user = await usersApi.create({
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        motDePasse: formData.motDePasse,
+        role: 'ETUDIANT'
+      });
+      createdUserId = user?.id;
+
+      await studentsApi.create({
+        userId: createdUserId,
+        matricule: formData.matricule,
+        formation: formData.filiere,
+        niveau: formData.niveau,
+        promotion: formData.promotion,
+        ...(formData.telephone && { telephone: formData.telephone })
+      });
+
+      toast.success('Étudiant créé');
+      setShowCreateModal(false);
+      await loadStudents();
+    } catch (err) {
+      if (createdUserId) {
+        try {
+          await usersApi.delete(createdUserId);
+        } catch {
+          toast.error('Compte créé mais fiche impossible : à supprimer manuellement.');
+        }
+      }
+      setCreateError(getApiErrorMessage(err, 'Erreur de création de l\'étudiant'));
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleEdit = async () => {
@@ -149,10 +212,11 @@ function AdminEtudiants() {
           matricule: formData.matricule,
           niveau: formData.niveau
         });
+        toast.success('Étudiant mis à jour');
         await loadStudents();
       }
-    } catch {
-      setEtudiants(etudiants.map(e => e.id === selectedEtudiant?.id ? { ...e, ...formData } : e));
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Erreur de mise à jour de l\'étudiant'));
     }
     setShowEditModal(false);
     resetForm();
@@ -162,10 +226,11 @@ function AdminEtudiants() {
     try {
       if (selectedEtudiant?.id) {
         await studentsApi.delete(selectedEtudiant.id);
+        toast.success('Étudiant supprimé');
         await loadStudents();
       }
-    } catch {
-      setEtudiants(etudiants.filter(e => e.id !== selectedEtudiant?.id));
+    } catch (err) {
+      toast.error(getApiErrorMessage(err, 'Erreur de suppression de l\'étudiant'));
     }
     setShowDeleteModal(false);
     setSelectedEtudiant(null);
@@ -203,6 +268,9 @@ function AdminEtudiants() {
           <h1>Gestion des étudiants</h1>
           <p className="admin-etudiants-subtitle">Gérez les étudiants et leurs informations</p>
         </div>
+        <button type="button" className="btn-primary" onClick={openCreateModal}>
+          <FaPlus /> Nouvel étudiant
+        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -351,6 +419,24 @@ function AdminEtudiants() {
       </div>
 
       {/* ===== MODALES (COMPOSANTS EXTERNES) ===== */}
+      {showCreateModal && (
+        <EtudiantForm
+          title="Nouvel étudiant"
+          submitLabel="Créer l'étudiant"
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
+          onCancel={() => !creating && setShowCreateModal(false)}
+          filiereOptions={filiereOptions}
+          promotionOptions={promotionOptions}
+          niveauOptions={niveauOptions}
+          statutOptions={statutOptions}
+          showPassword
+          error={createError}
+          submitting={creating}
+        />
+      )}
+
       {showEditModal && (
         <EtudiantForm
           title="Modifier l'étudiant"

@@ -13,18 +13,22 @@ function EtudiantForm({
   filiereOptions,
   promotionOptions,
   niveauOptions,
-  statutOptions
+  statutOptions,
+  showPassword = false,
+  error = '',
+  submitting = false
 }) {
   return (
-    <div className="modal-overlay" onClick={onCancel}>
+    <div className="modal-overlay" onClick={() => !submitting && onCancel()}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{title}</h3>
-          <button className="modal-close" onClick={onCancel}>
+          <button className="modal-close" onClick={onCancel} disabled={submitting}>
             <FaTimes />
           </button>
         </div>
         <div className="modal-body">
+          {error && <div className="alert alert-danger">{error}</div>}
           <div className="form-grid">
             <div className="form-group">
               <label>Matricule</label>
@@ -32,7 +36,7 @@ function EtudiantForm({
                 type="text" 
                 value={formData.matricule} 
                 onChange={(e) => setFormData({...formData, matricule: e.target.value})} 
-                placeholder="ETUXXX"
+                placeholder="ETUXXX" 
               />
             </div>
             <div className="form-group">
@@ -41,7 +45,7 @@ function EtudiantForm({
                 type="text" 
                 value={formData.nom} 
                 onChange={(e) => setFormData({...formData, nom: e.target.value})} 
-                placeholder="Rakoto"
+                placeholder="Rakoto" 
               />
             </div>
             <div className="form-group">
@@ -50,7 +54,7 @@ function EtudiantForm({
                 type="text" 
                 value={formData.prenom} 
                 onChange={(e) => setFormData({...formData, prenom: e.target.value})} 
-                placeholder="Miora"
+                placeholder="Miora" 
               />
             </div>
             <div className="form-group">
@@ -59,16 +63,28 @@ function EtudiantForm({
                 type="email" 
                 value={formData.email} 
                 onChange={(e) => setFormData({...formData, email: e.target.value})} 
-                placeholder="exemple@email.mg"
+                placeholder="exemple@email.mg" 
               />
             </div>
+            {showPassword && (
+              <div className="form-group">
+                <label>Mot de passe *</label>
+                <input 
+                  type="password" 
+                  value={formData.motDePasse || ''} 
+                  onChange={(e) => setFormData({...formData, motDePasse: e.target.value})} 
+                  placeholder="8 caractères minimum" 
+                  autoComplete="new-password" 
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>Téléphone</label>
               <input 
                 type="tel" 
                 value={formData.telephone} 
                 onChange={(e) => setFormData({...formData, telephone: sanitizePhone(e.target.value)})} 
-                placeholder="+261 34 XX XXX XX"
+                placeholder="+261 34 XX XXX XX" 
                 maxLength={14}
                 inputMode="tel"
               />
@@ -115,8 +131,10 @@ function EtudiantForm({
           </div>
         </div>
         <div className="modal-footer">
-          <button className="btn-secondary" onClick={onCancel}>Annuler</button>
-          <button className="btn-primary" onClick={onSubmit}>{submitLabel}</button>
+          <button className="btn-secondary" onClick={onCancel} disabled={submitting}>Annuler</button>
+          <button className="btn-primary" onClick={onSubmit} disabled={submitting}>
+            {submitting ? 'Enregistrement...' : submitLabel}
+          </button>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { 
-  FaSearch, FaFilter, FaEye, FaEdit, FaTrash,
+  FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus,
   FaUserTie, FaUsers, FaChalkboardTeacher, FaBriefcase,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
@@ -9,10 +9,22 @@ import EncadreurForm from './components/EncadreurForm';
 import EncadreurDetail from './components/EncadreurDetail';
 import EncadreurDelete from './components/EncadreurDelete';
 import supervisorsApi from '../../api/supervisorsApi';
+import usersApi from '../../api/usersApi';
 import { extractList } from '../../api/listResult';
 import { getApiErrorMessage } from '../../api/apiClient';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
+
+const EMPTY_FORM = {
+  nom: '',
+  prenom: '',
+  email: '',
+  motDePasse: '',
+  telephone: '',
+  type: 'professionnel',
+  fonction: '',
+  entreprise: ''
+};
 
 function AdminEncadreurs() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,20 +32,15 @@ function AdminEncadreurs() {
   const [filterFonction, setFilterFonction] = useState('Tous');
   const [currentPage, setCurrentPage] = useState(1);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [selectedEncadreur, setSelectedEncadreur] = useState(null);
   const [loading, setLoading] = useState(true);
   const [encadreurs, setEncadreurs] = useState([]);
-  const [formData, setFormData] = useState({
-    nom: '',
-    prenom: '',
-    email: '',
-    telephone: '',
-    type: 'professionnel',
-    fonction: '',
-    entreprise: ''
-  });
+  const [createError, setCreateError] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [formData, setFormData] = useState({ ...EMPTY_FORM });
   const itemsPerPage = 5;
 
   const loadSupervisors = async () => {
@@ -113,15 +120,71 @@ function AdminEncadreurs() {
   };
 
   const resetForm = () => {
-    setFormData({
-      nom: '',
-      prenom: '',
-      email: '',
-      telephone: '',
-      type: 'professionnel',
-      fonction: '',
-      entreprise: ''
-    });
+    setFormData({ ...EMPTY_FORM });
+  };
+
+  const openCreateModal = () => {
+    setCreateError('');
+    setFormData({ ...EMPTY_FORM });
+    setShowCreateModal(true);
+  };
+
+  const handleCreate = async () => {
+    if (!formData.nom || !formData.prenom) {
+      setCreateError('Le nom et le prénom sont obligatoires.');
+      return;
+    }
+    if (!formData.email) {
+      setCreateError('L\'adresse email est obligatoire.');
+      return;
+    }
+    if (!formData.motDePasse || formData.motDePasse.length < 8) {
+      setCreateError('Le mot de passe doit contenir au moins 8 caractères.');
+      return;
+    }
+    if (!formData.fonction) {
+      setCreateError('La fonction est obligatoire.');
+      return;
+    }
+
+    let createdUserId = null;
+    try {
+      setCreating(true);
+      setCreateError('');
+
+      const user = await usersApi.create({
+        nom: formData.nom,
+        prenom: formData.prenom,
+        email: formData.email,
+        motDePasse: formData.motDePasse,
+        role: 'ENCADREUR'
+      });
+      createdUserId = user?.id;
+
+      await supervisorsApi.create({
+        userId: createdUserId,
+        fonction: formData.fonction,
+        specialite: formData.fonction,
+        ...(formData.telephone && { telephone: formData.telephone })
+      });
+
+      toast.success('Encadreur créé');
+      setShowCreateModal(false);
+      await loadSupervisors();
+    } catch (err) {
+      if (createdUserId) {
+        try {
+          await usersApi.delete(createdUserId);
+        } catch {
+          // Le compte reste orphelin : on le signale plutôt que de masquer
+          // la cause réelle de l'échec.
+          toast.error('Compte créé mais fiche impossible : à supprimer manuellement.');
+        }
+      }
+      setCreateError(getApiErrorMessage(err, 'Erreur de création de l\'encadreur'));
+    } finally {
+      setCreating(false);
+    }
   };
 
   const handleEdit = async () => {
@@ -190,6 +253,9 @@ function AdminEncadreurs() {
           <h1>Gestion des encadreurs</h1>
           <p className="admin-encadreurs-subtitle">Gérez les encadreurs professionnels et les tuteurs pédagogiques</p>
         </div>
+        <button type="button" className="btn-primary" onClick={openCreateModal}>
+          <FaPlus /> Nouvel encadreur
+        </button>
       </div>
 
       {/* ===== STATISTIQUES ===== */}
@@ -336,6 +402,22 @@ function AdminEncadreurs() {
       </div>
 
       {/* ===== MODALES ===== */}
+      {showCreateModal && (
+        <EncadreurForm
+          title="Nouvel encadreur"
+          submitLabel="Créer l'encadreur"
+          formData={formData}
+          setFormData={setFormData}
+          onSubmit={handleCreate}
+          onCancel={() => !creating && setShowCreateModal(false)}
+          typeOptions={typeOptions}
+          fonctionOptions={fonctionOptions}
+          showPassword
+          error={createError}
+          submitting={creating}
+        />
+      )}
+
       {showEditModal && (
         <EncadreurForm
           title="Modifier l'encadreur"
