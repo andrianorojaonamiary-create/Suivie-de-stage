@@ -11,9 +11,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
  * Les contraintes suivent la convention de 1789000000000-SchemaInitial :
  * index nommés, FK nommées.
  */
-export class InternshipSupervisorHistory1789100000000
-  implements MigrationInterface
-{
+export class InternshipSupervisorHistory1789100000000 implements MigrationInterface {
   name = 'InternshipSupervisorHistory1789100000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
@@ -72,12 +70,8 @@ export class InternshipSupervisorHistory1789100000000
     await queryRunner.query(
       `ALTER TABLE "internship_supervisor_history" DROP CONSTRAINT "FK_ish_internship"`,
     );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_ish_date_affectation"`,
-    );
-    await queryRunner.query(
-      `DROP INDEX "public"."IDX_ish_internship_id"`,
-    );
+    await queryRunner.query(`DROP INDEX "public"."IDX_ish_date_affectation"`);
+    await queryRunner.query(`DROP INDEX "public"."IDX_ish_internship_id"`);
     await queryRunner.query(`DROP TABLE "internship_supervisor_history"`);
   }
 }

@@ -26,7 +26,8 @@ interface ExpressLayer {
  */
 function logMountedRoutes(app: INestApplication) {
   const server = app.getHttpAdapter().getInstance();
-  const stack: ExpressLayer[] | undefined = server?._router?.stack ?? server?.router?.stack;
+  const stack: ExpressLayer[] | undefined =
+    server?._router?.stack ?? server?.router?.stack;
   if (!stack) return;
 
   const routes: string[] = [];

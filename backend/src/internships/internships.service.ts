@@ -39,7 +39,6 @@ interface AuthenticatedUser {
   role: Role;
 }
 
-
 @Injectable()
 export class InternshipsService {
   constructor(
@@ -234,7 +233,8 @@ export class InternshipsService {
     actor: AuthenticatedUser,
   ) {
     this.ensureAdmin(actor);
-    const excludedId = dto.excludeInternshipId ?? '00000000-0000-0000-0000-000000000000';
+    const excludedId =
+      dto.excludeInternshipId ?? '00000000-0000-0000-0000-000000000000';
 
     const rows = await this.supervisorsRepository
       .createQueryBuilder('supervisor')
@@ -531,10 +531,7 @@ export class InternshipsService {
   }
 
   private ensureAdminOrEnseignant(actor: AuthenticatedUser) {
-    if (
-      actor.role !== Role.ADMINISTRATEUR &&
-      actor.role !== Role.ENSEIGNANT
-    ) {
+    if (actor.role !== Role.ADMINISTRATEUR && actor.role !== Role.ENSEIGNANT) {
       throw new ForbiddenException(
         'Accès réservé aux administrateurs et enseignants.',
       );

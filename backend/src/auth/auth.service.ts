@@ -105,10 +105,7 @@ export class AuthService {
     return this.issueToken(user);
   }
 
-  private async createStudentProfile(
-    user: { id: string },
-    dto: RegisterDto,
-  ) {
+  private async createStudentProfile(user: { id: string }, dto: RegisterDto) {
     const missing = (['matricule', 'niveau', 'filiere', 'promotion'] as const)
       .filter((field) => !dto[field])
       .map((field) => LABELS_STUDENT[field]);
@@ -128,12 +125,9 @@ export class AuthService {
       adresse: dto.adresse ?? null,
     });
 
-    await saveCatchingConflict(
-      async () => {
-        await this.studentsRepository.save(student);
-      },
-      'Ce matricule est déjà utilisé par un autre étudiant.',
-    );
+    await saveCatchingConflict(async () => {
+      await this.studentsRepository.save(student);
+    }, 'Ce matricule est déjà utilisé par un autre étudiant.');
   }
 
   private async createSupervisorProfile(
@@ -156,12 +150,9 @@ export class AuthService {
       telephone: dto.telephone ?? null,
     });
 
-    await saveCatchingConflict(
-      async () => {
-        await this.supervisorsRepository.save(supervisor);
-      },
-      'Ce compte possède déjà un profil encadreur.',
-    );
+    await saveCatchingConflict(async () => {
+      await this.supervisorsRepository.save(supervisor);
+    }, 'Ce compte possède déjà un profil encadreur.');
   }
 
   async login(loginDto: LoginDto) {

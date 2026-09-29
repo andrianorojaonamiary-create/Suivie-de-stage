@@ -42,7 +42,10 @@ const normalizeEmail = ({ value }: { value: unknown }): unknown =>
  */
 const normalizeRole = ({ value }: { value: unknown }): unknown =>
   typeof value === 'string'
-    ? value.replace(/^ROLE_/, '').trim().toUpperCase()
+    ? value
+        .replace(/^ROLE_/, '')
+        .trim()
+        .toUpperCase()
     : value;
 
 const normalizeUpperTrim = ({ value }: { value: unknown }): unknown => {

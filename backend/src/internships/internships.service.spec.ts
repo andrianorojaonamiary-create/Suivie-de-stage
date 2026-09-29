@@ -75,7 +75,9 @@ describe('InternshipsService', () => {
 
   /** Simule un encadreur déjà à la limite de 10 stages actifs. */
   const internsRepositoryAtLimit = () =>
-    internshipsRepository.createQueryBuilder.mockReturnValue(buildCountQuery(10));
+    internshipsRepository.createQueryBuilder.mockReturnValue(
+      buildCountQuery(10),
+    );
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -120,10 +122,7 @@ describe('InternshipsService', () => {
   it('does not count a completed stage against the active-stage limit', async () => {
     internsRepositoryAtLimit();
     await expect(
-      service.create(
-        { ...dto, statut: InternshipStatus.TERMINE },
-        admin,
-      ),
+      service.create({ ...dto, statut: InternshipStatus.TERMINE }, admin),
     ).resolves.toMatchObject({ id: 'stage-id' });
   });
 
@@ -146,7 +145,11 @@ describe('InternshipsService', () => {
       supervisor,
     });
 
-    await service.update('stage-id', { statut: InternshipStatus.TERMINE }, admin);
+    await service.update(
+      'stage-id',
+      { statut: InternshipStatus.TERMINE },
+      admin,
+    );
 
     expect(notificationsService.notifyStageFinished).toHaveBeenCalled();
   });
