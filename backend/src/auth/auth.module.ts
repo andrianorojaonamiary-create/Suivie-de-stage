@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -14,11 +14,12 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { JwtStrategy } from './strategies/jwt.strategy';
 
+@Global()
 @Module({
   imports: [
     UsersModule,
     MailModule,
-    PassportModule,
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     // Student et Supervisor sont enregistrés ici pour que l'inscription puisse
     // créer la ligne de profil. Ce sont les entités, pas les modules : les
     // importer créerait un cycle, StudentsModule et SupervisorsModule
@@ -40,6 +41,6 @@ import { JwtStrategy } from './strategies/jwt.strategy';
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy, JwtAuthGuard, RolesGuard],
-  exports: [AuthService, JwtAuthGuard, RolesGuard],
+  exports: [AuthService, JwtAuthGuard, RolesGuard, PassportModule, JwtModule],
 })
 export class AuthModule {}
