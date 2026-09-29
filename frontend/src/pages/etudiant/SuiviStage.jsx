@@ -1,0 +1,342 @@
+import { useState, useEffect } from 'react';
+import { 
+  FaCheckCircle, FaCircle, FaCalendarAlt, FaClock, 
+  FaComment, FaUserTie,
+  FaBuilding, FaUserGraduate, FaBriefcase, FaInfoCircle,
+  FaFilePdf, FaFileWord, FaFile, FaCheck,
+  FaFilter
+} from 'react-icons/fa';
+import { internshipsApi } from '../../api';
+import { extractList } from '../../api/listResult';
+import { mapInternship } from '../../api/internshipView';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+
+function SuiviStage() {
+  const [loading, setLoading] = useState(true);
+  // ===== STAGES DE L'ÉTUDIANT =====
+  // Initialement vide : la donnée de démonstration était conservée tant que
+  // l'API renvoyait zéro stage, et ses identifiants (1, 2…) n'avaient rien à
+  // voir avec les UUID renvoyés par le serveur.
+  const [stages, setStages] = useState([]);
+
+  useEffect(() => {
+    const fetchSuivi = async () => {
+      try {
+        setLoading(true);
+        const res = await internshipsApi.getAll();
+        const list = extractList(res);
+        // mapInternship dérive dates, durée et jours restants des vraies
+        // colonnes dateDebut/dateFin : le mapping précédent lisait startDate,
+        // endDate, duration, remainingDays — aucun de ces champs n'existe.
+        setStages(list.map(mapInternship));
+      } catch (err) {
+        console.error('Erreur chargement suivi stage:', err);
+        setStages([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSuivi();
+  }, []);
+
+  // ===== STAGE SÉLECTIONNÉ =====
+  const [selectedStageId, setSelectedStageId] = useState('all');
+
+  const getFilteredStages = () => {
+    if (selectedStageId === 'all') {
+      return stages;
+    }
+    return stages.filter(s => s.id === parseInt(selectedStageId));
+  };
+
+  const filteredStages = getFilteredStages();
+  const selectedStage = filteredStages.length > 0 ? filteredStages[0] : stages[0];
+
+  // ===== INFOS ENCADREUR =====
+  // Le tuteur pédagogique n'existe pas dans le modèle : internships ne porte
+  // qu'un supervisor. Le tableau était indexé sur 1, 2, 3… alors que les
+  // identifiants sont des UUID, donc il ne correspondait jamais à rien.
+  const stageInfo = selectedStage
+    ? {
+        tuteur: {
+          nom: 'Non renseigné',
+          role: 'Tuteur pédagogique non modélisé',
+          email: ''
+        },
+        encadreur: {
+          nom: selectedStage.encadreur || '—',
+          role: selectedStage.statut || '',
+          entreprise: selectedStage.entreprise || '—'
+        }
+      }
+    : { tuteur: null, encadreur: null };
+
+  // ===== ÉTAPES =====
+  const milestones = [
+    { label: "Convention signée", done: true, date: "28/07/2026" },
+    { label: "Stage validé", done: true, date: "01/08/2026" },
+    { label: "Stage commencé", done: true, date: "03/08/2026" },
+    { label: "Stage en cours", done: true, date: "En progression" },
+    { label: "Visite de stage", done: false, date: "À venir" },
+    { label: "Rapport à déposer", done: false, date: "À venir" },
+    { label: "Évaluation", done: false, date: "À venir" },
+    { label: "Stage terminé", done: false, date: "À venir" },
+  ];
+
+  // ===== DOCUMENTS =====
+  const documents = [
+    { name: "Convention de stage", type: "pdf", date: "28/07/2026", status: "Validé" },
+    { name: "Plan de travail", type: "word", date: "03/08/2026", status: "Validé" },
+    { name: "Rapport de stage (brouillon)", type: "word", date: "20/08/2026", status: "En cours" },
+    { name: "Fichiers du projet", type: "pdf", date: "21/08/2026", status: "Validé" },
+    { name: "Attestation de stage", type: "pdf", date: "Non encore déposé", status: "À déposer" },
+  ];
+
+  // ===== OBSERVATIONS =====
+  const observations = [
+    {
+      id: 1,
+      auteur: 'M. Rakotomalala',
+      role: 'Maître de stage',
+      date: '15 Mar 2024',
+      contenu: 'Bon début de stage, Miora s\'est bien intégré dans l\'équipe. Il a rapidement pris en main les outils de développement.'
+    },
+    {
+      id: 2,
+      auteur: 'Prof. Andrianivo',
+      role: 'Tuteur pédagogique',
+      date: '20 Mar 2024',
+      contenu: 'La première semaine s\'est bien passée. L\'étudiant a déjà commencé à travailler sur le projet principal.'
+    }
+  ];
+
+  const getStatusBadge = (status) => {
+    const classes = {
+      'Validé': 'badge-valide',
+      'En attente': 'badge-en-attente',
+      'À venir': 'badge-termine',
+      'En cours': 'badge-en-cours',
+      'À déposer': 'badge-en-attente',
+    };
+    return classes[status] || 'badge-en-attente';
+  };
+
+  const getFileIcon = (type) => {
+    switch(type) {
+      case 'pdf': return <FaFilePdf className="pdf" />;
+      case 'word': return <FaFileWord className="word" />;
+      default: return <FaFile />;
+    }
+  };
+
+  return (
+    <div className="etudiant-suivi">
+      {/* ===== HEADER EN COLONNE ===== */}
+      <div className="eval-page-header">
+        <h1 className="eval-page-title">Suivi de stage</h1>
+        <p className="eval-page-subtitle">Suivez l'avancement et les activités de votre stage.</p>
+      </div>
+
+      {loading ? (
+        <div className="text-center p-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Chargement…</span>
+          </div>
+        </div>
+      ) : (
+        <>
+      {/* ===== FILTRE ===== */}
+      <div className="suivi-filter-section">
+        <div className="suivi-filter-group">
+          <label>
+            <FaFilter /> Filtrer par stage
+          </label>
+          <SelectPersonnalise
+            value={selectedStageId}
+            onChange={setSelectedStageId}
+            className="suivi-filter-select"
+            options={[
+              { value: 'all', label: 'Tous les stages' },
+              ...stages.map(stage => ({ value: String(stage.id), label: stage.titre }))
+            ]}
+          />
+        </div>
+        <div className="suivi-filter-count">
+          <strong>{stages.length}</strong> stage{stages.length > 1 ? 's' : ''} enregistré{stages.length > 1 ? 's' : ''}
+        </div>
+      </div>
+
+      {/* ===== 3 CARTES : VOTRE STAGE / ENCADREUR PÉDAGOGIQUE / MAÎTRE DE STAGE ===== */}
+      <div className="avenir-card">
+        <div className="avenir-card-header">
+          <h3>
+            <FaInfoCircle /> {selectedStage?.titre}
+          </h3>
+          <span className={getStatusBadge(selectedStage?.statut)}>
+            {selectedStage?.statut}
+          </span>
+        </div>
+        <div className="avenir-card-body">
+          <div className="eval-info-cards">
+            <div className="eval-info-card">
+              <div className="eval-info-card-content">
+                <h4><FaInfoCircle /> Votre stage</h4>
+                <p className="eval-info-title">{selectedStage?.titre}</p>
+                <p className="eval-info-company">{selectedStage?.entreprise}</p>
+                <p className="eval-info-date">{selectedStage?.dateDebut} → {selectedStage?.dateFin}</p>
+              </div>
+            </div>
+
+            <div className="eval-info-card">
+              <div className="eval-info-card-content">
+                <h4><FaUserGraduate /> Encadreur pédagogique</h4>
+                <p className="eval-info-name">{stageInfo.tuteur.nom}</p>
+                <p className="eval-info-role">{stageInfo.tuteur.role}</p>
+                <p className="eval-info-email">{stageInfo.tuteur.email}</p>
+              </div>
+            </div>
+
+            <div className="eval-info-card">
+              <div className="eval-info-card-content">
+                <h4><FaBriefcase /> Maître de stage</h4>
+                <p className="eval-info-name">{stageInfo.encadreur.nom}</p>
+                <p className="eval-info-role">{stageInfo.encadreur.role}</p>
+                <p className="eval-info-company">{stageInfo.encadreur.entreprise}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== INFORMATION DU STAGE ===== */}
+      <div className="suivi-stage-info">
+        {/* GAUCHE */}
+        <div className="stage-info-left">
+          <h2>{selectedStage.titre}</h2>
+          <p className="stage-company"><FaBuilding /> {selectedStage.entreprise}</p>
+          
+          {/* 3 COLONNES : Début | Fin | Durée */}
+          <div className="stage-info-columns">
+            <div className="stage-info-col">
+              <span className="stage-info-label"><FaCalendarAlt /> Début de stage</span>
+              <span className="stage-info-value">{selectedStage.dateDebut}</span>
+            </div>
+            <div className="stage-info-col">
+              <span className="stage-info-label"><FaCalendarAlt /> Fin de stage</span>
+              <span className="stage-info-value">{selectedStage.dateFin}</span>
+            </div>
+            <div className="stage-info-col">
+              <span className="stage-info-label"><FaClock /> Durée</span>
+              <span className="stage-info-value">{selectedStage.duree}</span>
+            </div>
+          </div>
+          <div className="stage-status-row">
+            <span className="stage-status-text">{selectedStage.statut}</span>
+            <span className="stage-days-text">
+              {selectedStage.joursEcoules} jours écoulés sur {selectedStage.joursTotal} jours
+            </span>
+          </div>
+        </div>
+
+        {/* DROITE : CERCLE DE PROGRESSION */}
+        <div className="stage-info-right">
+          <div className="progress-circle">
+            <svg viewBox="0 0 140 140">
+              <circle cx="70" cy="70" r="58" fill="none" stroke="#E8ECF0" strokeWidth="8" />
+              <circle 
+                cx="70" 
+                cy="70" 
+                r="58" 
+                fill="none" 
+                stroke="#6BA9E6" 
+                strokeWidth="8"
+                strokeDasharray="364.42"
+                strokeDashoffset={364.42 - (364.42 * selectedStage.progression / 100)}
+                strokeLinecap="round"
+                transform="rotate(-90 70 70)"
+              />
+            </svg>
+            <div className="progress-text">
+              <span className="progress-percent">{selectedStage.progression}%</span>
+              <span className="progress-label">Avancement global</span>
+            </div>
+          </div>
+        </div>
+
+        {/* BAS : STATUT + JOURS + DESCRIPTION AVEC BORDER TOP */}
+        <div className="stage-bottom-wrapper">
+          <div className="stage-description">
+            <p>{selectedStage.description}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== ÉTAPES + DOCUMENTS ===== */}
+      <div className="suivi-grid-2">
+        {/* ÉTAPES */}
+        <div className="suivi-card steps-card">
+          <h3><FaCheckCircle /> Étapes de suivi du stage</h3>
+          <div className="steps-list">
+            {milestones.map((step, index) => (
+              <div key={index} className={`step-item ${step.done ? 'done' : ''}`}>
+                <div className="step-number">{index + 1}</div>
+                <div className="step-content">
+                  <span className="step-label">{step.label}</span>
+                  <span className="step-date">{step.date}</span>
+                </div>
+                <div className={`step-status ${step.done ? 'done' : ''}`}>
+                  {step.done ? <FaCheck /> : <FaCircle />}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* DOCUMENTS */}
+        <div className="suivi-card documents-card">
+          <h3><FaFile /> Documents du stage</h3>
+          <div className="documents-list">
+            {documents.map((doc, index) => (
+              <div key={index} className="document-item">
+                <div className="document-left">
+                  <div className="document-icon">
+                    {getFileIcon(doc.type)}
+                  </div>
+                  <div className="document-info">
+                    <span className="document-name">{doc.name}</span>
+                    <span className="document-date">Déposé le {doc.date}</span>
+                  </div>
+                </div>
+                <div className="document-status">
+                  <span className={getStatusBadge(doc.status)}>{doc.status}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>      {/* ===== OBSERVATIONS ===== */}
+      <div className="suivi-card observations-card">
+        <h3><FaComment /> Observations</h3>
+        <div className="observations-list">
+          {observations.map((obs) => (
+            <div key={obs.id} className="observation-item">
+              <div className="observation-header">
+                <span className="observation-auteur">
+                  <FaUserTie /> {obs.auteur}
+                  <span className="observation-role">({obs.role})</span>
+                </span>
+                <span className="observation-date">{obs.date}</span>
+              </div>
+              <p className="observation-contenu">{obs.contenu}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default SuiviStage;

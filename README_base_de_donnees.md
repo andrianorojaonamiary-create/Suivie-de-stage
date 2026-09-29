@@ -1,75 +1,113 @@
 # Base de données — Plateforme de suivi des stages (EMIT)
 
-Ce dossier contient le schéma PostgreSQL du projet, prêt à être importé sur n'importe quelle machine.
+Ce dossier documente le schéma PostgreSQL **géré par les migrations TypeORM** (dossier `backend/src/database/migrations/`). **Ne créez pas le schéma à la main** : la migration initiale crée toutes les tables, enums, index et clés étrangères.
 
-## Contenu
+---
 
-- `schema_db_suivi_stages.sql` — structure complète de la base : 11 tables, types enum, clés primaires/étrangères et contraintes `CHECK` (voir ci-dessous). Ne contient **aucune donnée**, uniquement la structure.
+## 1. Démarrage rapide (base propre)
 
-## Installation (pour chaque membre de l'équipe)
+```bash
+# 1. Configurer le backend
+cd backend
+cp .env.example .env
+# Éditer .env avec vos identifiants PostgreSQL
 
-### 1. Installer PostgreSQL
+# 2. Appliquer les migrations (crée le schéma complet)
+npm run migration:run
 
-Si ce n'est pas déjà fait : télécharger sur https://www.postgresql.org/download/ et installer (garder le port par défaut 5432, noter le mot de passe de l'utilisateur `postgres`).
-
-### 2. Créer la base et l'utilisateur du projet
-
-Avec pgAdmin (ou psql) :
-
-```sql
-CREATE USER emit_stage_user WITH PASSWORD 'votre_mot_de_passe';
-CREATE DATABASE db_suivi_stages OWNER emit_stage_user;
+# 3. (Optionnel) Vérifier le schéma
+psql -U <user> -d <db> -c "\dt"
 ```
 
-### 3. Importer le schéma
+La migration initiale `1789000000000-SchemaInitial.ts` crée :
+- **9 tables** : `users`, `students`, `supervisors`, `companies`, `internships`, `internship_follow_ups`, `evaluations`, `notifications`, `professional_situations`
+- **9 enums** : `users_role_enum` (ETUDIANT, ENCADREUR, ENSEIGNANT, ENTREPRISE, ADMINISTRATEUR), `companies_status_enum`, `students_academic_status_enum`, `students_employment_status_enum`, `internships_status_enum`, `evaluations_evaluator_type_enum`, `follow_ups_type_enum`, `notifications_type_enum`, `professional_situations_type_enum`
+- **Index** uniques et de performance (FK, filtres, déduplication)
+- **Soft delete** sur `students`, `internships` (`date_suppression`)
 
-Depuis un terminal, dans le dossier contenant `schema_db_suivi_stages.sql` :
+---
 
-**Windows :**
+## 2. Variables d'environnement requises (`backend/.env`)
+
+| Variable | Défaut | Description |
+|----------|--------|-------------|
+| `DB_HOST` | `localhost` | Hôte PostgreSQL |
+| `DB_PORT` | `5432` | Port PostgreSQL |
+| `DB_USERNAME` | `postgres` | Utilisateur PostgreSQL |
+| `DB_PASSWORD` | (requis) | Mot de passe |
+| `DB_DATABASE` | `emit_careertrack` | Nom de la base |
+| `JWT_SECRET` | (requis, ≥32 caractères) | Secret JWT |
+| `JWT_EXPIRES_IN` | `1h` | Expiration token |
+| `FRONTEND_URL` | `http://localhost:5173` | Origine CORS (séparées par virgules) |
+| `SMTP_HOST/PORT/SECURE/USER/PASS/FROM` | — | Config email (mot de passe oublié) |
+
+> **Note** : les anciennes variables `DB_USER` / `DB_NAME` / `DB_DATABASE=db_suivi_stages` sont **obsolètes** et ignorées.
+
+---
+
+## 3. Modèle de données (résumé)
+
+| Table | Rôle | Clés / Contraintes clés |
+|-------|------|-------------------------|
+| `users` | Comptes de connexion (email, hash bcrypt, rôle, `actif`, `token_version` pour révocation) | `email` unique, `role` enum |
+| `students` | Profil étudiant 1:1 → `users` ; `matricule` unique ; `encadreur_id` / `entreprise_id` → `users` | `matricule` unique, `user_id` unique, soft delete |
+| `supervisors` | Profil encadreur 1:1 → `users` ; spécialité, fonction | `user_id` unique |
+| `companies` | Profil entreprise 1:1 → `users` ; géolocalisation (lat/lon) ; `statut` ACTIVE/INACTIVE | `user_id` unique, `email` unique |
+| `internships` | Stage core (étudiant + entreprise + encadreur) ; dates, statut (A_VENIR..ANNULE), géoloc | FK vers les 3 profils, soft delete, index dates/statut |
+| `internship_follow_ups` | Suivi historisé (auteur = `users`, type OBSERVATION/ENTRETIEN/RAPPORT) | FK stage (CASCADE), auteur (RESTRICT), index stage+date |
+| `evaluations` | Note 0–20 par (stage, évaluateur, type ENCADREUR/ENTREPRISE) ; `validee` admin | Composite unique `(stage_id, evaluateur_id, type_evaluateur)` |
+| `notifications` | Par utilisateur ; types STAGE_AFFECTE, FIN_STAGE_PROCHE, EVALUATION... ; dédup auto | Index destinataire+date, index dédup destinataire+type+reference_id |
+| `professional_situations` | Post-diplôme par étudiant (EMPLOYE, EN_RECHERCHE_EMPLOI, ENTREPRENEUR...) | Index étudiant+date_creation |
+
+---
+
+## 4. Intégrité métier (validée côté API)
+
+| Règle | Application |
+|-------|-------------|
+| `date_fin` > `date_debut` (stage) | DTO `@IsDateString` + service `BadRequestException` |
+| Note 0 ≤ note ≤ 20 | DTO `@Min(0) @Max(20)` + `decimal(4,2)` |
+| Unicité évaluation par (stage, évaluateur, type) | Index unique + `ConflictException` service |
+| Password reset : code 6 chiffres, TTL 15 min, message neutre (anti-énumération) | `crypto.randomInt`, `tokenVersion` incrémentée au logout/changement MDP |
+| Token JWT contient `tokenVersion` : logout invalide les tokens existants | `JwtStrategy.validate` vérifie la version |
+
+---
+
+## 5. Régénérer la migration (si entités modifiées)
+
+```bash
+# Depuis une base VIDE (important !)
+cd backend
+npm run migration:generate -- src/database/migrations/NomDescriptif
 ```
-"C:\Program Files\PostgreSQL\17\bin\psql.exe" -U emit_stage_user -h localhost -d db_suivi_stages -f schema_db_suivi_stages.sql
+
+La migration générée reflète **exactement** les 9 entités TypeScript (`autoLoadEntities: true`). Supprimez l'ancienne migration initiale si vous repartez de zéro.
+
+---
+
+## 6. Ancien schéma (historique)
+
+Les migrations `1710000000000-SchemaSuiviStages.ts` et `1720000000000-PasswordReset.ts` (noms français, enums minuscules) ont été **supprimées** : elles ne correspondaient pas aux entités anglaises/majuscules utilisées par l'application. Le schéma réel était maintenu hors dépôt. La migration unique actuelle réaligne le code et la base.
+
+---
+
+## 7. Développement / Tests
+
+```bash
+# Lancer backend + frontend
+cd ..
+npm run dev          # port 3000 (API) + 5173 (Vite)
+
+# Tests backend
+cd backend
+npm test
+
+# Lint
+npm run lint
 ```
 
-**macOS / Linux :**
-```
-psql -U emit_stage_user -h localhost -d db_suivi_stages -f schema_db_suivi_stages.sql
-```
+---
 
-Entrer le mot de passe d'`emit_stage_user` quand demandé.
+## 8. Variables d'environnement du README précédent (obsolètes)
 
-### 4. Vérifier
-
-Dans pgAdmin : `db_suivi_stages` → Schemas → public → Tables. Vous devez voir 11 tables : `utilisateurs`, `etudiants`, `promotions`, `filieres`, `entreprises`, `encadreurs`, `stages`, `evaluations`, `notifications`, `situations_professionnelles`, `emplois`.
-
-### 5. Configurer le `.env` du backend NestJS
-
-Dans le projet backend, créer un fichier `.env` (non fourni ici, à créer par chacun individuellement — jamais partagé) :
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=emit_stage_user
-DB_PASSWORD=votre_mot_de_passe
-DB_NAME=db_suivi_stages
-```
-
-## Contraintes d'intégrité
-
-| Table | Contrainte |
-|---|---|
-| `stages` | `date_fin` doit être postérieure à `date_debut` |
-| `evaluations` | `note` doit être comprise entre 0 et 20 |
-
-## Modèle de données
-
-| Table | Rôle |
-|---|---|
-| `utilisateurs` | Compte de connexion (email, mot de passe, rôle) |
-| `etudiants` | Infos étudiant, lié à un utilisateur |
-| `encadreurs` | Infos encadreur, lié à un utilisateur |
-| `entreprises` | Infos entreprise (+ coordonnées GPS) |
-| `promotions` / `filieres` | Classification des étudiants |
-| `stages` | Relie étudiant, entreprise, encadreur — dates et statut (`a_venir`, `en_cours`, `termine`) |
-| `evaluations` | Note (0-20) et commentaire sur un stage |
-| `notifications` | Messages système pour un utilisateur |
-| `situations_professionnelles` / `emplois` | Suivi des diplômés après le stage |
+L'ancien `README_base_de_donnees.md` référençait un fichier `schema_db_suivi_stages.sql` **qui n'existait pas** et des variables `DB_USER` / `DB_NAME` / `DB_DATABASE=db_suivi_stages` **incohérentes** avec le code. Cette version corrige et remplace ce document.

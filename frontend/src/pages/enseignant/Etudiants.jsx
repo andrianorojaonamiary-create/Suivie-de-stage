@@ -1,0 +1,379 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { extractList } from '../../api/listResult';
+import { 
+  FaUsers, FaUserGraduate,
+  FaEye, FaStar, FaFileAlt, FaSearch, FaFilter,
+  FaChevronLeft, FaChevronRight, FaClock, FaCheckCircle,
+  FaTimes, FaGraduationCap
+} from 'react-icons/fa';
+import { studentsApi } from '../../api';
+import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+
+function EnseignantEtudiants() {
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedFiliere, setSelectedFiliere] = useState('tous');
+  const [selectedNiveau, setSelectedNiveau] = useState('tous');
+  const [loading, setLoading] = useState(true);
+  
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+
+  const [students, setStudents] = useState([
+    {
+      id: 1, nom: 'Rakoto Miora', matricule: 'ETU-2024-0421',
+      filiere: 'Génie Logiciel', niveau: 'Master 2',
+      stage: { id: 1, titre: "Plateforme web RH", entreprise: 'TechMada SARL', statut: 'En cours', dateDebut: '2024-03-01', dateFin: '2024-09-15', progression: 65 },
+      evaluation: 'Validé', rapports: 2
+    }
+  ]);
+
+  useEffect(() => {
+    const fetchStudents = async () => {
+      try {
+        setLoading(true);
+        const res = await studentsApi.getAll();
+        const list = extractList(res);
+        const mapped = list.map(item => ({
+          id: item.id,
+          nom: `${item.lastName || item.user?.lastName || ''} ${item.firstName || item.user?.firstName || ''}`.trim() || 'Étudiant',
+          matricule: item.studentNumber || item.matricule || `ETU-${item.id}`,
+          filiere: item.filiere || item.major || 'Non renseigné',
+          niveau: item.niveau || item.level || 'Licence 3',
+          stage: item.currentInternship ? {
+            id: item.currentInternship.id,
+            titre: item.currentInternship.title || 'Stage',
+            entreprise: item.currentInternship.company?.name || 'Entreprise',
+            statut: item.currentInternship.status === 'en_cours' ? 'En cours' : item.currentInternship.status === 'termine' ? 'Terminé' : 'En attente',
+            dateDebut: item.currentInternship.startDate || null,
+            dateFin: item.currentInternship.endDate || null,
+            progression: item.currentInternship.progressPercentage || 0
+          } : { id: 0, titre: 'Aucun stage', entreprise: '', statut: 'En attente', dateDebut: null, dateFin: null, progression: 0 },
+          evaluation: item.evaluationStatus || 'À faire',
+          rapports: item.reportsCount || 0
+        }));
+        setStudents(mapped);
+      } catch (err) {
+        console.error('Erreur chargement étudiants enseignant:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudents();
+  }, []);
+
+
+
+  const stats = {
+    total: students.length,
+    enStage: students.filter(s => s.stage.statut === 'En cours' || s.stage.statut === 'En attente').length,
+    termines: students.filter(s => s.stage.statut === 'Terminé' || s.stage.statut === 'Validé').length,
+    aEvaluer: students.filter(s => s.evaluation === 'À faire' || s.evaluation === 'À corriger').length
+  };
+
+  const filieres = ['tous', ...new Set(students.map(s => s.filiere))].map(v => ({ value: v, label: v === 'tous' ? 'Toutes filières' : v }));
+  const niveaux = ['tous', 'Licence 1', 'Licence 2', 'Licence 3', 'Master 1', 'Master 2'].map(v => ({ value: v, label: v === 'tous' ? 'Tous niveaux' : v }));
+
+  const filteredStudents = students.filter(s => {
+    if (selectedFiliere !== 'tous' && s.filiere !== selectedFiliere) return false;
+    if (selectedNiveau !== 'tous' && s.niveau !== selectedNiveau) return false;
+    
+    if (searchTerm.trim() !== '') {
+      const term = searchTerm.toLowerCase().trim();
+      return s.nom.toLowerCase().includes(term) ||
+             s.matricule.toLowerCase().includes(term) ||
+             s.filiere.toLowerCase().includes(term);
+    }
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedStudents = filteredStudents.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleFilterChange = (key, value) => {
+    if (key === 'filiere') setSelectedFiliere(value);
+    if (key === 'niveau') setSelectedNiveau(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const goToPage = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' });
+  };
+
+  const getStatusBadge = (statut) => {
+    const badges = {
+      'En cours': { className: 'status-badge status-en-cours', label: 'En cours' },
+      'En attente': { className: 'status-badge status-en-attente', label: 'En attente' },
+      'Terminé': { className: 'status-badge status-termine', label: 'Terminé' },
+      'Validé': { className: 'status-badge status-valide', label: 'Validé' },
+      'Refusé': { className: 'status-badge status-refuse', label: 'Refusé' }
+    };
+    const badge = badges[statut] || badges['En attente'];
+    return <span className={badge.className}>{badge.label}</span>;
+  };
+
+  const getEvalBadge = (evalStatus) => {
+    const badges = {
+      'Validé': { className: 'eval-badge eval-valide', label: 'Validé' },
+      'À faire': { className: 'eval-badge eval-a-faire', label: 'À faire' },
+      'À corriger': { className: 'eval-badge eval-corriger', label: 'À corriger' }
+    };
+    const badge = badges[evalStatus] || badges['À faire'];
+    return <span className={badge.className}>{badge.label}</span>;
+  };
+
+  // ============================================================
+  // NAVIGATION
+  // ============================================================
+
+  const goToStudentDetail = (studentId) => {
+    navigate(`/enseignant/etudiant/${studentId}`);
+  };
+
+  const goToEvaluations = (studentId) => {
+    navigate(`/enseignant/evaluations/${studentId}`);
+  };
+
+  const goToRapports = (studentId) => {
+    navigate(`/enseignant/rapports/${studentId}`);
+  };
+
+  return (
+    <div className="enseignant-etudiants">
+      {loading ? (
+        <div className="text-center p-4">
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Chargement…</span>
+          </div>
+        </div>
+      ) : (
+        <>
+      {/* ===== EN-TÊTE ===== */}
+      <div className="page-header">
+        <div>
+          <h1>Mes étudiants</h1>
+          <p className="text-muted">{students.length} étudiants suivis</p>
+        </div>
+      </div>
+
+      {/* ===== STATISTIQUES ===== */}
+      <div className="stats-cards">
+        <div className="stat-card">
+          <div className="stat-icon total"><FaUserGraduate /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.total}</span>
+            <span className="stat-label">Total</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon active"><FaClock /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.enStage}</span>
+            <span className="stat-label">En stage</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon done"><FaCheckCircle /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.termines}</span>
+            <span className="stat-label">Terminés</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon pending"><FaStar /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.aEvaluer}</span>
+            <span className="stat-label">À évaluer</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ===== TABLEAU ===== */}
+      <div className="table-container">
+        {/* ===== TOOLBAR ===== */}
+        <div className="table-toolbar">
+          <div className="toolbar-filters">
+            <div className="filter-wrapper">
+              <div className="filter-group">
+                <FaFilter className="filter-icon" />
+                <SelectPersonnalise
+                  value={selectedFiliere}
+                  onChange={(v) => handleFilterChange('filiere', v)}
+                  options={filieres}
+                />
+              </div>
+            </div>
+            <div className="filter-wrapper">
+              <div className="filter-group">
+                <FaGraduationCap className="filter-icon" />
+                <SelectPersonnalise
+                  value={selectedNiveau}
+                  onChange={(v) => handleFilterChange('niveau', v)}
+                  options={niveaux}
+                />
+              </div>
+            </div>
+          </div>
+          
+          <div className="search-wrapper">
+            <div className="search-group">
+              <FaSearch className="search-icon" />
+              <input
+                type="text"
+                placeholder="Rechercher..."
+                value={searchTerm}
+                onChange={handleSearchChange}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button className="search-clear" onClick={() => setSearchTerm('')}>
+                  <FaTimes />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ===== TABLEAU ===== */}
+        {filteredStudents.length === 0 ? (
+          <div className="empty-state">
+            <FaUsers className="empty-icon" />
+            <h3>Aucun étudiant trouvé</h3>
+          </div>
+        ) : (
+          <>
+            <table className="students-table">
+              <thead>
+                <tr>
+                  <th>Étudiant</th>
+                  <th>Filière / Niveau</th>
+                  <th>Stage</th>
+                  <th>Période</th>
+                  <th>Statut</th>
+                  <th>Évaluation</th>
+                  <th className="actions-header">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedStudents.map((student) => (
+                  <tr key={student.id}>
+                    <td>
+                      <div className="student-cell">
+                        <span className="student-name">{student.nom}</span>
+                        <span className="student-matricule">{student.matricule}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="filiere-cell">
+                        <span className="filiere-name">{student.filiere}</span>
+                        <span className="niveau-tag">{student.niveau}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <div className="stage-cell">
+                        <span className="stage-title">{student.stage.titre}</span>
+                        <span className="stage-company">{student.stage.entreprise}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span className="date-text">
+                        {formatDate(student.stage.dateDebut)} → {formatDate(student.stage.dateFin)}
+                      </span>
+                    </td>
+                    <td>{getStatusBadge(student.stage.statut)}</td>
+                    <td>{getEvalBadge(student.evaluation)}</td>
+                    <td>
+                      <div className="action-buttons">
+                        {/* ===== BOUTON VOIR DÉTAILS ===== */}
+                        <button 
+                          className="btn-action-icon"
+                          onClick={() => goToStudentDetail(student.id)}
+                          title="Voir les détails"
+                        >
+                          <FaEye />
+                        </button>
+                        
+                        {/* ===== BOUTON ÉVALUER ===== */}
+                        <button 
+                          className="btn-action-icon"
+                          onClick={() => goToEvaluations(student.id)}
+                          title="Évaluer"
+                        >
+                          <FaStar />
+                        </button>
+                        
+                        {/* ===== BOUTON VOIR RAPPORTS ===== */}
+                        <button 
+                          className="btn-action-icon"
+                          onClick={() => goToRapports(student.id)}
+                          title="Voir les rapports"
+                        >
+                          <FaFileAlt />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            {/* ===== PAGINATION ===== */}
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button 
+                  className="page-btn"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  <FaChevronLeft />
+                </button>
+                
+                {[...Array(totalPages)].map((_, index) => (
+                  <button
+                    key={index}
+                    className={`page-btn ${currentPage === index + 1 ? 'active' : ''}`}
+                    onClick={() => goToPage(index + 1)}
+                  >
+                    {index + 1}
+                  </button>
+                ))}
+                
+                <button 
+                  className="page-btn"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  <FaChevronRight />
+                </button>
+                
+                <span className="page-info">
+                  {filteredStudents.length} étudiant{filteredStudents.length > 1 ? 's' : ''}
+                </span>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+export default EnseignantEtudiants;

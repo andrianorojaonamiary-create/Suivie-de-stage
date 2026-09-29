@@ -30,3 +30,6 @@ coverage
 *.sln
 *.sw?
 .FullName
+
+# Clone git imbrique (dossier de travail local)
+Suivie-de-stage/
