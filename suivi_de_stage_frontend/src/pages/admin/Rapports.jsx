@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { FaEye } from 'react-icons/fa';
+import { FaEye, FaFileAlt, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
-import reportsApi, { getApiErrorMessage } from '../../api';
+import { reportsApi, getApiErrorMessage } from '../../api';
 import { formatReportDate, mapReportStatus, REPORT_STATUS_LABELS } from '../../utils/reportMapping';
 
 const STATUS_FILTERS = Object.entries(REPORT_STATUS_LABELS).map(
@@ -36,6 +36,7 @@ function AdminRapports() {
         const items = (res?.items ?? []).map((r) => ({
           id: r.id,
           titre: r.stage?.intitule || r.originalName || r.fileName || 'Rapport',
+          stage: r.stage?.intitule || '—',
           etudiant: r.stage?.etudiant || '—',
           entreprise: r.stage?.entreprise || '—',
           date: formatReportDate(r.dateCreation),
@@ -105,8 +106,15 @@ function AdminRapports() {
     (filters.statut === 'all' || r.statut === filters.statut)
   );
 
+  const stats = {
+    total: rapports.length,
+    valides: rapports.filter((r) => r.statut === 'Validé').length,
+    revision: rapports.filter((r) => r.statut === 'En révision').length,
+    refuses: rapports.filter((r) => r.statut === 'Refusé').length,
+  };
+
   return (
-    <div className="rapports-admin">
+    <div className="rapports-admin rapports-page">
       <div className="page-header">
         <div>
           <h1>Gestion des rapports</h1>
@@ -115,6 +123,37 @@ function AdminRapports() {
               ? 'Chargement...'
               : `${total} rapport${total > 1 ? 's' : ''} au total · ${filteredRapports.length} affiché${filteredRapports.length > 1 ? 's' : ''}`}
           </p>
+        </div>
+      </div>
+
+      <div className="stats-cards">
+        <div className="stat-card">
+          <div className="stat-icon total"><FaFileAlt /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.total}</span>
+            <span className="stat-label">Total</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon done"><FaCheckCircle /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.valides}</span>
+            <span className="stat-label">Validés</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon active"><FaClock /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.revision}</span>
+            <span className="stat-label">En révision</span>
+          </div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-icon pending"><FaTimesCircle /></div>
+          <div className="stat-info">
+            <span className="stat-value">{stats.refuses}</span>
+            <span className="stat-label">Refusés</span>
+          </div>
         </div>
       </div>
 

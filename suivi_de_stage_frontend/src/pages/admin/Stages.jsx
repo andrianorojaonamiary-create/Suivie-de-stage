@@ -7,7 +7,9 @@ import {
 
 import StageDetail from './components/StageDetail';
 import internshipsApi from '../../api/internshipsApi';
+import evaluationsApi from '../../api/evaluationsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import { mapInternshipList, computeChecklistProgress } from '../../utils/internshipMapping';
 
 function AdminStages() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,20 +23,34 @@ function AdminStages() {
 
   const loadStages = async () => {
     try {
-      const res = await internshipsApi.getAll();
-      const list = Array.isArray(res) ? res : res?.items || [];
+      const res = await internshipsApi.getAll({ limit: 100 });
+      // internshipsApi renvoie { data, meta } : lire `items` ici vidait
+      // silencieusement le tableau des stages.
+      const list = Array.isArray(res)
+        ? res
+        : res?.data || res?.items || [];
 
-      const mapped = list.map(item => ({
-        id: item.id,
-        titre: item.titre || 'Stage sans titre',
-        etudiant: item.etudiant ? `${item.etudiant.prenom} ${item.etudiant.nom}` : (item.etudiantName || 'Étudiant'),
-        entreprise: item.entreprise ? item.entreprise.nom : (item.companyName || 'Entreprise'),
-        encadreur: item.encadreur ? `${item.encadreur.prenom} ${item.encadreur.nom}` : (item.supervisorName || 'Encadreur'),
-        domaine: item.domaine || item.entreprise?.secteur || 'Développement Web',
-        dateDebut: item.dateDebut ? new Date(item.dateDebut).toLocaleDateString('fr-FR') : '03/08/2026',
-        dateFin: item.dateFin ? new Date(item.dateFin).toLocaleDateString('fr-FR') : '03/10/2026',
-        statut: item.statut === 'en_cours' ? 'En cours' : item.statut === 'a_venir' ? 'À venir' : 'Terminé',
-        progression: item.progression ?? (item.statut === 'termine' ? 100 : item.statut === 'en_cours' ? 45 : 0)
+      let evaluatedIds = new Set();
+      try {
+        const first = await evaluationsApi.getAllAdmin({ limit: 100, page: 1 });
+        const firstList = Array.isArray(first) ? first : first?.data || [];
+        const totalPages = first?.meta?.totalPages || 1;
+        let evalsList = [...firstList];
+        for (let page = 2; page <= totalPages; page += 1) {
+          const res = await evaluationsApi.getAllAdmin({ limit: 100, page });
+          const pageList = Array.isArray(res) ? res : res?.data || [];
+          evalsList = evalsList.concat(pageList);
+        }
+        evaluatedIds = new Set(evalsList.map(e => e.stageId).filter(Boolean));
+      } catch {
+        evaluatedIds = new Set();
+      }
+
+      const mapped = mapInternshipList(list).map(item => ({
+        ...item,
+        progression: computeChecklistProgress(item, evaluatedIds.has(item.id)),
+        dateDebut: item.dateDebut ? new Date(item.dateDebut).toLocaleDateString('fr-FR') : '',
+        dateFin: item.dateFin ? new Date(item.dateFin).toLocaleDateString('fr-FR') : '',
       }));
       setStages(mapped);
     } catch (err) {
@@ -106,7 +122,7 @@ function AdminStages() {
     <div className="admin-stages-page">
       <div className="admin-stages-header">
         <div>
-          <h1>Gestion des stages</h1>
+          <h1>Liste des stages</h1>
           <p className="admin-stages-subtitle">Gérez les stages des étudiants</p>
         </div>
       </div>

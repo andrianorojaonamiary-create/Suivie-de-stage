@@ -39,7 +39,7 @@ function MobileDrawer({ isOpen, onClose }) {
       return [
         { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
         { divider: true, label: 'GESTION' },
-        { path: '/admin/stages', icon: <FaList />, label: 'Gestion des stages' },
+        { path: '/admin/stages', icon: <FaList />, label: 'Liste des stages' },
         { path: '/admin/etudiants', icon: <FaUsers />, label: 'Étudiants' },
         { path: '/admin/entreprises', icon: <FaBuilding />, label: 'Entreprises' },
         { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },

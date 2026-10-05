@@ -60,7 +60,7 @@ function Header({ onToggleMobileMenu, onMobileMenuToggle }) {
       '/etudiant/dashboard': 'Tableau de bord',
       '/enseignant/dashboard': 'Tableau de bord',
       '/encadreur/dashboard': 'Tableau de bord',
-      '/admin/stages': 'Gestion des stages',
+      '/admin/stages': 'Liste des stages',
       '/admin/etudiants': 'Étudiants',
       '/admin/entreprises': 'Entreprises',
       '/admin/rapports': 'Rapports',

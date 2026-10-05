@@ -17,6 +17,7 @@ import { StatisticsModule } from './statistics/statistics.module';
 import { ProfessionalSituationsModule } from './professional-situations/professional-situations.module';
 import { MapModule } from './map/map.module';
 import { ReportsModule } from './reports/reports.module';
+import { TeacherAssignmentsModule } from './teacher-assignments/teacher-assignments.module';
 
 @Module({
   imports: [
@@ -64,6 +65,7 @@ import { ReportsModule } from './reports/reports.module';
     ProfessionalSituationsModule,
     MapModule,
     ReportsModule,
+    TeacherAssignmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

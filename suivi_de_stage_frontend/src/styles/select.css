@@ -137,6 +137,35 @@
   }
 }
 
+.select-personnalise-portal {
+  display: flex;
+  flex-direction: column;
+  background: white;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+  animation: dropdownSlide 0.2s ease;
+}
+
+.select-personnalise-search {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #E5E7EB;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+}
+
+.select-personnalise-dropdown--inline {
+  position: static;
+  border: none;
+  box-shadow: none;
+  border-radius: 0;
+  max-height: none;
+}
+
 /* ===== ITEMS DU DROPDOWN ===== */
 .select-personnalise-empty {
   padding: 10px 16px;

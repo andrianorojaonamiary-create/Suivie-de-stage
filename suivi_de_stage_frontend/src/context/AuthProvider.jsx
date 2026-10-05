@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import apiClient, { getApiErrorMessage, normalizeUser } from '../api/apiClient';
 import { toast } from 'react-toastify';
 import { AuthContext } from './authContext';
+import { getToken, setToken as persistToken, clearToken } from '../api/authStorage';
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(getToken());
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -20,7 +21,7 @@ export function AuthProvider({ children }) {
         setUser(normalizeUser(userData));
       } catch (error) {
         console.error('Erreur:', error);
-        localStorage.removeItem('token');
+        clearToken();
         setToken(null);
         setUser(null);
       } finally {
@@ -39,7 +40,7 @@ export function AuthProvider({ children }) {
       });
       const { accessToken, user } = response.data;
       
-      localStorage.setItem('token', accessToken);
+      persistToken(accessToken);
       setToken(accessToken);
       const normalizedUser = normalizeUser(user);
       setUser(normalizedUser);
@@ -67,7 +68,6 @@ export function AuthProvider({ children }) {
         ...(userData.grade && { grade: userData.grade }),
         ...(userData.departement && { departement: userData.departement }),
         ...(userData.specialite && { specialite: userData.specialite }),
-        ...(userData.entreprise && { entreprise: userData.entreprise }),
         ...(userData.fonction && { fonction: userData.fonction }),
         ...(userData.telephone && { telephone: userData.telephone }),
         ...(userData.adresse && { adresse: userData.adresse }),
@@ -76,7 +76,7 @@ export function AuthProvider({ children }) {
       const response = await apiClient.post('/auth/register', payload);
       const { accessToken, user } = response.data;
 
-      localStorage.setItem('token', accessToken);
+      persistToken(accessToken);
       setToken(accessToken);
       const normalizedUser = normalizeUser(user);
       setUser(normalizedUser);
@@ -115,7 +115,7 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+    clearToken();
     setToken(null);
     setUser(null);
     toast.info('Déconnecté');

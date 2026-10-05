@@ -106,7 +106,6 @@ function Register() {
         ...common,
         { name: 'fonction', label: 'Fonction', placeholder: 'Maître de stage', required: true },
         { name: 'specialite', label: 'Spécialité', placeholder: 'Génie logiciel', required: true },
-        { name: 'entreprise', label: "Nom de l'entreprise", placeholder: 'TechMada SARL' },
       ],
     };
 

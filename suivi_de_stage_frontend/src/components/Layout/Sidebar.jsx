@@ -38,9 +38,10 @@ function Sidebar() {
       return [
         { path: dashboardPath, icon: <FaHome />, label: 'Dashboard' },
         { divider: true },
-        { path: '/admin/stages', icon: <FaList />, label: 'Gestion des stages' },
+        { path: '/admin/stages', icon: <FaList />, label: 'Liste des stages' },
         { path: '/admin/etudiants', icon: <FaUsers />, label: 'Étudiants' },
-        { path: '/admin/encadreurs', icon: <FaUserTie />, label: 'Encadreurs' }, 
+        { path: '/admin/encadreurs', icon: <FaUserTie />, label: 'Encadreurs' },
+        { path: '/admin/affectations', icon: <FaUserCog />, label: 'Affectations tuteurs' }, 
         { path: '/admin/entreprises', icon: <FaBuilding />, label: 'Entreprises' },
         { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
         { path: '/admin/evaluations', icon: <FaStar />, label: 'Évaluations' },

@@ -57,6 +57,7 @@ const Stages = lazy(() => import('./pages/admin/Stages'));
 const AdminEtudiants = lazy(() => import('./pages/admin/Etudiants'));
 const AdminEntreprise = lazy(() => import('./pages/admin/Entreprises'));
 const AdminRapports = lazy(() => import('./pages/admin/Rapports'));
+const AdminAffectations = lazy(() => import('./pages/admin/Affectations'));
 
 function LoadingFallback() {
   return (
@@ -140,13 +141,14 @@ function App() {
             </Route>
           </Route>
 
-          {/* Admin uniquement */}
+          {/* Admin */}
           <Route element={<PrivateRoute allowedRoles={['ROLE_ADMIN', 'ROLE_ADMINISTRATEUR']} />}>
             <Route element={<Layout />}>
               <Route path="/admin/dashboard" element={<AdminDashboard />} />
               <Route path="/admin/statistiques" element={<Statistiques />} />
               <Route path="/admin/evaluations" element={<AdminEvaluations />} />
               <Route path="/admin/encadreurs" element={<AdminEncadreurs />} />
+              <Route path="/admin/affectations" element={<AdminAffectations />} />
               <Route path="/admin/diplomes" element={<Diplomes />} />
               <Route path="/admin/stages" element={<Stages />} />
               <Route path="/admin/etudiants" element={<AdminEtudiants />} />

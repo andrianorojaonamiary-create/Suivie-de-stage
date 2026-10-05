@@ -75,10 +75,7 @@ export class CompaniesService {
     const limit = dto.limit ?? 10;
     const query = this.companiesRepository
       .createQueryBuilder('company')
-      .innerJoinAndSelect('company.user', 'user')
-      .leftJoin('internships', 'internship', 'internship.company_id = company.id')
-      .addSelect('COUNT(internship.id)', 'internshipsCount')
-      .groupBy('company.id, user.id');
+      .innerJoinAndSelect('company.user', 'user');
 
     if (actor.role === Role.ETUDIANT) {
       query.andWhere('company.statut = :statut', {
@@ -112,6 +109,26 @@ export class CompaniesService {
       .skip((page - 1) * limit)
       .take(limit)
       .getManyAndCount();
+
+    if (companies.length > 0) {
+      const counts = await this.internshipsRepository
+        .createQueryBuilder('internship')
+        .select('internship.companyId', 'companyId')
+        .addSelect('COUNT(internship.id)', 'count')
+        .where('internship.companyId IN (:...companyIds)', {
+          companyIds: companies.map((c) => c.id),
+        })
+        .groupBy('internship.companyId')
+        .getRawMany<{ companyId: string; count: string }>();
+
+      const countByCompanyId = new Map(
+        counts.map((row) => [row.companyId, parseInt(row.count, 10)]),
+      );
+      for (const company of companies) {
+        (company as Company & { internshipsCount?: string }).internshipsCount =
+          String(countByCompanyId.get(company.id) ?? 0);
+      }
+    }
 
     return {
       data: companies.map((company) => this.toPublicCompany(company)),

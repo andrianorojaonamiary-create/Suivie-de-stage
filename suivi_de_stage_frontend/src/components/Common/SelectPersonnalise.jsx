@@ -7,6 +7,12 @@ const DROPDOWN_MAX_HEIGHT = 220;
 const DROPDOWN_GAP = 8;
 const DROPDOWN_Z_INDEX = 100000;
 
+const normalizeText = (value) =>
+  (value || '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, ''); /* [\\u0300-\\u036f], diacritisques */
+
 function SelectPersonnalise({
   options,
   value,
@@ -14,9 +20,11 @@ function SelectPersonnalise({
   placeholder = 'Sélectionner...',
   label,
   className = '',
-  disabled = false
+  disabled = false,
+  searchable = false
 }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const containerRef = useRef(null);
   const headerRef = useRef(null);
   const listRef = useRef(null);
@@ -73,10 +81,39 @@ function SelectPersonnalise({
   const selectedOption = options.find(opt => opt.value === value);
   const displayLabel = selectedOption ? selectedOption.label : placeholder;
 
+  const visibleOptions = searchable
+    ? options.filter((option) =>
+        normalizeText(option.label).includes(normalizeText(search)),
+      )
+    : options;
+
   const handleSelect = (optionValue) => {
     onChange(optionValue);
     setIsOpen(false);
+    setSearch('');
   };
+
+  const toggleOpen = () => {
+    setIsOpen((previous) => {
+      if (!previous) setSearch('');
+      return !previous;
+    });
+  };
+
+  const renderItems = (list) =>
+    list.map((option) => (
+      <li
+        key={option.value}
+        className={`select-personnalise-item ${option.value === value ? 'active' : ''}`}
+        onClick={() => handleSelect(option.value)}
+      >
+        {option.icon && <span className="select-personnalise-item-icon">{option.icon}</span>}
+        <span className="select-personnalise-item-label">{option.label}</span>
+        {option.value === value && (
+          <span className="select-personnalise-item-check">✓</span>
+        )}
+      </li>
+    ));
 
   return (
     <div className={`select-personnalise ${className}`} ref={containerRef}>
@@ -85,44 +122,67 @@ function SelectPersonnalise({
       <div
         ref={headerRef}
         className={`select-personnalise-header ${isOpen ? 'open' : ''} ${disabled ? 'disabled' : ''}`}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
+        onClick={() => !disabled && toggleOpen()}
       >
         <span className="select-personnalise-value">{displayLabel}</span>
         <FaChevronDown className={`select-personnalise-icon ${isOpen ? 'rotate' : ''}`} />
       </div>
 
       {isOpen && !disabled && position && createPortal(
-        <ul
-          className="select-personnalise-dropdown"
-          ref={listRef}
-          style={{
-            position: 'fixed',
-            top: position.top ?? 'auto',
-            bottom: position.bottom ?? 'auto',
-            left: position.left,
-            width: position.width,
-            maxHeight: position.maxHeight,
-            zIndex: DROPDOWN_Z_INDEX,
-          }}
-        >
-          {options.length === 0 ? (
-            <li className="select-personnalise-empty">Aucune option disponible</li>
-          ) : (
-            options.map((option) => (
-              <li
-                key={option.value}
-                className={`select-personnalise-item ${option.value === value ? 'active' : ''}`}
-                onClick={() => handleSelect(option.value)}
-              >
-                {option.icon && <span className="select-personnalise-item-icon">{option.icon}</span>}
-                <span className="select-personnalise-item-label">{option.label}</span>
-                {option.value === value && (
-                  <span className="select-personnalise-item-check">✓</span>
-                )}
-              </li>
-            ))
-          )}
-        </ul>,
+        searchable ? (
+          <div
+            className="select-personnalise-portal"
+            ref={listRef}
+            style={{
+              position: 'fixed',
+              top: position.top ?? 'auto',
+              bottom: position.bottom ?? 'auto',
+              left: position.left,
+              width: position.width,
+              maxHeight: position.maxHeight,
+              zIndex: DROPDOWN_Z_INDEX,
+            }}
+          >
+            <input
+              autoFocus
+              type="text"
+              className="select-personnalise-search"
+              placeholder="Rechercher..."
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+            />
+            <ul
+              className="select-personnalise-dropdown select-personnalise-dropdown--inline"
+              style={{ maxHeight: Math.max(0, position.maxHeight - 34) }}
+            >
+              {visibleOptions.length === 0 ? (
+                <li className="select-personnalise-empty">Aucune option trouvée</li>
+              ) : (
+                renderItems(visibleOptions)
+              )}
+            </ul>
+          </div>
+        ) : (
+          <ul
+            className="select-personnalise-dropdown"
+            ref={listRef}
+            style={{
+              position: 'fixed',
+              top: position.top ?? 'auto',
+              bottom: position.bottom ?? 'auto',
+              left: position.left,
+              width: position.width,
+              maxHeight: position.maxHeight,
+              zIndex: DROPDOWN_Z_INDEX,
+            }}
+          >
+            {options.length === 0 ? (
+              <li className="select-personnalise-empty">Aucune option disponible</li>
+            ) : (
+              renderItems(options)
+            )}
+          </ul>
+        ),
         document.body,
       )}
     </div>

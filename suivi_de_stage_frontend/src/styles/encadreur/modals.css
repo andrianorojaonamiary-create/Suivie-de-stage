@@ -654,6 +654,16 @@
   border: 1px solid #E8EEF4;
 }
 
+/* Modale d'évaluation : même traitement que les modales Observations et
+   Rapports (styles/index.css) — corps blanc, blocs encadrés d'une bordure
+   bleue claire au lieu d'un fond gris et de cartes blanches. */
+.modal-evaluation .eval-info-header,
+.modal-evaluation .eval-criteres-container,
+.modal-evaluation .eval-appreciation-container {
+  background: transparent;
+  border: 1px solid #E1ECFE;
+}
+
 .eval-textarea {
   width: 100%;
   padding: 12px 16px;

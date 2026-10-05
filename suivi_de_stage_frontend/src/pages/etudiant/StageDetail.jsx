@@ -17,7 +17,7 @@ import {
   internshipsApi, 
   companiesApi, 
   supervisorsApi, 
-  usersApi 
+  teacherAssignmentsApi 
 } from '../../api';
 import { getApiErrorMessage } from '../../api/apiClient';
 import { mapInternship } from '../../utils/internshipMapping';
@@ -45,7 +45,8 @@ function StageDetail() {
   const [fichier, setFichier] = useState(null);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
-  const [enseignants, setEnseignants] = useState([]);
+  // Tuteurs effectivement affectes a cet etudiant par l'administration.
+  const [tuteursDisponibles, setTuteursDisponibles] = useState([]);
   const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
   const [showSupervisorSuggestions, setShowSupervisorSuggestions] = useState(false);
   
@@ -67,11 +68,13 @@ function StageDetail() {
 
   useEffect(() => {
     const loadReferences = async () => {
-      const [companiesResult, supervisorsResult, enseignantsResult] =
+      const [companiesResult, supervisorsResult, tuteursResult] =
         await Promise.allSettled([
           companiesApi.getAll({ limit: 100 }),
           supervisorsApi.getAll({ limit: 100 }),
-          usersApi.getAll({ role: "ENSEIGNANT", limit: 100 }),
+          // Uniquement les tuteurs affectes a cet etudiant (studentId deduit
+          // du JWT cote serveur).
+          teacherAssignmentsApi.getMyTeachers(),
         ]);
 
       if (companiesResult.status === "fulfilled") {
@@ -80,8 +83,9 @@ function StageDetail() {
       if (supervisorsResult.status === "fulfilled") {
         setSupervisors(supervisorsResult.value?.data || (Array.isArray(supervisorsResult.value) ? supervisorsResult.value : []));
       }
-      if (enseignantsResult.status === "fulfilled") {
-        setEnseignants(enseignantsResult.value?.data || (Array.isArray(enseignantsResult.value) ? enseignantsResult.value : []));
+      if (tuteursResult.status === "fulfilled") {
+        const value = tuteursResult.value;
+        setTuteursDisponibles(value?.items ?? value?.data ?? (Array.isArray(value) ? value : []));
       }
     };
     loadReferences();
@@ -370,13 +374,20 @@ function StageDetail() {
                 disabled={!isEditing}
                 className={!isEditing ? 'field-disabled' : ''}
               >
-                <option value="">Sélectionner un enseignant</option>
-                {enseignants.map((u) => (
-                  <option key={u.id} value={u.id}>
-                    {[u.nom, u.prenom].filter(Boolean).join(" ")}
+                <option value="">
+                  {tuteursDisponibles.length === 0
+                    ? "Aucun tuteur affecté — contactez l'administration"
+                    : 'Sélectionner votre tuteur'}
+                </option>
+                {tuteursDisponibles.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {`${t.nom} ${t.prenom}`.trim()}
                   </option>
                 ))}
               </select>
+              <small className="admin-affectation-hint">
+                Seul le tuteur affecté par l'administration est proposé.
+              </small>
             </div>
           </div>
 

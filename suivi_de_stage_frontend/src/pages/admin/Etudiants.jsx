@@ -24,7 +24,8 @@ function AdminEtudiants() {
   const loadStudents = async () => {
     try {
       const [studentsRes, stagesRes] = await Promise.allSettled([
-        studentsApi.getAll(),
+        // Sans `limit`, le backend plafonne a 10 et la page n'en montrait que 10.
+        studentsApi.getAll({ limit: 100 }),
         internshipsApi.getAll({ limit: 100 }),
       ]);
 

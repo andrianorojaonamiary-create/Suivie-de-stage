@@ -18,6 +18,7 @@ import { UpdateInternshipDto } from './dto/update-internship.dto';
 import { Internship } from './entities/internship.entity';
 import { InternshipStatus } from './enums/internship-status.enum';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
 
 interface AuthenticatedUser {
   id: string;
@@ -38,6 +39,7 @@ export class InternshipsService {
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
     private readonly notificationsService: NotificationsService,
+    private readonly usersService: UsersService,
   ) {}
 
   async create(dto: CreateInternshipDto, actor: AuthenticatedUser) {
@@ -181,7 +183,11 @@ export class InternshipsService {
         internship.company = await this.findCompany(dto.companyId);
       if (dto.supervisorId)
         internship.supervisor = await this.findSupervisor(dto.supervisorId);
-      if (dto.tuteurId) internship.tuteur = await this.findTuteur(dto.tuteurId);
+      // != undefined (et non une simple truthiness) pour autoriser le
+      // detachement via tuteurId: null, que le DTO accepte explicitement.
+      if (dto.tuteurId !== undefined)
+        internship.tuteur =
+          dto.tuteurId === null ? null : await this.findTuteur(dto.tuteurId);
       const adminChanges = { ...dto };
       delete adminChanges.tuteurId;
       delete adminChanges.supervisorId;
@@ -387,12 +393,18 @@ export class InternshipsService {
     return supervisor;
   }
 
+  // Passe par UsersService.findActiveById et non par usersRepository.findOne :
+  // l'ancien code ignorait le drapeau "actif", ce qui permettait d'affecter
+  // un enseignant desactive comme tuteur.
   private async findTuteur(id: string) {
-    const tuteur = await this.usersRepository.findOne({ where: { id } });
-    if (!tuteur) throw new NotFoundException('Tuteur pédagogique introuvable.');
+    const tuteur = await this.usersService.findActiveById(id);
+    if (!tuteur)
+      throw new NotFoundException(
+        'Tuteur pédagogique introuvable ou désactivé.',
+      );
     if (tuteur.role !== Role.ENSEIGNANT) {
       throw new BadRequestException(
-        'Le tuteur pédagogique doit être un enseignant.',
+        'Le tuteur pédagogique doit être un enseignant actif.',
       );
     }
     return tuteur;

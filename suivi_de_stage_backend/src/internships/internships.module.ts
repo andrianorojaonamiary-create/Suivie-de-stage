@@ -5,6 +5,7 @@ import { Company } from '../companies/entities/company.entity';
 import { Student } from '../students/entities/student.entity';
 import { Supervisor } from '../supervisors/entities/supervisor.entity';
 import { User } from '../users/entities/user.entity';
+import { UsersModule } from '../users/users.module';
 import { Internship } from './entities/internship.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { InternshipsController } from './internships.controller';
@@ -15,6 +16,7 @@ import { InternshipsService } from './internships.service';
     TypeOrmModule.forFeature([Internship, Student, Company, Supervisor, User]),
     AuthModule,
     NotificationsModule,
+    UsersModule,
   ],
   controllers: [InternshipsController],
   providers: [InternshipsService],

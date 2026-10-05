@@ -1,0 +1,532 @@
+/* ==========================================================================
+   Page admin « Affectation des tuteurs pédagogiques »
+   Préfixe de classes isolé (admin-affectation-*) : ne pastepiller sur les
+   règles admin-etudiants-* / admin-stages-*.
+   Les classes génériques de modale (.modal-overlay, .form-group, .btn-primary)
+   proviennent de admin-stage.css, chargé globalement via index.css.
+   ========================================================================== */
+
+.admin-affectation-page {
+  padding: 20px 0;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ---- Header ---- */
+.admin-affectation-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.admin-affectation-header h1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  color: #162449;
+  margin: 0 0 4px;
+}
+
+.admin-affectation-subtitle {
+  font-size: 14px;
+  color: #6c7a8a;
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.5;
+}
+
+.admin-affectation-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #6BA9E6;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-affectation-btn-primary:hover {
+  background: #5593d6;
+}
+
+/* ---- Cartes statistiques ---- */
+.admin-affectation-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.admin-affectation-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border: 1px solid #E1ECFE;
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 1px 3px rgba(22, 36, 73, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.admin-affectation-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 36, 73, 0.1);
+}
+
+.admin-affectation-stat-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.admin-affectation-stat-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-affectation-stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.1;
+}
+
+.admin-affectation-stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+  margin-top: 2px;
+}
+
+/* ---- Étudiants sans tuteur (liste déroulante) ---- */
+.admin-affectation-unassigned-collapsible {
+  background: #ffffff;
+  border: 1px solid #E1ECFE;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 24px;
+}
+
+.admin-affectation-unassigned-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  background: #ffffff;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: #162449;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-affectation-unassigned-toggle:hover {
+  background: #F8FAFC;
+}
+
+.admin-affectation-chevron {
+  color: #6BA9E6;
+  background: #E1ECFE;
+  border-radius: 999px;
+  padding: 4px;
+  box-sizing: content-box;
+  margin-left: auto;
+  transition: transform 0.2s ease;
+}
+
+.admin-affectation-chevron.open {
+  transform: rotate(180deg);
+}
+
+.admin-affectation-unassigned-count {
+  background: #E1ECFE;
+  color: #1E40AF;
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-affectation-unassigned-collapsible .admin-affectation-table-container {
+  border-top: 1px solid #E1ECFE;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+/* ---- Filtres ----
+   Valeurs copiées du standard admin (admin-etudiant / admin-stage /
+   admin-encadreur / admin-entreprise / admin-evaluation), qui partagent un bloc
+   identique. */
+.admin-affectation-filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 20px;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #E1ECFE;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.admin-affectation-filter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.admin-affectation-filter-group label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #162449;
+  white-space: nowrap;
+}
+
+.admin-affectation-filter-group label svg {
+  color: #6BA9E6;
+}
+
+/* Sur les autres pages admin, .admin-XXX-filter-select style un <select> natif.
+   Ici les filtres rendent via SelectPersonnalise (div + FaChevronDown) : on ne
+   reprend que les dimensions, car SelectPersonnalise impose width: 100% et
+   min-width: 150px (styles/select.css l.7-8), qui feraient exploser la barre. */
+.admin-affectation-filter-select {
+  width: auto;
+  flex: 1 1 auto;
+  min-width: 180px;
+}
+
+.admin-affectation-search-group {
+  position: relative;
+  flex: 1.5;
+  min-width: 260px;
+  max-width: 420px;
+}
+
+.admin-affectation-search-icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: #6c7a8a;
+  font-size: 16px;
+}
+
+.admin-affectation-search-input {
+  flex: 1;
+  width: 100%;
+  padding: 10px 16px;
+  padding-left: 40px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  transition: all 0.2s;
+  font-family: inherit;
+  min-width: 200px;
+}
+
+.admin-affectation-search-input:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+
+.admin-affectation-search-input::placeholder {
+  color: #A0B8D0;
+}
+
+/* ---- Tableau ---- */
+.admin-affectation-table-container {
+  background: #ffffff;
+  border: 1px solid #E1ECFE;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.admin-affectation-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.admin-affectation-table thead th {
+  background: #F8FAFC;
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6c7a8a;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border-bottom: 1px solid #E1ECFE;
+}
+
+.admin-affectation-table tbody td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #F1F5F9;
+  font-size: 13px;
+  color: #162449;
+  vertical-align: middle;
+}
+
+.admin-affectation-table tbody tr:hover {
+  background: #F8FAFC;
+}
+
+.admin-affectation-empty {
+  text-align: center;
+  color: #6c7a8a;
+  padding: 28px 16px !important;
+}
+
+.admin-affectation-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.admin-affectation-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #E1ECFE;
+  color: #6BA9E6;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.admin-affectation-name {
+  font-weight: 600;
+  color: #162449;
+}
+
+.admin-affectation-email {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+.admin-affectation-teacher {
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---- Badges ---- */
+.admin-affectation-badge-active,
+.admin-affectation-badge-closed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+
+.admin-affectation-badge-active {
+  background: #D1FAE5;
+  color: #15803D;
+}
+
+.admin-affectation-badge-closed {
+  background: #FEE2E2;
+  color: #B91C1C;
+}
+
+/* ---- Actions ---- */
+.admin-affectation-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+/* Boutons d'action dans la colonne Actions : icônes uniquement,
+   calqués sur rapport-gestion.css (rapports-admin .btn-action-icon). */
+.admin-affectation-page .btn-action-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  background: none;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  color: #6BA9E6;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.admin-affectation-page .btn-action-icon:hover {
+  background: #FAFBFF;
+  border-color: #6BA9E6;
+}
+
+.admin-affectation-page .btn-action-icon.btn-edit {
+  color: #6BA9E6;
+  border-color: #E1ECFE;
+}
+
+.admin-affectation-page .btn-action-icon.btn-danger {
+  color: #E74C3C;
+  border-color: #FEE2E2;
+}
+
+.admin-affectation-page .btn-action-icon.btn-danger:hover {
+  background: #FEE2E2;
+  border-color: #E74C3C;
+}
+
+/* ---- Pagination ---- */
+.admin-affectation-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.admin-affectation-pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid #E1ECFE;
+  border-radius: 6px;
+  background: #ffffff;
+  color: #6BA9E6;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.admin-affectation-pagination-btn:hover:not(:disabled) {
+  background: #E1ECFE;
+}
+
+.admin-affectation-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.admin-affectation-pagination-info {
+  font-size: 13px;
+  color: #6c7a8a;
+  font-weight: 600;
+}
+
+/* ---- Modale ---- */
+.admin-affectation-warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: #92400E;
+  line-height: 1.5;
+}
+
+/* La modale d'affectation utilise les mêmes classes génériques que les autres
+   modales admin, mais on force ici son propre chrome (fond blanc, séparation de
+   header gris clair) pour qu'aucune règle globale .modal-* indésirable ne
+   laisse apparaître un fond bleu ou une bordure grise. */
+.admin-affectation-modal .modal-content {
+  background: #ffffff;
+}
+
+.admin-affectation-modal .modal-header {
+  background: transparent;
+  border-bottom: 2px solid #F5F8FC;
+}
+
+.admin-affectation-modal .modal-body {
+  background: transparent;
+  border: none;
+}
+
+.admin-affectation-modal .modal-footer {
+  background: transparent;
+  border-top: none;
+}
+
+/* ---- Aide sous champs (utilisée aussi côté étudiant) ---- */
+.admin-affectation-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  color: #6c7a8a;
+  line-height: 1.4;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .admin-affectation-header h1 {
+    font-size: 20px;
+  }
+
+  .admin-affectation-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .admin-affectation-filter-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 4px;
+    min-width: unset;
+  }
+
+  .admin-affectation-search-group {
+    min-width: unset;
+  }
+
+  .admin-affectation-search-input {
+    min-width: unset;
+  }
+
+  .admin-affectation-table-container {
+    overflow-x: auto;
+  }
+
+  .admin-affectation-table {
+    min-width: 720px;
+  }
+}

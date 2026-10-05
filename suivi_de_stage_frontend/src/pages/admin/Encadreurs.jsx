@@ -50,17 +50,44 @@ function AdminEncadreurs() {
 
       const namesBySupervisor = new Map();
       const namesByTuteur = new Map();
+      const normalizeName = (value) =>
+        String(value || '')
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '')
+          .toLowerCase()
+          .replace(/\s+/g, ' ')
+          .trim()
+          .split(' ')
+          .sort()
+          .join(' ');
       try {
         const internships = await fetchAllInternships();
+        const professionnelsByName = new Map();
+        getList(prosResult.status, prosResult.value).forEach((item) => {
+          const userId = item.user?.id;
+          if (!userId) return;
+          const fullName = `${item.user?.prenom || item.prenom || ''} ${item.user?.nom || item.nom || ''}`;
+          const key = normalizeName(fullName);
+          if (key) professionnelsByName.set(key, userId);
+        });
+
         internships.forEach((internship) => {
           const student = internship.student;
           if (!student) return;
           const name = student.user ? `${student.user.prenom} ${student.user.nom}` : 'Étudiant';
+
           if (internship.supervisor?.user?.id) {
             const key = internship.supervisor.user.id;
             if (!namesBySupervisor.has(key)) namesBySupervisor.set(key, new Map());
             namesBySupervisor.get(key).set(student.id, name);
+          } else if (internship.encadreurProfessionnelNom) {
+            const userId = professionnelsByName.get(normalizeName(internship.encadreurProfessionnelNom));
+            if (userId) {
+              if (!namesBySupervisor.has(userId)) namesBySupervisor.set(userId, new Map());
+              namesBySupervisor.get(userId).set(student.id, name);
+            }
           }
+
           if (internship.tuteur?.id) {
             const key = internship.tuteur.id;
             if (!namesByTuteur.has(key)) namesByTuteur.set(key, new Map());

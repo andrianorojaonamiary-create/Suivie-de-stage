@@ -181,7 +181,7 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content modal-evaluation" onClick={(e) => e.stopPropagation()}>
+      <div className="modal-content modal-evaluation modal-form-role" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
           <h2><FaStar className="modal-icon-validate" /> Évaluation du stage</h2>
           <button className="modal-close" onClick={onClose}><FaTimes /></button>

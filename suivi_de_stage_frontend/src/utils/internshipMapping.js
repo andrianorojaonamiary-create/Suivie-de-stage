@@ -103,6 +103,28 @@ export const toApiUpdatePayload = (formData) => ({
   dateFin: formData.dateFin,
 });
 
+export function computeChecklistProgress(stage = {}, hasEvaluation = false) {
+  const debut =
+    stage.statut === 'En cours' || stage.statut === 'Terminé';
+  const steps = [
+    true,
+    debut,
+    debut &&
+      stage.dateDebut &&
+      stage.dateFin &&
+      Date.now() >=
+        (new Date(stage.dateDebut).getTime() +
+          new Date(stage.dateFin).getTime()) /
+          2,
+    Boolean(hasEvaluation),
+    debut &&
+      stage.dateFin &&
+      Date.now() >= new Date(stage.dateFin).getTime(),
+  ];
+  const doneCount = steps.filter(Boolean).length;
+  return Math.round((doneCount / steps.length) * 100);
+}
+
 export function mapInternship(item = {}) {
   const dateDebut = formatDateStr(item.dateDebut);
   const dateFin = formatDateStr(item.dateFin);

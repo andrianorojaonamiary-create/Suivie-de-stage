@@ -8,6 +8,7 @@ import {
   IsString,
   IsUUID,
   Length,
+  ValidateIf,
 } from 'class-validator';
 import { InternshipStatus } from '../enums/internship-status.enum';
 
@@ -26,9 +27,12 @@ export class CreateInternshipDto {
   @IsUUID()
   supervisorId?: string;
 
+  // tuteurId accepte null pour detacher le tuteur ; @ValidateIf evite que
+  // @IsUUID ne rejette cette valeur.
   @IsOptional()
+  @ValidateIf((o: CreateInternshipDto) => o.tuteurId !== null)
   @IsUUID()
-  tuteurId?: string;
+  tuteurId?: string | null;
 
   @Transform(trim)
   @IsOptional()

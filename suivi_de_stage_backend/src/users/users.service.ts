@@ -58,6 +58,18 @@ export class UsersService {
       );
     }
 
+    // `status` etait declare dans le DTO mais jamais applique : les
+    // utilisateurs desactives remontaient dans les listes (dont l'ancien
+    // selecteur de tuteur).
+    if (findUsersDto.status === 'ACTIF' || findUsersDto.status === 'actif') {
+      query.andWhere('user.actif = true');
+    } else if (
+      findUsersDto.status === 'INACTIF' ||
+      findUsersDto.status === 'inactif'
+    ) {
+      query.andWhere('user.actif = false');
+    }
+
     const [users, total] = await query
       .orderBy('user.dateCreation', 'DESC')
       .skip((page - 1) * limit)

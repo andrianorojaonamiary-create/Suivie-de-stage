@@ -9,7 +9,7 @@ import {
 } from 'react-icons/fa';
 import mapImage from '../../assets/map.jpg';
 import { internshipsApi, notificationsApi, evaluationsApi } from '../../api';
-import { mapInternship, getStatutBadge } from '../../utils/internshipMapping';
+import { mapInternship, getStatutBadge, computeChecklistProgress } from '../../utils/internshipMapping';
 import {
   mapReportStatus,
   mapReportType,
@@ -138,8 +138,7 @@ function EtudiantDashboard() {
             },
           ];
           setSteps(stepsData);
-          const doneCount = stepsData.filter((s) => s.done).length;
-          setProgress(Math.round((doneCount / stepsData.length) * 100));
+          setProgress(computeChecklistProgress(current, hasEvaluation));
         }
       } catch (err) {
         console.error('Erreur dashboard etudiant:', err);

@@ -344,6 +344,28 @@ export class NotificationsService {
     );
   }
 
+  // Notifie l'etudiant que l'administration lui a affecte un tuteur pedagogique.
+  // Le message ne mentionne le tuteur que si on l'a, pour rester utile meme
+  // quand l'affectation vient du backfill de migrations.
+  async notifyTuteurAssigned(params: {
+    studentUserId: string;
+    teacherName: string | null;
+    assignmentId: string;
+  }) {
+    const nom = params.teacherName?.trim();
+    const message = nom
+      ? `${nom} a été désigné comme votre tuteur pédagogique. Vous pouvez désormais le sélectionner sur vos fiches de stage.`
+      : `Un tuteur pédagogique vous a été affecté. Vous pouvez désormais le sélectionner sur vos fiches de stage.`;
+
+    await this.createNotification(
+      params.studentUserId,
+      NotificationType.TUTEUR_AFFECTE,
+      'Tuteur pédagogique affecté',
+      message,
+      params.assignmentId,
+    );
+  }
+
   private async findOwned(id: string, actor: AuthenticatedUser) {
     const notification = await this.notificationsRepository.findOne({
       where: { id, utilisateurDestinataireId: actor.id },

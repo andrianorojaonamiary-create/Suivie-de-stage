@@ -25,7 +25,7 @@ import {
   internshipsApi,
   companiesApi,
   supervisorsApi,
-  usersApi,
+  teacherAssignmentsApi,
 } from "../../api";
 import { getApiErrorMessage } from "../../api/apiClient";
 
@@ -55,7 +55,9 @@ function AjouterStage() {
     tuteurId: "",
     encadreurProfessionnelNom: "",
   });
-  const [enseignants, setEnseignants] = useState([]);
+  // Tuteurs effectivement affectes a cet etudiant par l'administration.
+  // L'etudiant ne peut pas en choisir un autre.
+  const [tuteursDisponibles, setTuteursDisponibles] = useState([]);
   const [companies, setCompanies] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [showCompanySuggestions, setShowCompanySuggestions] = useState(false);
@@ -72,11 +74,14 @@ function AjouterStage() {
 
   useEffect(() => {
     const loadReferences = async () => {
-      const [companiesResult, supervisorsResult, enseignantsResult] =
+      const [companiesResult, supervisorsResult, tuteursResult] =
         await Promise.allSettled([
           companiesApi.getAll({ limit: 100 }),
           supervisorsApi.getAll({ limit: 100 }),
-          usersApi.getAll({ role: "ENSEIGNANT", limit: 100 }),
+          // Uniquement les tuteurs affectes a cet etudiant : c'est la
+          // restriction demandee, appliquee cote serveur (le studentId est
+          // deduit du JWT, il n'est pas parametrable).
+          teacherAssignmentsApi.getMyTeachers(),
         ]);
 
       if (companiesResult.status === "fulfilled") {
@@ -85,19 +90,25 @@ function AjouterStage() {
       if (supervisorsResult.status === "fulfilled") {
         setSupervisors(listFromResponse(supervisorsResult.value));
       }
-      if (enseignantsResult.status === "fulfilled") {
-        setEnseignants(listFromResponse(enseignantsResult.value));
+      if (tuteursResult.status === "fulfilled") {
+        const list = listFromResponse(tuteursResult.value?.items ?? []);
+        setTuteursDisponibles(list);
+        // Un étudiant n'a qu'un seul tuteur affecté : on le pré-sélectionne.
+        const tuteur = list[0];
+        if (tuteur) {
+          setFormData((prev) =>
+            prev.tuteurId ? prev : { ...prev, tuteurId: tuteur.id },
+          );
+        }
       }
 
       if (
         companiesResult.status === "rejected" ||
-        supervisorsResult.status === "rejected" ||
-        enseignantsResult.status === "rejected"
+        supervisorsResult.status === "rejected"
       ) {
         console.error("Erreur chargement des références :", {
           companiesResult,
           supervisorsResult,
-          enseignantsResult,
         });
         toast.error(
           "Certaines listes de référence n'ont pas pu être chargées.",
@@ -312,20 +323,27 @@ function AjouterStage() {
             </div>
             <div className="form-group">
               <label>
-                <FaUserGraduate /> Encadreur pédagogique
+                <FaUserGraduate /> Tuteur pédagogique
               </label>
               <SelectPersonnalise
                 value={formData.tuteurId}
                 onChange={(v) =>
                   setFormData((prev) => ({ ...prev, tuteurId: v }))
                 }
-                placeholder="Sélectionner un enseignant"
+                placeholder={
+                  tuteursDisponibles.length === 0
+                    ? "Aucun tuteur affecté — contactez l'administration"
+                    : "Sélectionner votre tuteur"
+                }
                 className="form-control"
-                options={enseignants.map((u) => ({
-                  value: u.id,
-                  label: [u.nom, u.prenom].filter(Boolean).join(" "),
+                options={tuteursDisponibles.map((t) => ({
+                  value: t.id,
+                  label: [t.nom, t.prenom].filter(Boolean).join(" "),
                 }))}
               />
+              <small className="admin-affectation-hint">
+                Seul le tuteur affecté par l'administration est proposé.
+              </small>
             </div>
           </div>
 

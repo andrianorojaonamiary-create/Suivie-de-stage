@@ -34,5 +34,6 @@ coverage
 
 # Documentation de la base de données (non versionnée)
 docs/
+rapport/
 README_entites_attributs.md
 suivi_de_stage_frontend/sandbox.mcd

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  FaUserTie, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaClipboardCheck, FaPlus
+  FaUserTie, FaEnvelope, FaPhone, FaBuilding, FaBriefcase, FaClipboardCheck, FaPlus, FaChalkboardTeacher
 } from 'react-icons/fa';
-import { internshipsApi, supervisorsApi } from '../../api';
+import { internshipsApi, supervisorsApi, teacherAssignmentsApi } from '../../api';
 import { mapInternshipList } from '../../utils/internshipMapping';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 
@@ -13,13 +13,16 @@ function MonEncadreur() {
   const [stages, setStages] = useState([]);
   const [supervisors, setSupervisors] = useState([]);
   const [selectedStageId, setSelectedStageId] = useState('all');
+  // Tuteurs pédagogiques affectés par l'administration (indépendant du stage).
+  const [tuteurs, setTuteurs] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [stagesRes, supervisorsRes] = await Promise.allSettled([
+        const [stagesRes, supervisorsRes, tuteursRes] = await Promise.allSettled([
           internshipsApi.getAll(),
           supervisorsApi.getAll({ limit: 100 }),
+          teacherAssignmentsApi.getMyTeachers(),
         ]);
         const stagesList = stagesRes.status === 'fulfilled'
           ? stagesRes.value?.data || (Array.isArray(stagesRes.value) ? stagesRes.value : [])
@@ -29,6 +32,9 @@ function MonEncadreur() {
           ? supervisorsRes.value?.data || (Array.isArray(supervisorsRes.value) ? supervisorsRes.value : [])
           : [];
         setSupervisors(supervisorsList);
+        if (tuteursRes.status === 'fulfilled') {
+          setTuteurs(tuteursRes.value?.items ?? []);
+        }
       } catch (err) {
         console.error('Erreur chargement encadreur:', err);
       } finally {
@@ -95,6 +101,42 @@ function MonEncadreur() {
             options={stageOptions}
             placeholder="Choisir un stage"
           />
+        </div>
+      )}
+
+      {/* ===== TUTEURS PÉDAGOGIQUES (affectés par l'administration) ===== */}
+      {!loading && (
+        <div className="encadreur-card" style={{ marginTop: '16px' }}>
+          <div className="encadreur-card-top">
+            <div className="encadreur-avatar">
+              <FaChalkboardTeacher />
+            </div>
+            <div className="encadreur-info">
+              <h3>Tuteur pédagogique</h3>
+              <span className="encadreur-fonction">
+                {tuteurs.length === 0 ? 'Aucun tuteur affecté' : 'Tuteur affecté'}
+              </span>
+            </div>
+          </div>
+          {tuteurs.length === 0 ? (
+            <div className="encadreur-card-middle">
+              <p>
+                <FaChalkboardTeacher /> Aucun tuteur ne vous est encore affecté.
+                Contactez l'administration de l'EMIT.
+              </p>
+            </div>
+          ) : (
+            <div className="encadreur-card-middle">
+                {tuteurs.map((t) => (
+                <p key={t.id}>
+                  <FaChalkboardTeacher />{' '}
+                  {[t.prenom, t.nom].filter(Boolean).join(' ')}
+                  {t.grade ? ` — ${t.grade}` : ''}
+                  {t.email ? ` — ${t.email}` : ''}
+                </p>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
