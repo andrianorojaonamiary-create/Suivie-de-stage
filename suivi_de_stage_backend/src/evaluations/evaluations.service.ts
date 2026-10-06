@@ -7,6 +7,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Internship } from '../internships/entities/internship.entity';
+import { InternshipStatus } from '../internships/enums/internship-status.enum';
 import { Role } from '../users/enums/role.enum';
 import { UsersService } from '../users/users.service';
 import { CreateEvaluationDto } from './dto/create-evaluation.dto';
@@ -52,6 +53,13 @@ export class EvaluationsService {
         ? new Date(dto.dateEvaluation)
         : undefined,
     });
+    if (
+      stage.statut === InternshipStatus.EN_COURS ||
+      stage.statut === InternshipStatus.EN_ATTENTE
+    ) {
+      stage.statut = InternshipStatus.TERMINE;
+      await this.internshipsRepository.save(stage);
+    }
     const savedEvaluation = await this.saveAndSerialize(evaluation);
     await this.notificationsService.notifyEvaluation(stage);
     return savedEvaluation;
@@ -189,6 +197,15 @@ export class EvaluationsService {
       );
     const evaluation = await this.findEvaluation(id);
     evaluation.validee = true;
+    const stage = evaluation.stage;
+    if (
+      stage &&
+      (stage.statut === InternshipStatus.EN_COURS ||
+        stage.statut === InternshipStatus.EN_ATTENTE)
+    ) {
+      stage.statut = InternshipStatus.TERMINE;
+      await this.internshipsRepository.save(stage);
+    }
     return this.saveAndSerialize(evaluation);
   }
 

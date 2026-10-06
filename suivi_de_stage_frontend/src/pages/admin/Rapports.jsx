@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FaEye, FaFileAlt, FaCheckCircle, FaClock, FaTimesCircle } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import { reportsApi, getApiErrorMessage } from '../../api';
 import { formatReportDate, mapReportStatus, REPORT_STATUS_LABELS } from '../../utils/reportMapping';
 
@@ -126,36 +127,14 @@ function AdminRapports() {
         </div>
       </div>
 
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total"><FaFileAlt /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon done"><FaCheckCircle /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Validés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.revision}</span>
-            <span className="stat-label">En révision</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaTimesCircle /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.refuses}</span>
-            <span className="stat-label">Refusés</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaFileAlt />, value: stats.total, label: 'Total', variant: 'total' },
+          { icon: <FaCheckCircle />, value: stats.valides, label: 'Validés', variant: 'done' },
+          { icon: <FaClock />, value: stats.revision, label: 'En révision', variant: 'active' },
+          { icon: <FaTimesCircle />, value: stats.refuses, label: 'Refusés', variant: 'pending' },
+        ]}
+      />
 
       {error && <div className="alert alert-danger">{error}</div>}
 

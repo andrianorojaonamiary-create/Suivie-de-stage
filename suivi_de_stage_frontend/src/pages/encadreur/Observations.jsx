@@ -7,6 +7,7 @@ import {
   FaClock, FaInfoCircle, FaArrowLeft
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import { toast } from 'react-toastify';
 import { internshipsApi, trackingApi } from '../../api';
 
@@ -280,29 +281,13 @@ function EncadreurObservations() {
         </button>
       </div>
 
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total"><FaComment /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaUserGraduate /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.sansObservation}</span>
-            <span className="stat-label">À observer</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.recents}</span>
-            <span className="stat-label">Récentes (7j)</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaComment />, value: stats.total, label: 'Total', variant: 'total' },
+          { icon: <FaUserGraduate />, value: stats.sansObservation, label: 'À observer', variant: 'pending' },
+          { icon: <FaClock />, value: stats.recents, label: 'Récentes (7j)', variant: 'active' },
+        ]}
+      />
 
       <div className="table-container">
         <div className="table-toolbar">

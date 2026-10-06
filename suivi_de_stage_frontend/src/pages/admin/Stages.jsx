@@ -9,6 +9,7 @@ import StageDetail from './components/StageDetail';
 import internshipsApi from '../../api/internshipsApi';
 import evaluationsApi from '../../api/evaluationsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import { mapInternshipList, computeChecklistProgress } from '../../utils/internshipMapping';
 
 function AdminStages() {
@@ -69,7 +70,7 @@ function AdminStages() {
     total: stages.length,
     enCours: stages.filter(s => s.statut === 'En cours').length,
     termine: stages.filter(s => s.statut === 'Terminé').length,
-    aVenir: stages.filter(s => s.statut === 'À venir').length
+    enAttente: stages.filter(s => s.statut === 'En attente de validation').length
   };
 
   const filteredStages = stages.filter(s => {
@@ -91,7 +92,7 @@ function AdminStages() {
 
   const statutOptions = [
     { value: 'Tous', label: 'Tous les statuts' },
-    { value: 'À venir', label: 'À venir' },
+    { value: 'En attente de validation', label: 'En attente' },
     { value: 'En cours', label: 'En cours' },
     { value: 'Terminé', label: 'Terminé' }
   ];
@@ -108,7 +109,8 @@ function AdminStages() {
     const classes = {
       'À venir': 'badge-a-venir',
       'En cours': 'badge-en-cours',
-      'Terminé': 'badge-termine'
+      'Terminé': 'badge-termine',
+      'En attente de validation': 'badge-en-attente'
     };
     return classes[statut] || 'badge-en-cours';
   };
@@ -127,44 +129,37 @@ function AdminStages() {
         </div>
       </div>
 
-      <div className="admin-stages-stats">
-        <div className="admin-stages-stat-card">
-          <div className="admin-stages-stat-icon-wrapper" style={{ background: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaList />
-          </div>
-          <div className="admin-stages-stat-content">
-            <span className="admin-stages-stat-value">{stats.total}</span>
-            <span className="admin-stages-stat-label">Total stages</span>
-          </div>
-        </div>
-        <div className="admin-stages-stat-card">
-          <div className="admin-stages-stat-icon-wrapper" style={{ background: '#D1FAE5', color: '#22C55E' }}>
-            <FaClock />
-          </div>
-          <div className="admin-stages-stat-content">
-            <span className="admin-stages-stat-value" style={{ color: '#22C55E' }}>{stats.enCours}</span>
-            <span className="admin-stages-stat-label">En cours</span>
-          </div>
-        </div>
-        <div className="admin-stages-stat-card">
-          <div className="admin-stages-stat-icon-wrapper" style={{ background: '#DBEAFE', color: '#6BA9E6' }}>
-            <FaCheck />
-          </div>
-          <div className="admin-stages-stat-content">
-            <span className="admin-stages-stat-value" style={{ color: '#6BA9E6' }}>{stats.termine}</span>
-            <span className="admin-stages-stat-label">Terminés</span>
-          </div>
-        </div>
-        <div className="admin-stages-stat-card">
-          <div className="admin-stages-stat-icon-wrapper" style={{ background: '#FEF3C7', color: '#F59E0B' }}>
-            <FaTimes />
-          </div>
-          <div className="admin-stages-stat-content">
-            <span className="admin-stages-stat-value" style={{ color: '#F59E0B' }}>{stats.aVenir}</span>
-            <span className="admin-stages-stat-label">À venir</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          {
+            icon: <FaList />,
+            value: stats.total,
+            label: 'Total stages',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaClock />,
+            value: stats.enCours,
+            label: 'En cours',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+          {
+            icon: <FaCheck />,
+            value: stats.termine,
+            label: 'Terminés',
+            iconStyle: { background: '#DBEAFE', color: '#6BA9E6' },
+            valueStyle: { color: '#6BA9E6' },
+          },
+          {
+            icon: <FaTimes />,
+            value: stats.enAttente,
+            label: 'En attente',
+            iconStyle: { background: '#FEF3C7', color: '#F59E0B' },
+            valueStyle: { color: '#F59E0B' },
+          },
+        ]}
+      />
 
       <div className="admin-stages-filters">
         <div className="admin-stages-filter-group">

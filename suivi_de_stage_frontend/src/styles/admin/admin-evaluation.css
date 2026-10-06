@@ -71,69 +71,6 @@
   cursor: not-allowed;
 }
 
-/* ============================================================
-   STATISTIQUES - CARTES AMÉLIORÉES
-   ============================================================ */
-
-
-.admin-eval-page .admin-eval-stats {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.admin-eval-page .admin-eval-stat-card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E1ECFE;
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
-  transition: all 0.3s ease;
-}
-
-.admin-eval-page .admin-eval-stat-card:hover {
-  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
-  transform: translateY(-2px);
-}
-
-.admin-eval-page .admin-eval-stat-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-
-.admin-eval-page .admin-eval-stat-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-
-.admin-eval-page .admin-eval-stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-  display: block;
-}
-
-.admin-eval-page .admin-eval-stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-  font-weight: 500;
-  display: block;
-}
-
 
 /* ============================================================
    DIAGRAMMES
@@ -809,19 +746,11 @@
    RESPONSIVE
    ============================================================ */
 
-@media (max-width: 1200px) {
-  .admin-eval-page .admin-eval-stats {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
+
 
 @media (max-width: 992px) {
   .admin-eval-page .admin-eval-charts {
     grid-template-columns: 1fr;
-  }
-
-  .admin-eval-page .admin-eval-stats {
-    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -862,25 +791,6 @@
   .admin-eval-page .admin-eval-search-input {
     min-width: unset;
     width: 100%;
-  }
-
-  .admin-eval-page .admin-eval-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-
-  .admin-eval-page .admin-eval-stat-card {
-    padding: 14px 12px;
-  }
-
-  .admin-eval-page .admin-eval-stat-value {
-    font-size: 22px;
-  }
-
-  .admin-eval-page .admin-eval-stat-icon-wrapper {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
   }
 
   .admin-eval-page .admin-eval-table thead th,
@@ -927,10 +837,6 @@
 
   .admin-eval-page .admin-eval-subtitle {
     font-size: 13px;
-  }
-
-  .admin-eval-page .admin-eval-stats {
-    grid-template-columns: 1fr;
   }
 
   .admin-eval-page .admin-eval-filter-select {

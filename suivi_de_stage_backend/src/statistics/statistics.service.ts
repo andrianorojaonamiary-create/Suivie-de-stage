@@ -38,7 +38,7 @@ export class StatisticsService {
       supervisors,
       companies,
       internships,
-      upcoming,
+      pending,
       ongoing,
       completed,
       employment,
@@ -59,7 +59,7 @@ export class StatisticsService {
         ? this.countInternshipCompanies(dto)
         : this.companiesRepository.count(),
       this.countInternships(dto),
-      this.countInternships(dto, InternshipStatus.A_VENIR),
+      this.countInternships(dto, InternshipStatus.EN_ATTENTE),
       this.countInternships(dto, InternshipStatus.EN_COURS),
       this.countInternships(dto, InternshipStatus.TERMINE),
       this.getEmploymentStatistics(),
@@ -72,10 +72,10 @@ export class StatisticsService {
 
     return {
       counts: { students, supervisors, companies, internships },
-      internships: { upcoming, ongoing, completed },
+      internships: { pending, ongoing, completed },
       employment,
       statusData: [
-        { name: 'En attente', value: upcoming },
+        { name: 'En attente', value: pending },
         { name: 'En cours', value: ongoing },
         { name: 'Terminé', value: completed },
       ],

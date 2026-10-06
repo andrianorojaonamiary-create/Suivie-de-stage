@@ -9,6 +9,7 @@ import {
 import { toast } from 'react-toastify';
 import { internshipsApi, reportsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import {
   mapReportStatus,
   mapReportType,
@@ -297,36 +298,14 @@ function EnseignantRapports() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total"><FaFileAlt /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon done"><FaCheckCircle /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Validés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.revision}</span>
-            <span className="stat-label">En révision</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.deposer}</span>
-            <span className="stat-label">À déposer</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaFileAlt />, value: stats.total, label: 'Total', variant: 'total' },
+          { icon: <FaCheckCircle />, value: stats.valides, label: 'Validés', variant: 'done' },
+          { icon: <FaClock />, value: stats.revision, label: 'En révision', variant: 'active' },
+          { icon: <FaClock />, value: stats.deposer, label: 'À déposer', variant: 'pending' },
+        ]}
+      />
 
       {/* ===== TABLEAU ===== */}
       <div className="table-container">

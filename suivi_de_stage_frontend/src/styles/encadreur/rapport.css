@@ -50,62 +50,6 @@
   border-color: #6BA9E6;
 }
 
-.rapports-page .stats-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.rapports-page .stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid #E8EEF4;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.rapports-page .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
-}
-
-.rapports-page .stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.rapports-page .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
-.rapports-page .stat-icon.done { background: #E8F5E9; color: #27AE60; }
-.rapports-page .stat-icon.active { background: #E1ECFE; color: #162449; }
-.rapports-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
-
-.rapports-page .stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.rapports-page .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-}
-
-.rapports-page .stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-}
-
 .rapports-page .table-container {
   background: white;
   border-radius: 12px;
@@ -443,9 +387,6 @@
 }
 
 @media (max-width: 992px) {
-  .rapports-page .stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .rapports-page .table-toolbar {
     flex-direction: column;
@@ -484,9 +425,6 @@
 }
 
 @media (max-width: 768px) {
-  .rapports-page .stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .rapports-table {
     font-size: 13px;
@@ -528,23 +466,6 @@
 }
 
 @media (max-width: 480px) {
-  .rapports-page .stats-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .rapports-page .stat-card {
-    padding: 12px 14px;
-  }
-
-  .rapports-page .stat-value {
-    font-size: 20px;
-  }
-
-  .rapports-page .stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
-  }
 
   .rapports-table thead th,
   .rapports-table td {

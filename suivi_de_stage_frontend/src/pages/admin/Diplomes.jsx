@@ -14,6 +14,7 @@ import {
 import { professionalSituationsApi } from '../../api';
 import { toast } from 'react-toastify';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 
 function AdminDiplomes() {
   // ===== ÉTATS =====
@@ -220,53 +221,45 @@ function AdminDiplomes() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="admin-diplome-stats">
-        <div className="admin-diplome-stat-card">
-          <div className="admin-diplome-stat-icon-wrapper" style={{ background: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaUserGraduate />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-diplome-stat-value">{stats.total}</span>
-            <span className="admin-diplome-stat-label">Total diplômés</span>
-          </div>
-        </div>
-        <div className="admin-diplome-stat-card">
-          <div className="admin-diplome-stat-icon-wrapper" style={{ background: '#D1FAE5', color: '#22C55E' }}>
-            <FaAward />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-diplome-stat-value" style={{ color: '#22C55E' }}>{stats.enEmploi}</span>
-            <span className="admin-diplome-stat-label">En emploi</span>
-          </div>
-        </div>
-        <div className="admin-diplome-stat-card">
-          <div className="admin-diplome-stat-icon-wrapper" style={{ background: '#FEF3C7', color: '#F59E0B' }}>
-            <FaSearch />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-diplome-stat-value" style={{ color: '#F59E0B' }}>{stats.enRecherche}</span>
-            <span className="admin-diplome-stat-label">En recherche</span>
-          </div>
-        </div>
-        <div className="admin-diplome-stat-card">
-          <div className="admin-diplome-stat-icon-wrapper" style={{ background: '#DBEAFE', color: '#6BA9E6' }}>
-            <FaGraduationCap />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-diplome-stat-value" style={{ color: '#6BA9E6' }}>{stats.etudesSuperieures}</span>
-            <span className="admin-diplome-stat-label">Études supérieures</span>
-          </div>
-        </div>
-        <div className="admin-diplome-stat-card admin-diplome-stat-card-featured">
-          <div className="admin-diplome-stat-icon-wrapper" style={{ background: '#162449', color: '#fff' }}>
-            <FaChartBar />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-diplome-stat-value" style={{ color: '#162449' }}>{stats.tauxEmploi}%</span>
-            <span className="admin-diplome-stat-label">Taux d'emploi</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        cols={5}
+        items={[
+          {
+            icon: <FaUserGraduate />,
+            value: stats.total,
+            label: 'Total diplômés',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaAward />,
+            value: stats.enEmploi,
+            label: 'En emploi',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+          {
+            icon: <FaSearch />,
+            value: stats.enRecherche,
+            label: 'En recherche',
+            iconStyle: { background: '#FEF3C7', color: '#F59E0B' },
+            valueStyle: { color: '#F59E0B' },
+          },
+          {
+            icon: <FaGraduationCap />,
+            value: stats.etudesSuperieures,
+            label: 'Études supérieures',
+            iconStyle: { background: '#DBEAFE', color: '#6BA9E6' },
+            valueStyle: { color: '#6BA9E6' },
+          },
+          {
+            icon: <FaChartBar />,
+            value: `${stats.tauxEmploi}%`,
+            label: "Taux d'emploi",
+            iconStyle: { background: '#162449', color: '#fff' },
+            valueStyle: { color: '#162449' },
+          },
+        ]}
+      />
 
       {/* ===== DIAGRAMMES ===== */}
       <div className="admin-diplome-charts">

@@ -9,6 +9,7 @@ import EtudiantDetail from './components/EtudiantDetail';
 import studentsApi from '../../api/studentsApi';
 import { internshipsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 
 function AdminEtudiants() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -124,44 +125,37 @@ function AdminEtudiants() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="admin-etudiants-stats">
-        <div className="admin-etudiants-stat-card">
-          <div className="admin-etudiants-stat-icon-wrapper" style={{ background: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaUserGraduate />
-          </div>
-          <div className="admin-etudiants-stat-content">
-            <span className="admin-etudiants-stat-value">{stats.total}</span>
-            <span className="admin-etudiants-stat-label">Total étudiants</span>
-          </div>
-        </div>
-        <div className="admin-etudiants-stat-card">
-          <div className="admin-etudiants-stat-icon-wrapper" style={{ background: '#D1FAE5', color: '#22C55E' }}>
-            <FaCheck />
-          </div>
-          <div className="admin-etudiants-stat-content">
-            <span className="admin-etudiants-stat-value" style={{ color: '#22C55E' }}>{stats.actifs}</span>
-            <span className="admin-etudiants-stat-label">Actifs</span>
-          </div>
-        </div>
-        <div className="admin-etudiants-stat-card">
-          <div className="admin-etudiants-stat-icon-wrapper" style={{ background: '#DBEAFE', color: '#6BA9E6' }}>
-            <FaGraduationCap />
-          </div>
-          <div className="admin-etudiants-stat-content">
-            <span className="admin-etudiants-stat-value" style={{ color: '#6BA9E6' }}>{stats.diplomes}</span>
-            <span className="admin-etudiants-stat-label">Diplômés</span>
-          </div>
-        </div>
-        <div className="admin-etudiants-stat-card">
-          <div className="admin-etudiants-stat-icon-wrapper" style={{ background: '#FEF3C7', color: '#F59E0B' }}>
-            <FaBuilding />
-          </div>
-          <div className="admin-etudiants-stat-content">
-            <span className="admin-etudiants-stat-value" style={{ color: '#F59E0B' }}>{stats.enStage}</span>
-            <span className="admin-etudiants-stat-label">En stage</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          {
+            icon: <FaUserGraduate />,
+            value: stats.total,
+            label: 'Total étudiants',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaCheck />,
+            value: stats.actifs,
+            label: 'Actifs',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+          {
+            icon: <FaGraduationCap />,
+            value: stats.diplomes,
+            label: 'Diplômés',
+            iconStyle: { background: '#DBEAFE', color: '#6BA9E6' },
+            valueStyle: { color: '#6BA9E6' },
+          },
+          {
+            icon: <FaBuilding />,
+            value: stats.enStage,
+            label: 'En stage',
+            iconStyle: { background: '#FEF3C7', color: '#F59E0B' },
+            valueStyle: { color: '#F59E0B' },
+          },
+        ]}
+      />
 
       {/* ===== FILTRES ===== */}
       <div className="admin-etudiants-filters">

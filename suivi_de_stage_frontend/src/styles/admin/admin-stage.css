@@ -57,69 +57,6 @@
 }
 
 /* ============================================================
-   CARTES STATISTIQUES (comme Évaluations et Diplômes)
-   ============================================================ */
-.admin-stages-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.admin-stages-stat-card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E1ECFE;
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
-  transition: all 0.3s ease;
-}
-.admin-stages-stat-card:hover {
-  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
-  transform: translateY(-2px);
-}
-.admin-stages-stat-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-.admin-stages-stat-card:hover .admin-stages-stat-icon-wrapper {
-  transform: scale(1.08);
-}
-.admin-stages-stat-card-featured {
-  border: 2px solid #6BA9E6;
-  background: linear-gradient(160deg, #FFFFFF 60%, rgba(107, 169, 230, 0.06) 100%);
-}
-.admin-stages-stat-card-featured .admin-stages-stat-icon-wrapper {
-  background: #162449 !important;
-}
-.admin-stages-stat-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-.admin-stages-stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-}
-.admin-stages-stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-  font-weight: 500;
-}
-
-/* ============================================================
    FILTRES
    ============================================================ */
 .admin-stages-filters {
@@ -722,11 +659,7 @@
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 992px) {
-  .admin-stages-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+
 @media (max-width: 768px) {
   .admin-stages-header {
     flex-direction: column;
@@ -758,9 +691,6 @@
     padding: 8px 10px;
     font-size: 12px;
   }
-  .admin-stages-stats {
-    grid-template-columns: 1fr 1fr;
-  }
   .admin-stages-progress-track {
     width: 50px;
   }
@@ -781,21 +711,6 @@
   }
   .admin-stages-subtitle {
     font-size: 13px;
-  }
-  .admin-stages-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .admin-stages-stat-card {
-    padding: 12px 14px;
-  }
-  .admin-stages-stat-value {
-    font-size: 18px;
-  }
-  .admin-stages-stat-icon-wrapper {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
   }
   .admin-stages-table thead th,
   .admin-stages-table tbody td {

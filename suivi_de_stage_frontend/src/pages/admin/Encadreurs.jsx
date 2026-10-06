@@ -10,6 +10,7 @@ import supervisorsApi from '../../api/supervisorsApi';
 import usersApi from '../../api/usersApi';
 import internshipsApi from '../../api/internshipsApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 
 function AdminEncadreurs() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -201,44 +202,37 @@ function AdminEncadreurs() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="admin-encadreurs-stats">
-        <div className="admin-encadreurs-stat-card">
-          <div className="admin-encadreurs-stat-icon-wrapper" style={{ background: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaUserTie />
-          </div>
-          <div className="admin-encadreurs-stat-content">
-            <span className="admin-encadreurs-stat-value">{stats.total}</span>
-            <span className="admin-encadreurs-stat-label">Total encadreurs</span>
-          </div>
-        </div>
-        <div className="admin-encadreurs-stat-card">
-          <div className="admin-encadreurs-stat-icon-wrapper" style={{ background: '#D1FAE5', color: '#22C55E' }}>
-            <FaBriefcase />
-          </div>
-          <div className="admin-encadreurs-stat-content">
-            <span className="admin-encadreurs-stat-value" style={{ color: '#22C55E' }}>{stats.professionnels}</span>
-            <span className="admin-encadreurs-stat-label">Encadreurs pro.</span>
-          </div>
-        </div>
-        <div className="admin-encadreurs-stat-card">
-          <div className="admin-encadreurs-stat-icon-wrapper" style={{ background: '#DBEAFE', color: '#6BA9E6' }}>
-            <FaChalkboardTeacher />
-          </div>
-          <div className="admin-encadreurs-stat-content">
-            <span className="admin-encadreurs-stat-value" style={{ color: '#6BA9E6' }}>{stats.pedagogiques}</span>
-            <span className="admin-encadreurs-stat-label">Tuteurs pédago.</span>
-          </div>
-        </div>
-        <div className="admin-encadreurs-stat-card">
-          <div className="admin-encadreurs-stat-icon-wrapper" style={{ background: '#FEF3C7', color: '#F59E0B' }}>
-            <FaUsers />
-          </div>
-          <div className="admin-encadreurs-stat-content">
-            <span className="admin-encadreurs-stat-value" style={{ color: '#F59E0B' }}>{stats.totalEtudiants}</span>
-            <span className="admin-encadreurs-stat-label">Étudiants encadrés</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          {
+            icon: <FaUserTie />,
+            value: stats.total,
+            label: 'Total encadreurs',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaBriefcase />,
+            value: stats.professionnels,
+            label: 'Encadreurs pro.',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+          {
+            icon: <FaChalkboardTeacher />,
+            value: stats.pedagogiques,
+            label: 'Tuteurs pédago.',
+            iconStyle: { background: '#DBEAFE', color: '#6BA9E6' },
+            valueStyle: { color: '#6BA9E6' },
+          },
+          {
+            icon: <FaUsers />,
+            value: stats.totalEtudiants,
+            label: 'Étudiants encadrés',
+            iconStyle: { background: '#FEF3C7', color: '#F59E0B' },
+            valueStyle: { color: '#F59E0B' },
+          },
+        ]}
+      />
 
       {/* ===== FILTRES ===== */}
       <div className="admin-encadreurs-filters">

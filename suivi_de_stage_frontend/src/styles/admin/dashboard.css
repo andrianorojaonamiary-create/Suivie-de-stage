@@ -69,110 +69,11 @@
   width: fit-content;
 }
 
-/* ===== KPI GRILLE & CARTES ===== */
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
 
-@media (max-width: 1280px) {
-  .kpi-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
 
-@media (max-width: 900px) {
-  .kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
-@media (max-width: 580px) {
-  .kpi-grid {
-    grid-template-columns: 1fr;
-  }
-}
 
-.kpi-card {
-  background: #FFFFFF;
-  border-radius: 16px;
-  padding: 20px 22px;
-  border: 1px solid #E1ECFE;
-  box-shadow: 0 4px 20px -2px rgba(22, 36, 73, 0.04);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  min-height: 140px;
-}
 
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -3px rgba(22, 36, 73, 0.08);
-  border-color: #6BA9E6;
-}
-
-/* Carte mise en avant (ex: Stages en cours) */
-.kpi-card--featured {
-  border: 2px solid #6BA9E6;
-  background: linear-gradient(160deg, #FFFFFF 60%, rgba(107, 169, 230, 0.07) 100%);
-  box-shadow: 0 6px 24px -4px rgba(107, 169, 230, 0.22);
-}
-
-.kpi-card--featured:hover {
-  border-color: #192543;
-  box-shadow: 0 12px 30px -4px rgba(25, 37, 67, 0.18);
-}
-
-.kpi-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.kpi-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-
-.kpi-trend-badge {
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.kpi-content {
-  margin-top: 14px;
-}
-
-.kpi-value {
-  font-size: 30px;
-  font-weight: 800;
-  color: #162449;
-  line-height: 1.1;
-  letter-spacing: -0.02em;
-}
-
-.kpi-label {
-  font-size: 13px;
-  font-weight: 600;
-  color: #192543;
-  margin-top: 4px;
-}
 
 /* ===== GRILLES DASHBOARD ===== */
 .dashboard-grid-2 {
@@ -337,6 +238,14 @@
   transition: all 0.2s;
 }
 
+.attention-item-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .attention-item:hover {
   background: #FFFFFF;
   border-color: #6BA9E6;
@@ -358,7 +267,7 @@
 .attention-status {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 2px;
   flex-shrink: 0;
 }
@@ -367,9 +276,12 @@
   font-size: 11px;
   color: #192543;
   font-weight: 600;
+  text-align: center;
+  white-space: normal;
 }
 
 .attention-action {
+  text-decoration: none;
   background: #E1ECFE;
   border: none;
   color: #162449;

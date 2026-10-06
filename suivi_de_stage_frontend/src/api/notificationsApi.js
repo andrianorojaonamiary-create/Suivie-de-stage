@@ -14,6 +14,13 @@ export const notificationsApi = {
   markAsRead: (id) => unwrap(apiClient.patch(`/notifications/${id}/read`)),
 
   /**
+   * Envoyer un rappel à l'enseignant tuteur pour un stage en attente (admin)
+   * @param {string} stageId
+   */
+  sendReminder: (stageId) =>
+    unwrap(apiClient.post('/notifications/reminder', { stageId })),
+
+  /**
    * Supprimer une notification
    * @param {string} id
    */

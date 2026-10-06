@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 import { studentsApi, internshipsApi, reportsApi, evaluationsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import mapInternship from '../../utils/internshipMapping';
 
 function EnseignantEtudiants() {
@@ -241,36 +242,14 @@ function EnseignantEtudiants() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total"><FaUserGraduate /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active"><FaClock /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enStage}</span>
-            <span className="stat-label">En stage</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon done"><FaCheckCircle /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.termines}</span>
-            <span className="stat-label">Terminés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending"><FaStar /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.aEvaluer}</span>
-            <span className="stat-label">À évaluer</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaUserGraduate />, value: stats.total, label: 'Total', variant: 'total' },
+          { icon: <FaClock />, value: stats.enStage, label: 'En stage', variant: 'active' },
+          { icon: <FaCheckCircle />, value: stats.termines, label: 'Terminés', variant: 'done' },
+          { icon: <FaStar />, value: stats.aEvaluer, label: 'À évaluer', variant: 'pending' },
+        ]}
+      />
 
       {/* ===== TABLEAU ===== */}
       <div className="table-container">

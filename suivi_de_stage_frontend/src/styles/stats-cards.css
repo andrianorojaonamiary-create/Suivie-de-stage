@@ -1,0 +1,105 @@
+/* ============================================================
+   Cartes compteurs partagées (toutes pages de listes)
+   ============================================================
+   Variantes d'icône :
+     .total   bleu clair   (nombre total)
+     .active  orange clair (élément actif / en attente)
+     .done    vert clair   (terminé / validé)
+     .pending rouge clair  (à traiter / refusé)
+   ============================================================ */
+
+.stats-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stats-cards--2 { grid-template-columns: repeat(2, 1fr); }
+.stats-cards--3 { grid-template-columns: repeat(3, 1fr); }
+.stats-cards--5 { grid-template-columns: repeat(5, 1fr); }
+
+.stat-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid #E8EEF4;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
+}
+
+.stat-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
+.stat-icon.active { background: #FFF3E0; color: #F39C12; }
+.stat-icon.done { background: #E8F5E9; color: #27AE60; }
+.stat-icon.pending { background: #FDE8E8; color: #E74C3C; }
+.stat-icon.rejected { background: #FDE8E8; color: #E74C3C; }
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #162449;
+  line-height: 1.2;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #6c7a8a;
+}
+
+@media (max-width: 1280px) {
+  .stats-cards { grid-template-columns: repeat(2, 1fr); }
+  .stats-cards--5 { grid-template-columns: repeat(3, 1fr); }
+  .stats-cards--3 { grid-template-columns: repeat(2, 1fr); }
+  .stats-cards--2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 992px) {
+  .stats-cards { grid-template-columns: repeat(2, 1fr); }
+  .stats-cards--5 { grid-template-columns: repeat(2, 1fr); }
+  .stats-cards--3 { grid-template-columns: repeat(2, 1fr); }
+  .stats-cards--2 { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .stats-cards,
+  .stats-cards--5,
+  .stats-cards--3,
+  .stats-cards--2 {
+    grid-template-columns: 1fr;
+  }
+  .stat-card {
+    padding: 14px 16px;
+  }
+  .stat-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 16px;
+  }
+  .stat-value {
+    font-size: 18px;
+  }
+}

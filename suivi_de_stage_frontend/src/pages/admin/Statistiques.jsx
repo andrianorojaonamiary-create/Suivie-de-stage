@@ -11,11 +11,23 @@ import {
   LineChart, Line, PieChart, Pie, Cell, ResponsiveContainer
 } from 'recharts';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import KpiCards from '../../components/Common/KpiCards';
 import { toast } from 'react-toastify';
 import statisticsApi from '../../api/statisticsApi';
 import { notificationsApi, getApiErrorMessage } from '../../api';
+import { useAuth } from '../../hooks/useAuth';
 
 // ===== TOOLTIP PERSONNALISÉ =====
+const ROLE_LABELS = {
+  ROLE_ADMIN: 'Administrateur',
+  ROLE_ADMINISTRATEUR: 'Administrateur',
+  ROLE_ENSEIGNANT: 'Enseignant',
+  ROLE_ENCADREUR: 'Encadreur',
+  ROLE_ETUDIANT: 'Étudiant',
+  ROLE_ENTREPRISE: 'Entreprise',
+};
+const roleLabel = (role) => ROLE_LABELS[role] || role || '—';
+
 const EvaluationTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
     const data = payload[0]?.payload;
@@ -64,6 +76,7 @@ const optionsAnneeScolaireFromPromos = (promotions) => {
 };
 
 function Statistiques() {
+  const { user } = useAuth();
   const [filterAnneeScolaire, setFilterAnneeScolaire] = useState('Toutes');
   const [anneeOptions, setAnneeOptions] = useState([]);
   const [isExporting, setIsExporting] = useState(false);
@@ -126,7 +139,7 @@ function Statistiques() {
             return {
               id: n.id || idx,
               action: n.titre || n.title || 'Notification',
-              utilisateur: '—',
+              utilisateur: roleLabel(user?.role),
               details: n.message || n.content || '',
               date: date ? new Date(date).toLocaleDateString('fr-FR') : '—',
             };
@@ -139,7 +152,7 @@ function Statistiques() {
       }
     };
     fetchAll();
-  }, [filterAnneeScolaire]);
+  }, [filterAnneeScolaire, user?.role]);
 
   // ===== FONCTION EXPORT PDF =====
   const handleExportPDF = async () => {
@@ -302,24 +315,22 @@ function Statistiques() {
       </div>
 
       {/* ===== LIGNE 1 : 4 KPI CARDS ===== */}
-      <div className="admin-stats-kpi">
-        {kpiData.map((item, index) => (
-          <div key={index} className="admin-kpi-card">
-            <div className="admin-kpi-top">
-              <div className="admin-kpi-icon" style={{ backgroundColor: item.bg, color: item.color }}>
-                {item.icon}
-              </div>
-              <div className="admin-kpi-content">
-                <span className="admin-kpi-value">{item.value}</span>
-                <span className="admin-kpi-label">{item.label}</span>
-              </div>
-            </div>
-            <div className="admin-kpi-evolution" style={{ color: item.color }}>
-              {item.evolution} <span className="admin-kpi-vs">{item.vs}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      <KpiCards
+        items={kpiData.map((item) => ({
+          icon: item.icon,
+          value: item.value,
+          label: item.label,
+          bg: item.bg,
+          color: item.color,
+          change: (
+            <>
+              {item.evolution}{' '}
+              {item.vs ? <span className="kpi-vs">{item.vs}</span> : null}
+            </>
+          ),
+          changeColor: item.color,
+        }))}
+      />
 
       {/* ===== LIGNE 2 : Stages par mois (2/3) + Répartition par niveau (1/3) ===== */}
       <div className="stats-row-2-3">

@@ -17,6 +17,7 @@ import {
   STATUT_LABELS,
 } from "../../utils/internshipMapping";
 import SelectPersonnalise from "../../components/Common/SelectPersonnalise";
+import StatsCards from "../../components/Common/StatsCards";
 
 // Composants Modals
 import ViewModal from "./components/ViewModal";
@@ -254,44 +255,14 @@ function StagesEnseignant() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon pending">
-            <FaClock />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enAttente}</span>
-            <span className="stat-label">En attente</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon validated">
-            <FaCheck />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Validés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon rejected">
-            <FaTimes />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.refuses}</span>
-            <span className="stat-label">Refusés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon total">
-            <FaFileAlt />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaClock />, value: stats.enAttente, label: 'En attente', variant: 'pending' },
+          { icon: <FaCheck />, value: stats.valides, label: 'Validés', variant: 'done' },
+          { icon: <FaTimes />, value: stats.refuses, label: 'Refusés', variant: 'rejected' },
+          { icon: <FaFileAlt />, value: stats.total, label: 'Total', variant: 'total' },
+        ]}
+      />
 
       {/* ===== TABLEAU ===== */}
       <div className="table-container">

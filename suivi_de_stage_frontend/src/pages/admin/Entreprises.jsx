@@ -7,6 +7,7 @@ import {
 import EntrepriseDetail from './components/EntrepriseDetail';
 import companiesApi from '../../api/companiesApi';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 
 function AdminEntreprises() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,26 +98,24 @@ function AdminEntreprises() {
         </div>
       </div>
 
-      <div className="admin-entreprises-stats">
-        <div className="admin-entreprises-stat-card">
-          <div className="admin-entreprises-stat-icon-wrapper" style={{ background: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaBuilding />
-          </div>
-          <div className="admin-entreprises-stat-content">
-            <span className="admin-entreprises-stat-value">{stats.total}</span>
-            <span className="admin-entreprises-stat-label">Total entreprises</span>
-          </div>
-        </div>
-        <div className="admin-entreprises-stat-card">
-          <div className="admin-entreprises-stat-icon-wrapper" style={{ background: '#D1FAE5', color: '#22C55E' }}>
-            <FaUsers />
-          </div>
-          <div className="admin-entreprises-stat-content">
-            <span className="admin-entreprises-stat-value" style={{ color: '#22C55E' }}>{stats.totalStagiaires}</span>
-            <span className="admin-entreprises-stat-label">Stagiaires accueillis</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        cols={2}
+        items={[
+          {
+            icon: <FaBuilding />,
+            value: stats.total,
+            label: 'Total entreprises',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaUsers />,
+            value: stats.totalStagiaires,
+            label: 'Stagiaires accueillis',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+        ]}
+      />
 
       <div className="admin-entreprises-filters">
         <div className="admin-entreprises-filter-group">

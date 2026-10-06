@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Internship } from '../internships/entities/internship.entity';
@@ -22,8 +26,44 @@ export class NotificationsService {
     private readonly notificationsRepository: Repository<Notification>,
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    @InjectRepository(Internship)
+    private readonly internshipsRepository: Repository<Internship>,
     private readonly mailService: MailService,
   ) {}
+
+  async sendStageReminder(stageId: string, actor: AuthenticatedUser) {
+    if (actor.role !== Role.ADMINISTRATEUR) {
+      throw new ForbiddenException('Réservé aux administrateurs.');
+    }
+    const stage = await this.internshipsRepository.findOne({
+      where: { id: stageId },
+      relations: {
+        student: { user: true },
+        company: true,
+        supervisor: { user: true },
+        tuteur: true,
+      },
+    });
+    if (!stage) throw new NotFoundException('Stage introuvable.');
+    if (stage.statut !== InternshipStatus.EN_ATTENTE) {
+      throw new ForbiddenException(
+        'Ce rappel ne concerne que les stages en attente de validation.',
+      );
+    }
+    const targetId = stage.tuteur?.id ?? stage.supervisor?.user?.id;
+    if (!targetId) {
+      throw new NotFoundException(
+        "Aucun enseignant tuteur assigné à ce stage pour recevoir le rappel.",
+      );
+    }
+    return this.createNotification(
+      targetId,
+      NotificationType.INFORMATION,
+      'Rappel : stage en attente de validation',
+      `Le stage « ${stage.intitule} » déposé par ${this.getStudentName(stage)} est en attente de validation depuis plus de 5 jours. Merci de le traiter.`,
+      stage.id,
+    );
+  }
 
   async findAll(dto: FindNotificationsDto, actor: AuthenticatedUser) {
     const page = dto.page ?? 1;

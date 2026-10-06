@@ -104,8 +104,9 @@ function MonEncadreur() {
         </div>
       )}
 
+      <h2 className="encadreur-section-title">Encadreur pédagogique</h2>
       {/* ===== TUTEURS PÉDAGOGIQUES (affectés par l'administration) ===== */}
-      {!loading && (
+      {!loading && tuteurs.length === 0 && (
         <div className="encadreur-card" style={{ marginTop: '16px' }}>
           <div className="encadreur-card-top">
             <div className="encadreur-avatar">
@@ -113,33 +114,47 @@ function MonEncadreur() {
             </div>
             <div className="encadreur-info">
               <h3>Tuteur pédagogique</h3>
-              <span className="encadreur-fonction">
-                {tuteurs.length === 0 ? 'Aucun tuteur affecté' : 'Tuteur affecté'}
-              </span>
+              <span className="encadreur-fonction">Aucun tuteur affecté</span>
             </div>
           </div>
-          {tuteurs.length === 0 ? (
-            <div className="encadreur-card-middle">
-              <p>
-                <FaChalkboardTeacher /> Aucun tuteur ne vous est encore affecté.
-                Contactez l'administration de l'EMIT.
-              </p>
-            </div>
-          ) : (
-            <div className="encadreur-card-middle">
-                {tuteurs.map((t) => (
-                <p key={t.id}>
-                  <FaChalkboardTeacher />{' '}
-                  {[t.prenom, t.nom].filter(Boolean).join(' ')}
-                  {t.grade ? ` — ${t.grade}` : ''}
-                  {t.email ? ` — ${t.email}` : ''}
+          <div className="encadreur-card-middle">
+            <p>
+              <FaChalkboardTeacher /> Aucun tuteur ne vous est encore affecté.
+              Contactez l'administration de l'EMIT.
+            </p>
+          </div>
+        </div>
+      )}
+      {!loading && tuteurs.length > 0 && (
+        <div className="encadreur-grid" style={{ marginTop: '16px' }}>
+          {tuteurs.map((t) => (
+            <div key={t.id} className="encadreur-card">
+              <div className="encadreur-card-top">
+                <div className="encadreur-avatar">
+                  <FaChalkboardTeacher />
+                </div>
+                <div className="encadreur-info">
+                  <h3>{[t.prenom, t.nom].filter(Boolean).join(' ') || 'Non renseigné'}</h3>
+                  <span className="encadreur-fonction">{t.grade || 'Tuteur pédagogique'}</span>
+                </div>
+              </div>
+              <div className="encadreur-card-middle">
+                <p><FaEnvelope /> {t.email || 'Email non renseigné'}</p>
+                {t.specialite && <p><FaBriefcase /> {t.specialite}</p>}
+                <p>
+                  <FaClipboardCheck />
+                  {' '}Affecté depuis{' '}
+                  {t.dateAffectation
+                    ? new Date(t.dateAffectation).toLocaleDateString('fr-FR')
+                    : '—'}
                 </p>
-              ))}
+              </div>
             </div>
-          )}
+          ))}
         </div>
       )}
 
+      <h2 className="encadreur-section-title">Encadreur professionnel</h2>
       {/* ===== CONTENU ===== */}
       <div className="encadreur-grid">
         {loading && <p>Chargement...</p>}

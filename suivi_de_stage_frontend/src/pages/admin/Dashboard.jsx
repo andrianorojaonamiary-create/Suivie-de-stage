@@ -4,13 +4,15 @@ import {
 } from 'recharts';
 import {
   FaUsers, FaClock, FaPlayCircle, FaCheckCircle,
-  FaBuilding, FaUserTie, FaBell, FaArrowUp, FaArrowDown
+  FaBuilding, FaUserTie, FaBell
 } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import statisticsApi from '../../api/statisticsApi';
 import { notificationsApi, internshipsApi, reportsApi } from '../../api';
+import KpiCards from '../../components/Common/KpiCards';
 
 const getAnneeScolaire = () => {
   const year = new Date().getFullYear();
@@ -21,6 +23,7 @@ function AdminDashboard() {
   const [dashboardData, setDashboardData] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
   const [attentionStages, setAttentionStages] = useState([]);
+  const [sendingReminderIds, setSendingReminderIds] = useState(() => new Set());
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,29 +74,62 @@ function AdminDashboard() {
         typesParStage.get(sid).add(r.type);
       });
 
-      const attention = stages
-        .filter((s) => s.statut === 'EN_COURS' || s.statut === 'TERMINE')
-        .map((s) => ({
-          stage: s,
-          manquants: Math.max(0, 3 - (typesParStage.get(s.id)?.size || 0)),
-        }))
-        .filter((x) => x.manquants > 0)
+      const attention = [
+        ...stages
+          .filter((s) => s.statut === 'EN_ATTENTE')
+          .filter(
+            (s) =>
+              s.dateCreation &&
+              Date.now() - new Date(s.dateCreation).getTime() >= 5 * 86_400_000,
+          )
+          .map((s) => ({
+            stage: s,
+            manquants: 0,
+            issue: 'En attente de validation depuis plus de 5 jours',
+          })),
+        ...stages
+          .filter((s) => s.statut === 'EN_COURS' || s.statut === 'TERMINE')
+          .map((s) => ({
+            stage: s,
+            manquants: Math.max(0, 3 - (typesParStage.get(s.id)?.size || 0)),
+          }))
+          .filter((x) => x.manquants > 0),
+      ]
         .sort((a, b) => b.manquants - a.manquants)
         .slice(0, 5)
         .map((x) => ({
           id: x.stage.id,
-          student: `${x.stage.student?.prenom ?? ''} ${x.stage.student?.nom ?? ''}`.trim() || 'Étudiant',
+          student: `${x.stage.student?.user?.prenom ?? ''} ${x.stage.student?.user?.nom ?? ''}`.trim() || 'Étudiant',
           company: x.stage.company?.nom || 'Entreprise',
-          status: x.stage.statut === 'EN_COURS' ? 'En cours' : 'Terminé',
-          issue: `${x.manquants} rapport(s) manquant(s)`,
+          status:
+            x.stage.statut === 'EN_COURS' ? 'En cours'
+            : x.stage.statut === 'EN_ATTENTE' ? 'En attente'
+            : 'Terminé',
+          issue: x.issue ?? `${x.manquants} rapport(s) manquant(s)`,
         }));
       setAttentionStages(attention);
     };
     fetchData();
   }, []);
 
+  const sendReminder = async (stageId) => {
+    setSendingReminderIds((prev) => new Set(prev).add(stageId));
+    try {
+      await notificationsApi.sendReminder(stageId);
+      toast.success('Rappel envoyé à l’enseignant tuteur.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || 'Impossible d’envoyer le rappel.');
+    } finally {
+      setSendingReminderIds((prev) => {
+        const next = new Set(prev);
+        next.delete(stageId);
+        return next;
+      });
+    }
+  };
+
   const totalEtudiants = dashboardData?.counts?.students ?? 0;
-  const totalEnAttente = dashboardData?.internships?.upcoming ?? 0;
+  const totalEnAttente = dashboardData?.internships?.pending ?? 0;
   const totalEnCours = dashboardData?.internships?.ongoing ?? 0;
   const totalTermines = dashboardData?.internships?.completed ?? 0;
   const totalEntreprises = dashboardData?.counts?.companies ?? 0;
@@ -147,24 +183,7 @@ function AdminDashboard() {
       </div>
 
       {/* ===== KPI CARDS ===== */}
-      <div className="kpi-grid">
-        {kpis.map((kpi, index) => (
-          <div key={index} className={`kpi-card${kpi.featured ? ' kpi-card--featured' : ''}`}>
-            <div className="kpi-card-top">
-              <div className="kpi-icon" style={{ backgroundColor: kpi.bg, color: kpi.color }}>
-                {kpi.icon}
-              </div>
-              <div className="kpi-trend-badge" style={{ color: kpi.trendColor || kpi.color, backgroundColor: `${kpi.trendColor || kpi.color}15` }}>
-                {kpi.up ? <FaArrowUp size={10} /> : <FaArrowDown size={10} />}
-              </div>
-            </div>
-            <div className="kpi-content">
-              <div className="kpi-value">{kpi.value}</div>
-              <div className="kpi-label">{kpi.label}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <KpiCards items={kpis} />
 
       {/* ===== GRILLE 2/3 + 1/3 ===== */}
       <div className="dashboard-grid-2-3">
@@ -274,9 +293,21 @@ function AdminDashboard() {
                     <span className={getStatusBadge(stage.status)}>{stage.status}</span>
                     <span className="attention-issue">{stage.issue}</span>
                   </div>
-                  <Link to="/admin/stages" className="attention-action">
-                    Voir →
-                  </Link>
+                  <div className="attention-item-actions">
+                    <Link to="/admin/stages" className="attention-action">
+                      Voir
+                    </Link>
+                    {stage.status === 'En attente' && (
+                      <button
+                        type="button"
+                        className="attention-action"
+                        onClick={() => sendReminder(stage.id)}
+                        disabled={sendingReminderIds.has(stage.id)}
+                      >
+                        {sendingReminderIds.has(stage.id) ? 'Envoi...' : 'Rappeler'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             ) : (

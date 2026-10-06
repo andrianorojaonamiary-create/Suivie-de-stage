@@ -8,6 +8,7 @@ import {
   FaEye, FaPlus
 } from 'react-icons/fa';
 import mapImage from '../../assets/map.jpg';
+import StatsCards from '../../components/Common/StatsCards';
 import { internshipsApi, notificationsApi, evaluationsApi } from '../../api';
 import { mapInternship, getStatutBadge, computeChecklistProgress } from '../../utils/internshipMapping';
 import {
@@ -181,44 +182,34 @@ function EtudiantDashboard() {
       </div>
 
       {/* ===== STATS ===== */}
-      <div className="dashboard-stats">
-        <div className="stat-card">
-          <div className="stat-icon" style={{ backgroundColor: '#DBEBF9', color: '#4A90D9' }}>
-            <FaClock />
-          </div>
-          <div className="stat-content">
-            <span className="stat-value">{daysRemaining}</span>
-            <span className="stat-label">Jours restants</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ backgroundColor: '#D1FAE5', color: '#22C55E' }}>
-            <FaFileAlt />
-          </div>
-          <div className="stat-content">
-            <span className="stat-value">{reports.length} / 3</span>
-            <span className="stat-label">Rapports déposés</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ backgroundColor: '#FEF3C7', color: '#F59E0B' }}>
-            <FaChartLine />
-          </div>
-          <div className="stat-content">
-            <span className="stat-value">{progress}%</span>
-            <span className="stat-label">Progression du stage</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ backgroundColor: '#E0F2FE', color: '#0891B2' }}>
-            <FaCalendarAlt />
-          </div>
-          <div className="stat-content">
-            <span className="stat-value">{stageInfo.joursEcoules}</span>
-            <span className="stat-label">Jours de stage écoulés</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          {
+            icon: <FaClock />,
+            value: daysRemaining,
+            label: 'Jours restants',
+            iconStyle: { backgroundColor: '#DBEBF9', color: '#4A90D9' },
+          },
+          {
+            icon: <FaFileAlt />,
+            value: `${reports.length} / 3`,
+            label: 'Rapports déposés',
+            iconStyle: { backgroundColor: '#D1FAE5', color: '#22C55E' },
+          },
+          {
+            icon: <FaChartLine />,
+            value: `${progress}%`,
+            label: 'Progression du stage',
+            iconStyle: { backgroundColor: '#FEF3C7', color: '#F59E0B' },
+          },
+          {
+            icon: <FaCalendarAlt />,
+            value: stageInfo.joursEcoules,
+            label: 'Jours de stage écoulés',
+            iconStyle: { backgroundColor: '#E0F2FE', color: '#0891B2' },
+          },
+        ]}
+      />
 
       {/* ===== LIGNE 1 : STAGE + LOCALISATION ===== */}
       <div className="dashboard-row-top">

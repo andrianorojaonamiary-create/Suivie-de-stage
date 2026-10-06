@@ -28,62 +28,6 @@
   margin: 4px 0 0 0;
 }
 
-.encadreur-stages .stats-cards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.encadreur-stages .stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid #E8EEF4;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.encadreur-stages .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
-}
-
-.encadreur-stages .stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.encadreur-stages .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
-.encadreur-stages .stat-icon.active { background: #D1FAE5; color: #27AE60; }
-.encadreur-stages .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
-.encadreur-stages .stat-icon.done { background: #E8F5E9; color: #27AE60; }
-
-.encadreur-stages .stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.encadreur-stages .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-}
-
-.encadreur-stages .stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-}
-
 .encadreur-stages .table-container {
   background: white;
   border-radius: 12px;
@@ -353,11 +297,7 @@
   margin: 0;
 }
 
-@media (max-width: 1024px) {
-  .encadreur-stages .stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+
 
 @media (max-width: 992px) {
   .encadreur-stages .table-toolbar {
@@ -398,9 +338,6 @@
 }
 
 @media (max-width: 768px) {
-  .encadreur-stages .stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .encadreur-stages .stages-table {
     font-size: 13px;
@@ -429,23 +366,6 @@
 }
 
 @media (max-width: 480px) {
-  .encadreur-stages .stats-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .encadreur-stages .stat-card {
-    padding: 12px 14px;
-  }
-
-  .encadreur-stages .stat-value {
-    font-size: 20px;
-  }
-
-  .encadreur-stages .stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
-  }
 
   .encadreur-stages .stages-table thead th,
   .encadreur-stages .stages-table td {

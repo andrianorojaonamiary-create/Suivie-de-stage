@@ -50,61 +50,6 @@
   border-color: #6BA9E6;
 }
 
-.evaluations-page .stats-cards {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.evaluations-page .stat-card {
-  background: white;
-  border-radius: 12px;
-  padding: 16px 20px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  border: 1px solid #E8EEF4;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.evaluations-page .stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(26, 58, 107, 0.08);
-}
-
-.evaluations-page .stat-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.evaluations-page .stat-icon.total { background: #E1ECFE; color: #6BA9E6; }
-.evaluations-page .stat-icon.done { background: #E8F5E9; color: #27AE60; }
-.evaluations-page .stat-icon.pending { background: #FFF3E0; color: #F39C12; }
-
-.evaluations-page .stat-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.evaluations-page .stat-value {
-  font-size: 24px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-}
-
-.evaluations-page .stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-}
-
 .evaluations-page .table-container {
   background: white;
   border-radius: 12px;
@@ -437,9 +382,6 @@
 }
 
 @media (max-width: 992px) {
-  .evaluations-page .stats-cards {
-    grid-template-columns: repeat(3, 1fr);
-  }
 
   .evaluations-page .table-toolbar {
     flex-direction: column;
@@ -478,9 +420,6 @@
 }
 
 @media (max-width: 768px) {
-  .evaluations-page .stats-cards {
-    grid-template-columns: repeat(2, 1fr);
-  }
 
   .evaluations-table {
     font-size: 13px;
@@ -513,23 +452,6 @@
 }
 
 @media (max-width: 480px) {
-  .evaluations-page .stats-cards {
-    grid-template-columns: 1fr;
-  }
-
-  .evaluations-page .stat-card {
-    padding: 12px 14px;
-  }
-
-  .evaluations-page .stat-value {
-    font-size: 20px;
-  }
-
-  .evaluations-page .stat-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
-  }
 
   .evaluations-table thead th,
   .evaluations-table td {

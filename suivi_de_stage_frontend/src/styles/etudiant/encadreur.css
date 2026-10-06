@@ -206,3 +206,11 @@
     font-size: 12px;
   }
 }
+/* ===== Titres de section ===== */
+.encadreur-section-title {
+  margin: 24px 0 12px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #162449;
+}
+

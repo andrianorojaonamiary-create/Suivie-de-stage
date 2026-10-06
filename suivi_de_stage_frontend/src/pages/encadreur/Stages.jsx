@@ -14,6 +14,7 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 import { internshipsApi } from "../../api";
+import StatsCards from "../../components/Common/StatsCards";
 import {
   mapInternshipList,
   STATUT_LABELS,
@@ -234,44 +235,14 @@ function EncadreurStages() {
         </div>
       </div>
 
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total">
-            <FaFileAlt />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon pending">
-            <FaClock />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enAttente}</span>
-            <span className="stat-label">En attente</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon active">
-            <FaCheckCircle />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.enCours}</span>
-            <span className="stat-label">En cours</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon rejected">
-            <FaTimes />
-          </div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.refuses}</span>
-            <span className="stat-label">Refusés</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaFileAlt />, value: stats.total, label: 'Total', variant: 'total' },
+          { icon: <FaClock />, value: stats.enAttente, label: 'En attente', variant: 'pending' },
+          { icon: <FaCheckCircle />, value: stats.enCours, label: 'En cours', variant: 'active' },
+          { icon: <FaTimes />, value: stats.refuses, label: 'Refusés', variant: 'rejected' },
+        ]}
+      />
 
       <div className="table-container">
         <div className="table-toolbar">

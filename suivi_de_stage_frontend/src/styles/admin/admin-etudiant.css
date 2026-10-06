@@ -1,15 +1,17 @@
 /* ============================================================
-   ADMIN - ENCADREURS (VERSION COMPLÈTE AMÉLIORÉE)
+   ADMIN - ÉTUDIANTS (VERSION COMPLÈTE AMÉLIORÉE)
    ============================================================ */
 
-.admin-encadreurs-page {
+.admin-etudiants-page {
   padding: 20px 0;
   max-width: 1200px;
   margin: 0 auto;
 }
 
-/* ===== HEADER ===== */
-.admin-encadreurs-header {
+/* ============================================================
+   HEADER
+   ============================================================ */
+.admin-etudiants-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -17,7 +19,7 @@
   gap: 16px;
   margin-bottom: 24px;
 }
-.admin-encadreurs-header h1 {
+.admin-etudiants-header h1 {
   font-size: 24px;
   color: #162449;
   margin: 0;
@@ -26,15 +28,15 @@
   align-items: center;
   gap: 10px;
 }
-.admin-encadreurs-header h1 svg {
+.admin-etudiants-header h1 svg {
   color: #6BA9E6;
 }
-.admin-encadreurs-subtitle {
+.admin-etudiants-subtitle {
   color: #6c7a8a;
   font-size: 14px;
   margin: 4px 0 0 0;
 }
-.admin-encadreurs-btn-primary {
+.admin-etudiants-btn-primary {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -48,68 +50,16 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-.admin-encadreurs-btn-primary:hover {
+.admin-etudiants-btn-primary:hover {
   background: #162449;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(107, 169, 230, 0.3);
 }
 
-/* ===== STATISTIQUES ===== */
-.admin-encadreurs-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.admin-encadreurs-stat-card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E1ECFE;
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
-  transition: all 0.3s ease;
-}
-.admin-encadreurs-stat-card:hover {
-  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
-  transform: translateY(-2px);
-}
-.admin-encadreurs-stat-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-  transition: all 0.3s ease;
-}
-.admin-encadreurs-stat-card:hover .admin-encadreurs-stat-icon-wrapper {
-  transform: scale(1.08);
-}
-.admin-encadreurs-stat-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-.admin-encadreurs-stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-}
-.admin-encadreurs-stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-  font-weight: 500;
-}
-
-/* ===== FILTRES ===== */
-.admin-encadreurs-filters {
+/* ============================================================
+   FILTRES
+   ============================================================ */
+.admin-etudiants-filters {
   display: flex;
   align-items: center;
   gap: 16px;
@@ -120,14 +70,14 @@
   border: 1px solid #E1ECFE;
   flex-wrap: wrap;
 }
-.admin-encadreurs-filter-group {
+.admin-etudiants-filter-group {
   display: flex;
   align-items: center;
   gap: 10px;
   flex: 1;
   min-width: 180px;
 }
-.admin-encadreurs-filter-group label {
+.admin-etudiants-filter-group label {
   font-size: 13px;
   font-weight: 600;
   color: #162449;
@@ -136,16 +86,16 @@
   align-items: center;
   gap: 4px;
 }
-.admin-encadreurs-filter-group label svg {
+.admin-etudiants-filter-group label svg {
   color: #6BA9E6;
 }
-.admin-encadreurs-search-group {
+.admin-etudiants-search-group {
   position: relative;
   flex: 1.5;
   min-width: 260px;
   max-width: 420px;
 }
-.admin-encadreurs-search-input {
+.admin-etudiants-search-input {
   flex: 1;
   padding: 10px 16px;
   padding-left: 40px;
@@ -158,15 +108,15 @@
   font-family: inherit;
   min-width: 200px;
 }
-.admin-encadreurs-search-input:focus {
+.admin-etudiants-search-input:focus {
   outline: none;
   border-color: #6BA9E6;
   box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
 }
-.admin-encadreurs-search-input::placeholder {
+.admin-etudiants-search-input::placeholder {
   color: #A0B8D0;
 }
-.admin-encadreurs-search-icon {
+.admin-etudiants-search-icon {
   position: absolute;
   left: 14px;
   top: 50%;
@@ -175,7 +125,7 @@
   color: #6c7a8a;
   font-size: 16px;
 }
-.admin-encadreurs-filter-select {
+.admin-etudiants-filter-select {
   flex: 1;
   padding: 8px 14px;
   padding-right: 36px;
@@ -194,29 +144,29 @@
   background-position: right 12px center;
   font-family: inherit;
 }
-.admin-encadreurs-filter-select:focus {
+.admin-etudiants-filter-select:focus {
   outline: none;
   border-color: #6BA9E6;
   box-shadow: 0 0 0 3px rgba(107, 169, 230, 0.08);
 }
 
 /* ============================================================
-   TABLEAU RÉDUIT
+   TABLEAU
    ============================================================ */
-.admin-encadreurs-table-container {
+.admin-etudiants-table-container {
   background: white;
   border-radius: 12px;
   border: 1px solid #E1ECFE;
   box-shadow: 0 2px 8px rgba(22, 36, 73, 0.04);
 }
-.admin-encadreurs-table {
+.admin-etudiants-table {
   width: 100%;
   border-collapse: collapse;
 }
-.admin-encadreurs-table thead th {
+.admin-etudiants-table thead th {
   text-align: left;
-  padding: 10px 14px;
-  font-size: 11px;
+  padding: 12px 16px;
+  font-size: 12px;
   font-weight: 600;
   color: #6c7a8a;
   text-transform: uppercase;
@@ -224,32 +174,30 @@
   border-bottom: 2px solid #F5F8FC;
   background: #FAFCFE;
 }
-.admin-encadreurs-table tbody td {
-  padding: 10px 14px;
+.admin-etudiants-table tbody td {
+  padding: 12px 16px;
   font-size: 13px;
   color: #162449;
   border-bottom: 1px solid #F5F8FC;
   vertical-align: middle;
 }
-.admin-encadreurs-table tbody tr:hover {
+.admin-etudiants-table tbody tr:hover {
   background: #F8FAFC;
 }
-.admin-encadreurs-table tbody tr:last-child td {
+.admin-etudiants-table tbody tr:last-child td {
   border-bottom: none;
 }
-.admin-encadreurs-empty {
+.admin-etudiants-empty {
   text-align: center;
   padding: 40px !important;
   color: #6c7a8a;
 }
-
-/* ===== USER ===== */
-.admin-encadreurs-user {
+.admin-etudiants-user {
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.admin-encadreurs-avatar {
+.admin-etudiants-avatar {
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -262,69 +210,64 @@
   font-weight: 700;
   flex-shrink: 0;
 }
-.admin-encadreurs-name {
+.admin-etudiants-name {
   font-size: 13px;
   font-weight: 600;
   color: #162449;
 }
-
-/* ===== CONTACT (email + téléphone sans icônes) ===== */
-.admin-encadreurs-contact {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-.admin-encadreurs-email {
-  font-size: 12px;
-  color: #6BA9E6;
-}
-.admin-encadreurs-phone {
-  font-size: 12px;
+.admin-etudiants-email {
+  font-size: 11px;
   color: #6c7a8a;
 }
-
-/* ===== BADGES ===== */
-.admin-encadreurs-fonction-badge {
+.admin-etudiants-matricule {
+  font-weight: 600;
   color: #162449;
-  font-size: 12px;
-  font-weight: 500;
 }
-.admin-encadreurs-etudiants-badge {
+.admin-etudiants-promotion-badge {
   background: #F5F8FC;
   border: 1px solid #E1ECFE;
   padding: 2px 10px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 500;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
 }
-.badge-professionnel {
+.badge-actif {
   background: #D1FAE5;
   color: #065F46;
-  padding: 2px 10px;
+  padding: 2px 12px;
   border-radius: 12px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   display: inline-block;
 }
-.badge-pedagogique {
-  background: #DBEAFE;
+.badge-diplome {
+  background: #E1ECFE;
   color: #1E40AF;
-  padding: 2px 10px;
+  padding: 2px 12px;
   border-radius: 12px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 500;
   display: inline-block;
 }
-
-/* ===== ACTIONS ===== */
-.admin-encadreurs-actions {
+.admin-etudiants-stage-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-etudiants-stage-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #162449;
+}
+.admin-etudiants-entreprise-name {
+  font-size: 11px;
+  color: #6c7a8a;
+}
+.admin-etudiants-actions {
   display: flex;
   gap: 4px;
 }
-.admin-encadreurs-btn-view {
+.admin-etudiants-btn-view {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -339,28 +282,30 @@
   cursor: pointer;
   transition: all 0.2s;
 }
-.admin-encadreurs-btn-view:hover {
+.admin-etudiants-btn-view:hover {
   background: #6BA9E6;
   border-color: #6BA9E6;
   color: white;
 }
 
-/* ===== PAGINATION ===== */
-.admin-encadreurs-pagination {
+/* ============================================================
+   PAGINATION
+   ============================================================ */
+.admin-etudiants-pagination {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 20px;
-  padding: 14px 20px;
+  padding: 16px 20px;
   border-top: 1px solid #F5F8FC;
   background: #FAFCFE;
 }
-.admin-encadreurs-pagination-btn {
+.admin-etudiants-pagination-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border: 1.5px solid #E1ECFE;
   border-radius: 8px;
   background: white;
@@ -369,23 +314,23 @@
   transition: all 0.2s;
   font-size: 14px;
 }
-.admin-encadreurs-pagination-btn:hover:not(:disabled) {
+.admin-etudiants-pagination-btn:hover:not(:disabled) {
   background: #6BA9E6;
   border-color: #6BA9E6;
   color: white;
 }
-.admin-encadreurs-pagination-btn:disabled {
+.admin-etudiants-pagination-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
-.admin-encadreurs-pagination-info {
+.admin-etudiants-pagination-info {
   font-size: 14px;
   color: #6c7a8a;
   font-weight: 500;
 }
 
 /* ============================================================
-   MODALES - STYLES COMMUNS
+   MODALES - STYLES COMMUNS AMÉLIORÉS
    ============================================================ */
 .modal-overlay {
   position: fixed;
@@ -412,7 +357,7 @@
 .modal-content {
   background: white;
   border-radius: 16px;
-  padding: 32px;
+  padding: 20px 20px 8px 20px;
   max-width: 700px;
   width: 100%;
   max-height: 90vh;
@@ -438,13 +383,14 @@
   max-width: 750px;
 }
 
+/* ===== MODAL HEADER ===== */
 .modal-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 24px;
-  padding-bottom: 16px;
-  border-bottom: 2px solid #F5F8FC;
+  margin: 0 -20px 24px;
+  padding: 0 20px 16px;
+  border-bottom: 1px solid #E1ECFE;
 }
 .modal-header h3 {
   font-size: 20px;
@@ -473,18 +419,23 @@
   color: #EF4444;
 }
 
+/* ===== MODAL BODY ===== */
 .modal-body {
-  margin-bottom: 0;
+  margin-bottom: 24px;
 }
+
+/* ===== MODAL FOOTER ===== */
 .modal-footer {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
   padding-top: 12px;
-  border-top: 2px solid #D1D9E6;
+  border-top: 1px solid #E1ECFE;
 }
 
-/* ===== FORMULAIRE ===== */
+/* ============================================================
+   FORMULAIRE
+   ============================================================ */
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -509,7 +460,7 @@
   color: #162449;
   transition: all 0.2s;
   font-family: inherit;
-  background: white;
+  background: #F8FAFC;
   width: 100%;
   box-sizing: border-box;
 }
@@ -531,8 +482,13 @@
   background-position: right 12px center;
   padding-right: 36px;
 }
+.form-group input[type="date"] {
+  cursor: pointer;
+}
 
-/* ===== DÉTAIL ===== */
+/* ============================================================
+   DÉTAIL AMÉLIORÉ
+   ============================================================ */
 .detail-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -574,14 +530,16 @@
 .detail-item.detail-full {
   grid-column: span 2;
 }
-.detail-item .badge-professionnel,
-.detail-item .badge-pedagogique {
+.detail-item .badge-actif,
+.detail-item .badge-diplome {
   font-size: 11px;
   padding: 2px 12px;
   width: fit-content;
 }
 
-/* ===== MODAL DELETE ===== */
+/* ============================================================
+   MODAL DELETE - BOUTON SUPPRIMER STYLISÉ
+   ============================================================ */
 .text-warning {
   color: #EF4444;
   font-weight: 600;
@@ -598,6 +556,7 @@
   font-size: 18px;
 }
 
+/* Bouton Supprimer dans la modal delete */
 .btn-danger {
   display: inline-flex;
   align-items: center;
@@ -617,6 +576,11 @@
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
 }
+.btn-danger:active {
+  transform: scale(0.97);
+}
+
+/* Bouton Annuler dans la modal delete */
 .btn-secondary {
   display: inline-flex;
   align-items: center;
@@ -635,6 +599,8 @@
   background: #E1ECFE;
   color: #162449;
 }
+
+/* Bouton Ajouter/Modifier */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -658,40 +624,36 @@
 /* ============================================================
    RESPONSIVE
    ============================================================ */
-@media (max-width: 992px) {
-  .admin-encadreurs-stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+
 @media (max-width: 768px) {
-  .admin-encadreurs-header {
+  .admin-etudiants-header {
     flex-direction: column;
     align-items: flex-start;
   }
-  .admin-encadreurs-btn-primary {
+  .admin-etudiants-btn-primary {
     width: 100%;
     justify-content: center;
   }
-  .admin-encadreurs-filters {
+  .admin-etudiants-filters {
     flex-direction: column;
     align-items: stretch;
     gap: 10px;
   }
-  .admin-encadreurs-filter-group {
+  .admin-etudiants-filter-group {
     flex-direction: column;
     align-items: stretch;
     gap: 4px;
     min-width: unset;
   }
-  .admin-encadreurs-search-group {
+  .admin-etudiants-search-group {
     min-width: unset;
   }
-  .admin-encadreurs-search-input {
+  .admin-etudiants-search-input {
     min-width: unset;
   }
-  .admin-encadreurs-table thead th,
-  .admin-encadreurs-table tbody td {
-    padding: 6px 10px;
+  .admin-etudiants-table thead th,
+  .admin-etudiants-table tbody td {
+    padding: 8px 10px;
     font-size: 12px;
   }
   .modal-content {
@@ -704,62 +666,47 @@
   .detail-grid {
     grid-template-columns: 1fr;
   }
+  .detail-item.detail-full {
+    grid-column: span 1;
+  }
 }
 @media (max-width: 480px) {
-  .admin-encadreurs-header h1 {
+  .admin-etudiants-header h1 {
     font-size: 20px;
   }
-  .admin-encadreurs-subtitle {
+  .admin-etudiants-subtitle {
     font-size: 13px;
   }
-  .admin-encadreurs-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .admin-encadreurs-stat-card {
-    padding: 12px 14px;
-  }
-  .admin-encadreurs-stat-value {
-    font-size: 18px;
-  }
-  .admin-encadreurs-stat-icon-wrapper {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
-  }
-  .admin-encadreurs-table thead th,
-  .admin-encadreurs-table tbody td {
-    padding: 4px 8px;
+  .admin-etudiants-table thead th,
+  .admin-etudiants-table tbody td {
+    padding: 6px 8px;
     font-size: 11px;
   }
-  .admin-encadreurs-avatar {
+  .admin-etudiants-avatar {
     width: 28px;
     height: 28px;
     font-size: 11px;
   }
-  .admin-encadreurs-name {
+  .admin-etudiants-name {
     font-size: 12px;
   }
-  .admin-encadreurs-email {
+  .admin-etudiants-email {
     font-size: 10px;
   }
-  .admin-encadreurs-phone {
-    font-size: 10px;
-  }
-  .admin-encadreurs-btn-view {
+  .admin-etudiants-btn-view {
     padding: 5px 10px;
     font-size: 11px;
   }
-  .admin-encadreurs-pagination {
+  .admin-etudiants-pagination {
     flex-wrap: wrap;
     gap: 10px;
   }
-  .admin-encadreurs-pagination-btn {
+  .admin-etudiants-pagination-btn {
     width: 30px;
     height: 30px;
     font-size: 12px;
   }
-  .admin-encadreurs-pagination-info {
+  .admin-etudiants-pagination-info {
     font-size: 12px;
   }
   .modal-content {
@@ -780,8 +727,8 @@
   .modal-footer {
     flex-direction: column;
   }
-  .badge-professionnel,
-  .badge-pedagogique {
+  .badge-actif,
+  .badge-diplome {
     font-size: 9px;
     padding: 1px 8px;
   }

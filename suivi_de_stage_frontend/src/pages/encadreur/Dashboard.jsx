@@ -9,6 +9,7 @@ import {
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 import { internshipsApi, reportsApi, notificationsApi, companiesApi, evaluationsApi } from '../../api';
 import mapInternship from '../../utils/internshipMapping';
+import KpiCards from '../../components/Common/KpiCards';
 
 // ============================================================
 // CUSTOM TOOLTIP
@@ -242,67 +243,60 @@ function EncadreurDashboard() {
       </div>
 
       {/* ===== 4 KPI CARDS ===== */}
-      <div className="encadreur-kpi">
-        <div className="kpi-card">
-          <div className="kpi-card-top">
-            <div className="kpi-icon" style={{ backgroundColor: '#E1ECFE', color: '#6BA9E6' }}>
-              <FaUsers />
-            </div>
-            <div className="kpi-content">
-              <span className="kpi-value">{stats.etudiants}</span>
-              <span className="kpi-label">Étudiants encadrés</span>
-            </div>
-          </div>
-          <div className="kpi-change" style={{ color: '#6BA9E6' }}>
-            Cette période
-          </div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-card-top">
-            <div className="kpi-icon" style={{ backgroundColor: '#D1FAE5', color: '#27AE60' }}>
-              <FaClipboardList />
-            </div>
-            <div className="kpi-content">
-              <span className="kpi-value">{stats.stagesEnCours}</span>
-              <span className="kpi-label">Stages en cours</span>
-            </div>
-          </div>
-          <div className="kpi-change" style={{ color: '#27AE60' }}>
-            {stagesActifsPct}% <span className="kpi-vs">des stages</span>
-          </div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-card-top">
-            <div className="kpi-icon" style={{ backgroundColor: '#FEF3C7', color: '#F39C12' }}>
-              <FaStar />
-            </div>
-            <div className="kpi-content">
-              <span className="kpi-value">{stats.evaluationsEnAttente}</span>
-              <span className="kpi-label">Évaluations en attente</span>
-            </div>
-          </div>
-          <div className="kpi-change" style={{ color: '#F39C12' }}>
-            {evaluationsPct}% <span className="kpi-vs">des stages encadrés</span>
-          </div>
-        </div>
-
-        <div className="kpi-card">
-          <div className="kpi-card-top">
-            <div className="kpi-icon" style={{ backgroundColor: '#EDE9FE', color: '#7C3AED' }}>
-              <FaFileAlt />
-            </div>
-            <div className="kpi-content">
-              <span className="kpi-value">{stats.rapportsRecus}</span>
-              <span className="kpi-label">Rapports reçus</span>
-            </div>
-          </div>
-          <div className="kpi-change" style={{ color: '#7C3AED' }}>
-            {rapportsPct}% <span className="kpi-vs">des rapports attendus</span>
-          </div>
-        </div>
-      </div>
+      <KpiCards
+        items={[
+          {
+            icon: <FaUsers />,
+            value: stats.etudiants,
+            label: 'Étudiants encadrés',
+            bg: '#E1ECFE',
+            color: '#6BA9E6',
+            change: 'Cette période',
+            changeColor: '#6BA9E6',
+          },
+          {
+            icon: <FaClipboardList />,
+            value: stats.stagesEnCours,
+            label: 'Stages en cours',
+            bg: '#D1FAE5',
+            color: '#27AE60',
+            change: (
+              <>
+                {stagesActifsPct}% <span className="kpi-vs">des stages</span>
+              </>
+            ),
+            changeColor: '#27AE60',
+          },
+          {
+            icon: <FaStar />,
+            value: stats.evaluationsEnAttente,
+            label: 'Évaluations en attente',
+            bg: '#FEF3C7',
+            color: '#F39C12',
+            change: (
+              <>
+                {evaluationsPct}%{' '}
+                <span className="kpi-vs">des stages encadrés</span>
+              </>
+            ),
+            changeColor: '#F39C12',
+          },
+          {
+            icon: <FaFileAlt />,
+            value: stats.rapportsRecus,
+            label: 'Rapports reçus',
+            bg: '#EDE9FE',
+            color: '#7C3AED',
+            change: (
+              <>
+                {rapportsPct}%{' '}
+                <span className="kpi-vs">des rapports attendus</span>
+              </>
+            ),
+            changeColor: '#7C3AED',
+          },
+        ]}
+      />
 
       {/* ===== LIGNE 2 : CAMEMBERT + HISTOGRAMME ===== */}
       <div className="encadreur-charts">

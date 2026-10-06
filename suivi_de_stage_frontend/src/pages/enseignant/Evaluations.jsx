@@ -8,6 +8,7 @@ import {
 } from 'react-icons/fa';
 
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import { internshipsApi, evaluationsApi } from '../../api';
 
 // ============================================================
@@ -217,22 +218,12 @@ function EnseignantEvaluations() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="stats-cards">
-        <div className="stat-card">
-          <div className="stat-icon total"><FaStar /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.total}</span>
-            <span className="stat-label">Total</span>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon done"><FaCheckCircle /></div>
-          <div className="stat-info">
-            <span className="stat-value">{stats.valides}</span>
-            <span className="stat-label">Évaluées</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        items={[
+          { icon: <FaStar />, value: stats.total, label: 'Total', variant: 'total' },
+          { icon: <FaCheckCircle />, value: stats.valides, label: 'Évaluées', variant: 'done' },
+        ]}
+      />
 
       {/* ===== TABLEAU ===== */}
       <div className="table-container">

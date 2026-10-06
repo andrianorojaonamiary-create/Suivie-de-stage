@@ -54,55 +54,6 @@
   box-shadow: 0 4px 12px rgba(107, 169, 230, 0.3);
 }
 
-/* ===== STATISTIQUES ===== */
-.admin-entreprises-stats {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-}
-.admin-entreprises-stat-card {
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #E1ECFE;
-  padding: 16px 18px;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  transition: all 0.3s ease;
-}
-.admin-entreprises-stat-card:hover {
-  box-shadow: 0 8px 24px rgba(22, 36, 73, 0.10);
-  transform: translateY(-2px);
-}
-.admin-entreprises-stat-icon-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-  flex-shrink: 0;
-}
-.admin-entreprises-stat-content {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-width: 0;
-}
-.admin-entreprises-stat-value {
-  font-size: 20px;
-  font-weight: 700;
-  color: #162449;
-  line-height: 1.2;
-}
-.admin-entreprises-stat-label {
-  font-size: 12px;
-  color: #6c7a8a;
-  font-weight: 500;
-}
-
 /* ===== FILTRES ===== */
 .admin-entreprises-filters {
   display: flex;
@@ -365,9 +316,6 @@
     padding: 8px 10px;
     font-size: 12px;
   }
-  .admin-entreprises-stats {
-    grid-template-columns: 1fr 1fr;
-  }
 }
 @media (max-width: 480px) {
   .admin-entreprises-header h1 {
@@ -375,21 +323,6 @@
   }
   .admin-entreprises-subtitle {
     font-size: 13px;
-  }
-  .admin-entreprises-stats {
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
-  }
-  .admin-entreprises-stat-card {
-    padding: 12px 14px;
-  }
-  .admin-entreprises-stat-value {
-    font-size: 18px;
-  }
-  .admin-entreprises-stat-icon-wrapper {
-    width: 36px;
-    height: 36px;
-    font-size: 15px;
   }
   .admin-entreprises-table thead th,
   .admin-entreprises-table tbody td {

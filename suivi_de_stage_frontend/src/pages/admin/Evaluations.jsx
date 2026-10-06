@@ -9,6 +9,7 @@ import {
 } from 'recharts';
 import { evaluationsApi } from '../../api';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import { toast } from 'react-toastify';
 
 function AdminEvaluations() {
@@ -243,53 +244,45 @@ function AdminEvaluations() {
       </div>
 
       {/* ===== STATISTIQUES (5 cartes améliorées) ===== */}
-      <div className="admin-eval-stats">
-        <div className="admin-eval-stat-card">
-          <div className="admin-eval-stat-icon-wrapper" style={{ background: '#E1ECFE', color: '#6BA9E6' }}>
-            <FaStar />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-eval-stat-value">{stats.total}</span>
-            <span className="admin-eval-stat-label">Total évaluations</span>
-          </div>
-        </div>
-        <div className="admin-eval-stat-card">
-          <div className="admin-eval-stat-icon-wrapper" style={{ background: '#D1FAE5', color: '#22C55E' }}>
-            <FaAward />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-eval-stat-value" style={{ color: '#22C55E' }}>{stats.valides}</span>
-            <span className="admin-eval-stat-label">Validées</span>
-          </div>
-        </div>
-        <div className="admin-eval-stat-card">
-          <div className="admin-eval-stat-icon-wrapper" style={{ background: '#FEF3C7', color: '#F59E0B' }}>
-            <FaChartBar />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-eval-stat-value" style={{ color: '#F59E0B' }}>{stats.enRevision}</span>
-            <span className="admin-eval-stat-label">En révision</span>
-          </div>
-        </div>
-        <div className="admin-eval-stat-card">
-          <div className="admin-eval-stat-icon-wrapper" style={{ background: '#F3F4F6', color: '#9CA3AF' }}>
-            <FaFilter />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-eval-stat-value" style={{ color: '#9CA3AF' }}>{stats.enAttente}</span>
-            <span className="admin-eval-stat-label">En attente</span>
-          </div>
-        </div>
-        <div className="admin-eval-stat-card admin-eval-stat-card-featured">
-          <div className="admin-eval-stat-icon-wrapper" style={{ background: '#162449', color: '#F5F8FC' }}>
-            <FaAward />
-          </div>
-          <div className="admin-diplome-stat-content">
-            <span className="admin-eval-stat-value" style={{ color: '#162449' }}>{stats.moyenneGenerale}/20</span>
-            <span className="admin-eval-stat-label">Moyenne générale</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        cols={5}
+        items={[
+          {
+            icon: <FaStar />,
+            value: stats.total,
+            label: 'Total évaluations',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaAward />,
+            value: stats.valides,
+            label: 'Validées',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+          {
+            icon: <FaChartBar />,
+            value: stats.enRevision,
+            label: 'En révision',
+            iconStyle: { background: '#FEF3C7', color: '#F59E0B' },
+            valueStyle: { color: '#F59E0B' },
+          },
+          {
+            icon: <FaFilter />,
+            value: stats.enAttente,
+            label: 'En attente',
+            iconStyle: { background: '#F3F4F6', color: '#9CA3AF' },
+            valueStyle: { color: '#9CA3AF' },
+          },
+          {
+            icon: <FaAward />,
+            value: `${stats.moyenneGenerale}/20`,
+            label: 'Moyenne générale',
+            iconStyle: { background: '#162449', color: '#F5F8FC' },
+            valueStyle: { color: '#162449' },
+          },
+        ]}
+      />
 
       {/* ===== DIAGRAMMES ===== */}
       <div className="admin-eval-charts">

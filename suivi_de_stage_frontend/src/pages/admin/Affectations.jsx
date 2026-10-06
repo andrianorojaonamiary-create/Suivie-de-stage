@@ -17,6 +17,7 @@ import { toast } from 'react-toastify';
 import AffectationForm from './components/AffectationForm';
 import TuteurEditModal from './components/TuteurEditModal';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
+import StatsCards from '../../components/Common/StatsCards';
 import { getApiErrorMessage } from '../../api/apiClient';
 import { teacherAssignmentsApi } from '../../api';
 
@@ -189,58 +190,31 @@ function AdminAffectations() {
       </div>
 
       {/* ===== STATISTIQUES ===== */}
-      <div className="admin-affectation-stats">
-        <div className="admin-affectation-stat-card">
-          <div
-            className="admin-affectation-stat-icon-wrapper"
-            style={{ background: '#E1ECFE', color: '#6BA9E6' }}
-          >
-            <FaUserGraduate />
-          </div>
-          <div className="admin-affectation-stat-content">
-            <span className="admin-affectation-stat-value">
-              {stats.etudiantsAffectes}
-            </span>
-            <span className="admin-affectation-stat-label">Étudiants affectés</span>
-          </div>
-        </div>
-        <div className="admin-affectation-stat-card">
-          <div
-            className="admin-affectation-stat-icon-wrapper"
-            style={{ background: '#D1FAE5', color: '#22C55E' }}
-          >
-            <FaChalkboardTeacher />
-          </div>
-          <div className="admin-affectation-stat-content">
-            <span
-              className="admin-affectation-stat-value"
-              style={{ color: '#22C55E' }}
-            >
-              {stats.enseignants}
-            </span>
-            <span className="admin-affectation-stat-label">
-              Enseignants tuteurs
-            </span>
-          </div>
-        </div>
-        <div className="admin-affectation-stat-card">
-          <div
-            className="admin-affectation-stat-icon-wrapper"
-            style={{ background: '#FEE2E2', color: '#EF4444' }}
-          >
-            <FaUserSlash />
-          </div>
-          <div className="admin-affectation-stat-content">
-            <span
-              className="admin-affectation-stat-value"
-              style={{ color: '#EF4444' }}
-            >
-              {stats.sansTuteur}
-            </span>
-            <span className="admin-affectation-stat-label">Sans tuteur</span>
-          </div>
-        </div>
-      </div>
+      <StatsCards
+        cols={3}
+        items={[
+          {
+            icon: <FaUserGraduate />,
+            value: stats.etudiantsAffectes,
+            label: 'Étudiants affectés',
+            iconStyle: { background: '#E1ECFE', color: '#6BA9E6' },
+          },
+          {
+            icon: <FaChalkboardTeacher />,
+            value: stats.enseignants,
+            label: 'Enseignants tuteurs',
+            iconStyle: { background: '#D1FAE5', color: '#22C55E' },
+            valueStyle: { color: '#22C55E' },
+          },
+          {
+            icon: <FaUserSlash />,
+            value: stats.sansTuteur,
+            label: 'Sans tuteur',
+            iconStyle: { background: '#FEE2E2', color: '#EF4444' },
+            valueStyle: { color: '#EF4444' },
+          },
+        ]}
+      />
 
       {/* ===== ÉTUDIANTS SANS TUTEUR (liste déroulante) ===== */}
       {unassigned.length > 0 && (
