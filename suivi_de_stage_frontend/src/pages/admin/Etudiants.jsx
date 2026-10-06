@@ -4,7 +4,6 @@ import {
   FaUserGraduate, FaGraduationCap, FaBuilding, FaCheck,
   FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
-import { toast } from 'react-toastify';
 
 import EtudiantDetail from './components/EtudiantDetail';
 import studentsApi from '../../api/studentsApi';
@@ -36,7 +35,6 @@ function AdminEtudiants() {
 
       const mapped = list.map(item => ({
         id: item.id,
-        userId: item.userId || item.user?.id,
         matricule: item.matricule || 'ETU-00',
         nom: item.user?.nom || 'Nom',
         prenom: item.user?.prenom || 'Prénom',
@@ -203,11 +201,7 @@ function AdminEtudiants() {
             </tr>
           </thead>
           <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan="8" className="admin-etudiants-empty">Chargement des étudiants...</td>
-              </tr>
-            ) : paginatedEtudiants.length === 0 ? (
+            {paginatedEtudiants.length === 0 ? (
               <tr>
                 <td colSpan="7" className="admin-etudiants-empty">Aucun étudiant trouvé</td>
               </tr>
@@ -217,7 +211,7 @@ function AdminEtudiants() {
                   <td><span className="admin-etudiants-matricule">{etudiant.matricule}</span></td>
                   <td>
                     <div className="admin-etudiants-user">
-                      <span className="admin-etudiants-avatar">{(etudiant.prenom[0] || 'E')}{(etudiant.nom[0] || '')}</span>
+                      <span className="admin-etudiants-avatar">{etudiant.prenom[0]}{etudiant.nom[0]}</span>
                       <div>
                         <div className="admin-etudiants-name">{etudiant.prenom} {etudiant.nom}</div>
                         <div className="admin-etudiants-email">{etudiant.email}</div>
