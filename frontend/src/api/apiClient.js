@@ -44,6 +44,13 @@ apiClient.interceptors.response.use(
 );
 
 export const getApiErrorMessage = (error, fallback) => {
+  // Le throttler renvoie "ThrottlerException: Too Many Requests", sans rapport
+  // avec ce que l'utilisateur a fait : on le remplace par la conséquence réelle
+  // (attendre) plutôt que de laisser un nom d'exception s'afficher dans le
+  // formulaire de connexion.
+  if (error.response?.status === 429) {
+    return 'Trop de tentatives. Patientez une minute avant de réessayer.';
+  }
   const message = error.response?.data?.message;
   if (Array.isArray(message)) return message.join(', ');
   return message || error.message || fallback;

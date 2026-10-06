@@ -41,7 +41,11 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  // 30/min et non 10/min : le compteur sanctionne tous les essais, réussis ou
+  // non, par IP et tous comptes confondus. À 10, quelques mots de passe erronés
+  // sur un compte suffisaient à bloquer la connexion de tous les autres
+  // pendant une minute, sans rapport avec le compte réellement visé.
+  @Throttle({ default: { limit: 30, ttl: 60_000 } })
   login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
   }
