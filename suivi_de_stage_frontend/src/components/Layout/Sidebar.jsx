@@ -43,7 +43,7 @@ function Sidebar() {
         { path: '/admin/encadreurs', icon: <FaUserTie />, label: 'Encadreurs' },
         { path: '/admin/affectations', icon: <FaUserCog />, label: 'Affectations tuteurs' }, 
         { path: '/admin/entreprises', icon: <FaBuilding />, label: 'Entreprises' },
-        { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
+        // { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
         { path: '/admin/evaluations', icon: <FaStar />, label: 'Évaluations' },
         { divider: true },
         { path: '/admin/carte', icon: <FaMapMarkedAlt />, label: 'Carte des stages' },

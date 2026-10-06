@@ -42,7 +42,7 @@ function MobileDrawer({ isOpen, onClose }) {
         { path: '/admin/stages', icon: <FaList />, label: 'Liste des stages' },
         { path: '/admin/etudiants', icon: <FaUsers />, label: 'Étudiants' },
         { path: '/admin/entreprises', icon: <FaBuilding />, label: 'Entreprises' },
-        { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
+        // { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
         { path: '/admin/evaluations', icon: <FaStar />, label: 'Évaluations' },
         { divider: true, label: 'ANALYSE' },
         { path: '/admin/carte', icon: <FaMapMarkedAlt />, label: 'Carte des stages' },

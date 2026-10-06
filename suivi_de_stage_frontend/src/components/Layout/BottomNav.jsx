@@ -26,7 +26,7 @@ function BottomNav() {
         { path: dashboardPath, icon: <FaHome />, label: 'Accueil' },
         { path: '/admin/stages', icon: <FaList />, label: 'Stages' },
         { path: '/admin/etudiants', icon: <FaUsers />, label: 'Étudiants' },
-        { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
+        // { path: '/admin/rapports', icon: <FaFileAlt />, label: 'Rapports' },
         { path: '/profil', icon: <FaUserCog />, label: 'Profil' },
       ];
     }
