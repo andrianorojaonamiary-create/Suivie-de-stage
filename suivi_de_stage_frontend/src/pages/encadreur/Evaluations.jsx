@@ -6,7 +6,8 @@ import {
   FaTimes, FaArrowLeft, FaInfoCircle,
   FaUserTie, FaCalendarAlt, FaComment, FaSave,
   FaCode, FaClipboardCheck, FaRocket, FaUsers,
-  FaChartLine, FaBuilding, FaUserGraduate
+  FaChartLine, FaBuilding, FaUserGraduate,
+  FaCheck, FaEdit, FaTrash, FaPlus
 } from 'react-icons/fa';
 import SelectPersonnalise from '../../components/Common/SelectPersonnalise';
 import { toast } from 'react-toastify';
@@ -93,22 +94,45 @@ function EvalDetailModal({ evaluation, onClose }) {
   );
 }
 
+const parseObservationToCriteria = (obs) => {
+  if (!obs || typeof obs !== 'string') return null;
+  const parts = obs.split(' | ');
+  const parsed = [];
+  parts.forEach((p, idx) => {
+    const match = p.match(/^(.*?)\s*:\s*(\d+(?:\.\d+)?)(?:\/20)?$/);
+    if (match) {
+      parsed.push({
+        id: `parsed-${idx}-${Date.now()}`,
+        label: match[1].trim(),
+        note: parseFloat(match[2]),
+        icon: <FaStar />
+      });
+    }
+  });
+  return parsed.length > 0 ? parsed : null;
+};
+
 // ============================================================
 // FORMULAIRE D'ÉVALUATION AVEC CRITÈRES DYNAMIQUES
 // ============================================================
 function EvaluationForm({ evaluation, onClose, onSave }) {
   // Liste de tous les critères (modifiables et supprimables)
-  const [criteriaList, setCriteriaList] = useState([
-    { id: 'competenceTech', label: 'Compétences techniques', note: 0, icon: <FaCode /> },
-    { id: 'qualiteTravail', label: 'Qualité du travail', note: 0, icon: <FaClipboardCheck /> },
-    { id: 'autonomie', label: 'Autonomie', note: 0, icon: <FaRocket /> },
-    { id: 'respectDelais', label: 'Respect des délais', note: 0, icon: <FaClock /> },
-    { id: 'espritEquipe', label: "Esprit d'équipe", note: 0, icon: <FaUsers /> },
-    { id: 'communication', label: 'Communication', note: 0, icon: <FaComment /> },
-    { id: 'assiduite', label: 'Assiduité et ponctualité', note: 0, icon: <FaCalendarAlt /> }
-  ]);
+  const [criteriaList, setCriteriaList] = useState(() => {
+    const parsed = parseObservationToCriteria(evaluation?.observation);
+    if (parsed) return parsed;
+    const defaultNote = evaluation?.note || 0;
+    return [
+      { id: 'competenceTech', label: 'Compétences techniques', note: defaultNote, icon: <FaCode /> },
+      { id: 'qualiteTravail', label: 'Qualité du travail', note: defaultNote, icon: <FaClipboardCheck /> },
+      { id: 'autonomie', label: 'Autonomie', note: defaultNote, icon: <FaRocket /> },
+      { id: 'respectDelais', label: 'Respect des délais', note: defaultNote, icon: <FaClock /> },
+      { id: 'espritEquipe', label: "Esprit d'équipe", note: defaultNote, icon: <FaUsers /> },
+      { id: 'communication', label: 'Communication', note: defaultNote, icon: <FaComment /> },
+      { id: 'assiduite', label: 'Assiduité et ponctualité', note: defaultNote, icon: <FaCalendarAlt /> }
+    ];
+  });
 
-  const [appreciation, setAppreciation] = useState('');
+  const [appreciation, setAppreciation] = useState(() => evaluation?.commentaire || '');
   const [errors, setErrors] = useState({});
 
   // État pour l'ajout d'un nouveau critère
@@ -458,7 +482,7 @@ function EvaluationForm({ evaluation, onClose, onSave }) {
 // ============================================================
 // PAGE PRINCIPALE
 // ============================================================
-async function loadAllEvaluations() {
+async function loadAllEvaluations(currentUserId) {
   const internshipsRes = await internshipsApi.getAll({ limit: 100 });
   const internships = internshipsRes?.data || (Array.isArray(internshipsRes) ? internshipsRes : []);
 
@@ -470,7 +494,11 @@ async function loadAllEvaluations() {
   const rows = [];
   internships.forEach((s, i) => {
     const evals = evalResults[i]?.data || [];
-    if (evals.length === 0) {
+    const hasEncadreurEval = evals.some(
+      (e) => e.typeEvaluateur === 'ENCADREUR' || (currentUserId && e.evaluateur?.id === currentUserId)
+    );
+
+    if (!hasEncadreurEval) {
       rows.push({
         id: `pending-${s.id}`,
         stageId: s.id,
@@ -487,8 +515,8 @@ async function loadAllEvaluations() {
         filiere: s.student?.formation || '',
         pending: true,
       });
-      return;
     }
+
     evals.forEach((e) => {
       rows.push({
         ...e,
@@ -499,7 +527,7 @@ async function loadAllEvaluations() {
           : 'Étudiant',
         stage: s.intitule,
         entreprise: s.company?.nom || '',
-        type: e.typeEvaluateur,
+        type: e.typeEvaluateur || 'ENCADREUR',
         statut: 'Évalué',
         date: e.dateEvaluation ? new Date(e.dateEvaluation).toLocaleDateString('fr-FR') : '',
         note: e.note,
@@ -531,16 +559,16 @@ function EncadreurEvaluations() {
     const fetchEvaluations = async () => {
       try {
         setLoading(true);
-        const { rows } = await loadAllEvaluations();
+        const { rows } = await loadAllEvaluations(user?.id);
         setAllEvaluations(rows);
       } catch (err) {
-        console.error(' chargement évaluations:', err);
+        console.error('Erreur chargement évaluations:', err);
       } finally {
         setLoading(false);
       }
     };
     fetchEvaluations();
-  }, []);
+  }, [user?.id]);
 
   const evaluations = studentId
     ? allEvaluations.filter(e => String(e.etudiantId) === String(studentId))
@@ -610,18 +638,10 @@ function EncadreurEvaluations() {
         toast.error('Stage introuvable pour cette évaluation');
         return;
       }
-      const criteriaLabels = [
-        ['Compétences techniques', data.competenceTech],
-        ['Qualité du travail', data.qualiteTravail],
-        ['Autonomie', data.autonomie],
-        ['Respect des délais', data.respectDelais],
-        ["Esprit d'équipe", data.espritEquipe],
-        ['Communication', data.communication],
-        ['Assiduité et ponctualité', data.assiduite],
-      ];
-      const observation = criteriaLabels
-        .map(([label, val]) => `${label} : ${val}/20`)
+      const observation = (data.criteriaList || [])
+        .map((crit) => `${crit.label} : ${crit.note}/20`)
         .join(' | ');
+
       const payload = {
         stageId: selectedEvaluation.stageId,
         evaluateurId: user?.id,
@@ -629,17 +649,29 @@ function EncadreurEvaluations() {
         note: Number(data.moyenne),
         observation,
       };
+
       if (data.appreciation?.trim()) {
-        payload.commentaire = data.appreciation.trim();
+        const comm = data.appreciation.trim();
+        if (comm.length >= 2) {
+          payload.commentaire = comm;
+        }
       }
-      await evaluationsApi.create(payload);
-      toast.success(<>
-        <div>Évaluation enregistrée avec succès !</div>
-        <div>Note moyenne : {data.moyenne}/20</div>
-      </>);
+
+      if (selectedEvaluation.pending) {
+        await evaluationsApi.create(payload);
+      } else {
+        await evaluationsApi.update(selectedEvaluation.id, payload);
+      }
+
+      toast.success(
+        <div>
+          <div>Évaluation enregistrée avec succès !</div>
+          <div>Note moyenne : {data.moyenne}/20</div>
+        </div>
+      );
       setShowEvalForm(false);
       setSelectedEvaluation(null);
-      const { rows } = await loadAllEvaluations();
+      const { rows } = await loadAllEvaluations(user?.id);
       setAllEvaluations(rows);
     } catch (err) {
       const message = err?.response?.data?.message || err?.message || "Erreur lors de l'enregistrement";
@@ -779,7 +811,7 @@ function EncadreurEvaluations() {
                     </td>
                     <td>
                       <div className="action-buttons">
-                        {evalItem.statut === 'À faire' && (
+                        {evalItem.statut === 'À faire' ? (
                           <button 
                             className="action-btn eval" 
                             onClick={() => openEvalForm(evalItem)}
@@ -787,6 +819,16 @@ function EncadreurEvaluations() {
                           >
                             <FaStar />
                           </button>
+                        ) : (
+                          (evalItem.type === 'ENCADREUR' || evalItem.typeEvaluateur === 'ENCADREUR') && (
+                            <button 
+                              className="action-btn edit" 
+                              onClick={() => openEvalForm(evalItem)}
+                              title="Modifier l'évaluation"
+                            >
+                              <FaEdit />
+                            </button>
+                          )
                         )}
                         <button 
                           className="action-btn view" 

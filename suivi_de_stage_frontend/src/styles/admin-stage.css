@@ -851,3 +851,155 @@
     flex-direction: column;
   }
 }
+
+/* ============================================================
+   AJOUTS - SYSTÈME D'AFFECTATIONS FONCTIONNEL
+   ============================================================ */
+
+/* Bouton "Nouveau stage" dans le header */
+.admin-stages-btn-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #6BA9E6;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.admin-stages-btn-add:hover {
+  background: #162449;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(107, 169, 230, 0.35);
+}
+
+/* Bouton "Modifier" dans le tableau */
+.admin-stages-btn-edit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 1px solid #E1ECFE;
+  border-radius: 8px;
+  background: white;
+  color: #6BA9E6;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.admin-stages-btn-edit:hover {
+  background: #162449;
+  border-color: #162449;
+  color: white;
+}
+
+/* Badges supplémentaires */
+.badge-en-attente {
+  background: #FFF7ED;
+  color: #C2410C;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+.badge-refuse {
+  background: #FEE2E2;
+  color: #991B1B;
+  padding: 2px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+  display: inline-block;
+}
+
+/* Modal large pour le formulaire d'affectation */
+.modal-content.modal-large {
+  max-width: 860px;
+}
+
+/* Form group pleine largeur */
+.form-group-full {
+  grid-column: span 2;
+}
+
+/* Textarea dans le formulaire */
+.form-group textarea {
+  padding: 10px 14px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  transition: all 0.2s;
+  font-family: inherit;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  resize: vertical;
+  min-height: 72px;
+}
+.form-group textarea:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+.form-group textarea::placeholder {
+  color: #A0B8D0;
+}
+
+/* Select natif stylisé */
+.form-select {
+  padding: 10px 36px 10px 14px;
+  border: 1.5px solid #E1ECFE;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #162449;
+  background: white;
+  width: 100%;
+  box-sizing: border-box;
+  cursor: pointer;
+  font-family: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236BA9E6' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: all 0.2s;
+}
+.form-select:focus {
+  outline: none;
+  border-color: #6BA9E6;
+  box-shadow: 0 0 0 4px rgba(107, 169, 230, 0.10);
+}
+
+/* Indicateur de champ requis */
+.required {
+  color: #EF4444;
+}
+
+/* Chargement du formulaire */
+.stage-form-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  color: #6c7a8a;
+  font-size: 14px;
+}
+
+/* Animation spin pour les icônes de chargement */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}

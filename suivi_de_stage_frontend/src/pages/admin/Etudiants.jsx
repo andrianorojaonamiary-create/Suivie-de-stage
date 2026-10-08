@@ -20,9 +20,11 @@ function AdminEtudiants() {
   const [selectedEtudiant, setSelectedEtudiant] = useState(null);
   const [etudiants, setEtudiants] = useState([]);
   const [enStage, setEnStage] = useState(0);
+  const [loading, setLoading] = useState(false);
   const itemsPerPage = 5;
 
   const loadStudents = async () => {
+    setLoading(true);
     try {
       const [studentsRes, stagesRes] = await Promise.allSettled([
         studentsApi.getAll(),
@@ -60,6 +62,8 @@ function AdminEtudiants() {
       );
     } catch (err) {
       console.error('Erreur chargement étudiants:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
